@@ -91,7 +91,7 @@ export function Banner() {
   const banner = useApp((s) => s.banner)
   const dismiss = useApp((s) => s.dismissBanner)
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       {banner && (
         <motion.div
           key={banner.nonce}

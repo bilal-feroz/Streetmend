@@ -32,6 +32,8 @@
   --color-sel: #5b8cff;
   --color-sel-2: #7aa2ff;
   --color-sel-dim: #18264a;
+  --color-btn: #3563d4;
+  --color-btn-hover: #2f58bd;
 
   --radius-card: 8px;
 }
@@ -196,7 +198,7 @@ input[type='range'].sm-range::-moz-range-thumb {
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-1.5 rounded-md bg-sel px-3 py-1.5 text-[13px] font-semibold text-white shadow-sm shadow-sel/20 transition-colors hover:bg-sel-2 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-1.5 rounded-md bg-btn px-3 py-1.5 text-[13px] font-semibold text-white shadow-sm shadow-sel/20 transition-colors hover:bg-btn-hover disabled:cursor-not-allowed disabled:opacity-60;
   }
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-1.5 rounded-md border border-ink-500 bg-ink-750 px-3 py-1.5 text-[13px] font-medium text-fg transition-colors hover:border-ink-400 hover:bg-ink-700 disabled:cursor-not-allowed disabled:opacity-50;

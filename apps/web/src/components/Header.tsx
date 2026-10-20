@@ -29,7 +29,9 @@ export function Header() {
     <header className="relative z-30 flex h-12 shrink-0 items-center gap-3 border-b border-ink-600 bg-ink-850 px-3 sm:px-4">
       <div className="flex items-center gap-2">
         <Logo />
-        <span className="text-[14px] font-bold tracking-[0.18em] text-fg">STREETMEND</span>
+        <h1 className="text-[14px] font-bold tracking-[0.18em] text-fg">
+          STREETMEND<span className="sr-only"> — combination-aware pedestrian accessibility repair planning</span>
+        </h1>
         <span className="hidden text-[12px] text-fg-3 xl:inline">Fix the missing links. Reconnect the city.</span>
       </div>
       <div className="mx-1 hidden h-5 w-px bg-ink-600 md:block" />
