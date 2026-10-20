@@ -1,4 +1,5 @@
-"""Guided Simulation: a deterministic, synthetic pedestrian network.
+"""Harbor District: a deterministic, synthetic pedestrian network (test fixture;
+the app's guided scenario is streetmend.scenario.guided).
 
 SYNTHETIC DATA. This district does not exist. It was designed to demonstrate
 the combined-repair problem: a residential area west of a four-lane boulevard
@@ -283,7 +284,7 @@ def build_demo_scenario(max_distance_m: float = 600.0) -> Scenario:
 
     sc = Scenario(
         id="demo",
-        name="Guided Simulation - Harbor District (synthetic)",
+        name="Harbor District (synthetic test scenario)",
         mode="synthetic",
         description=(
             "A synthetic neighborhood split by Harbor Blvd, a four-lane arterial with only two crossings. "
