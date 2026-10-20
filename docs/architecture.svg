@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 760" width="1240" height="760" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#7aa2ff"/>
+    </marker>
+    <style>
+      .t{fill:#e8ecf4;font-size:15px;font-weight:600}
+      .s{fill:#a6b0c6;font-size:12px}
+      .h{fill:#7581a0;font-size:11px;font-weight:700;letter-spacing:.12em}
+      .b{fill:#121a2d;stroke:#2b3858;stroke-width:1.2}
+      .k{fill:#0f1a33;stroke:#5b8cff;stroke-width:1.6}
+      .g{fill:#0f2b25;stroke:#34d399;stroke-width:1.4}
+      .w{fill:#2b2410;stroke:#fbbf24;stroke-width:1.2}
+      .l{stroke:#7aa2ff;stroke-width:1.6;fill:none;marker-end:url(#a)}
+      .d{stroke:#566282;stroke-width:1.3;fill:none;stroke-dasharray:5 4;marker-end:url(#a)}
+    </style>
+  </defs>
+  <rect width="1240" height="760" rx="16" fill="#080c16"/>
+  <text x="40" y="48" fill="#e8ecf4" font-size="22" font-weight="700" letter-spacing=".14em">STREETMEND · ARCHITECTURE</text>
+  <text x="40" y="72" class="s">Deterministic engine is the source of truth. The language model only selects allowlisted operations.</text>
+
+  <!-- column labels -->
+  <text x="40" y="112" class="h">SOURCES</text>
+  <text x="300" y="112" class="h">INGESTION &amp; NORMALIZATION</text>
+  <text x="560" y="112" class="h">PEDESTRIAN GRAPH</text>
+  <text x="820" y="112" class="h">OPTIMIZATION ENGINE</text>
+  <text x="1040" y="112" class="h">INTERFACES</text>
+
+  <!-- sources -->
+  <rect class="b" x="40" y="128" width="220" height="62" rx="10"/>
+  <text class="t" x="56" y="154">CDOT ADA Curb Ramps</text><text class="s" x="56" y="174">ArcGIS REST · EPSG:2264 · 320 in area</text>
+  <rect class="b" x="40" y="202" width="220" height="62" rx="10"/>
+  <text class="t" x="56" y="228">CDOT Sidewalk Inventory</text><text class="s" x="56" y="248">per-side polylines · 557 in area</text>
+  <rect class="b" x="40" y="276" width="220" height="62" rx="10"/>
+  <text class="t" x="56" y="302">CATS Bus Stops</text><text class="s" x="56" y="322">City of Charlotte · 19 in area</text>
+  <rect class="b" x="40" y="350" width="220" height="62" rx="10"/>
+  <text class="t" x="56" y="376">OpenStreetMap</text><text class="s" x="56" y="396">streets, POIs, buildings (OSMnx)</text>
+  <rect class="w" x="40" y="440" width="220" height="62" rx="10"/>
+  <text class="t" x="56" y="466">Synthetic scenario</text><text class="s" x="56" y="486">Harbor District · guided demo</text>
+
+  <!-- ingestion -->
+  <rect class="b" x="300" y="128" width="220" height="210" rx="10"/>
+  <text class="t" x="316" y="154">scripts/ingest</text>
+  <text class="s" x="316" y="178">• paginated queries + retries</text>
+  <text class="s" x="316" y="198">• pyproj 2264 → 4326, checked</text>
+  <text class="s" x="316" y="214">   vs server (max 0.82 m)</text>
+  <text class="s" x="316" y="234">• dedupe, missing-field stats</text>
+  <text class="s" x="316" y="254">• provenance + retrieval time</text>
+  <text class="s" x="316" y="274">• Overpass backoff → OSM API</text>
+  <text class="s" x="316" y="294">• cache (data/cache)</text>
+  <text class="s" x="316" y="318">→ data/samples/*.geojson</text>
+  <rect class="b" x="300" y="350" width="220" height="62" rx="10"/>
+  <text class="t" x="316" y="376">Unavailable source</text><text class="s" x="316" y="396">explicit status, never fabricated</text>
+
+  <!-- graph -->
+  <rect class="k" x="560" y="128" width="220" height="150" rx="10"/>
+  <text class="t" x="576" y="154">municipal/build.py</text>
+  <text class="s" x="576" y="178">OSM intersections → corners</text>
+  <text class="s" x="576" y="198">ramps → corner → crossing</text>
+  <text class="s" x="576" y="218">inventory → sidewalk side</text>
+  <text class="s" x="576" y="238">3 passability policies</text>
+  <text class="s" x="576" y="258">no record → UNKNOWN</text>
+  <rect class="k" x="560" y="290" width="220" height="122" rx="10"/>
+  <text class="t" x="576" y="316">PedGraph</text>
+  <text class="s" x="576" y="340">corner · curb · crossing · ramp</text>
+  <text class="s" x="576" y="360">state: traversable / blocked /</text>
+  <text class="s" x="576" y="376">unknown · evidence label</text>
+  <text class="s" x="576" y="398">undirected (no vehicle rules)</text>
+  <rect class="w" x="560" y="440" width="220" height="62" rx="10"/>
+  <text class="t" x="576" y="466">scenario/demo.py</text><text class="s" x="576" y="486">same topology, scenario states</text>
+
+  <!-- engine -->
+  <rect class="g" x="820" y="128" width="190" height="96" rx="10"/>
+  <text class="t" x="836" y="154">Evaluator</text>
+  <text class="s" x="836" y="176">scipy Dijkstra (CSR)</text>
+  <text class="s" x="836" y="194">exact key-node min-plus</text>
+  <text class="s" x="836" y="212">batched, sound pruning</text>
+  <rect class="g" x="820" y="236" width="190" height="96" rx="10"/>
+  <text class="t" x="836" y="262">Solvers</text>
+  <text class="s" x="836" y="284">exact enumeration</text>
+  <text class="s" x="836" y="302">greedy · individual · nearest</text>
+  <text class="s" x="836" y="320">beam (labeled approx.)</text>
+  <rect class="g" x="820" y="344" width="190" height="96" rx="10"/>
+  <text class="t" x="836" y="370">Analysis</text>
+  <text class="s" x="836" y="392">synergy · leave-one-out</text>
+  <text class="s" x="836" y="410">new O-D pairs · routes</text>
+  <text class="s" x="836" y="428">unknown-edge sensitivity</text>
+
+  <!-- interfaces -->
+  <rect class="k" x="1040" y="128" width="170" height="96" rx="10"/>
+  <text class="t" x="1056" y="154">FastAPI</text>
+  <text class="s" x="1056" y="176">Pydantic contracts</text>
+  <text class="s" x="1056" y="194">evaluate · optimize</text>
+  <text class="s" x="1056" y="212">report · records</text>
+  <rect class="k" x="1040" y="236" width="170" height="122" rx="10"/>
+  <text class="t" x="1056" y="262">Web app</text>
+  <text class="s" x="1056" y="284">React 19 + MapLibre</text>
+  <text class="s" x="1056" y="302">guided demo · explorer</text>
+  <text class="s" x="1056" y="320">route / reach animation</text>
+  <text class="s" x="1056" y="338">text alternative lists</text>
+  <rect class="b" x="1040" y="370" width="170" height="132" rx="10"/>
+  <text class="t" x="1056" y="396">Assistant</text>
+  <text class="s" x="1056" y="418">rule parser (offline)</text>
+  <text class="s" x="1056" y="436">→ local qwen3:4b (Ollama)</text>
+  <text class="s" x="1056" y="454">→ Pydantic allowlist</text>
+  <text class="s" x="1056" y="472">→ engine executes</text>
+  <text class="s" x="1056" y="490">numbers checked vs facts</text>
+
+  <!-- arrows -->
+  <path class="l" d="M260 159 H300"/>
+  <path class="l" d="M260 233 H300"/>
+  <path class="l" d="M260 307 H300"/>
+  <path class="l" d="M260 381 H280 V300 H300"/>
+  <path class="d" d="M410 338 V350"/>
+  <path class="l" d="M520 200 H560"/>
+  <path class="l" d="M670 278 V290"/>
+  <path class="l" d="M260 471 H560"/>
+  <path class="l" d="M670 440 V412"/>
+  <path class="l" d="M780 330 H800 V176 H820"/>
+  <path class="l" d="M915 224 V236"/>
+  <path class="l" d="M915 332 V344"/>
+  <path class="l" d="M1010 392 H1025 V176 H1040"/>
+  <path class="l" d="M1125 224 V236"/>
+  <path class="l" d="M1125 370 V358"/>
+  <path class="d" d="M1040 436 H1020 V300 H1010"/>
+
+  <!-- footer band -->
+  <rect x="40" y="540" width="1170" height="186" rx="12" fill="#0b111e" stroke="#1f2a44"/>
+  <text x="60" y="572" class="h">OBJECTIVE</text>
+  <text x="60" y="600" fill="#e8ecf4" font-size="16" font-family="JetBrains Mono, Consolas, monospace">Score(S) = Σₒ Σ_d  wₒ · w_cat(d) · w_d · 1[ dist_S(o, d) ≤ L ]</text>
+  <text x="60" y="626" class="s">dist_S: shortest traversable network distance with repairs S applied · L: access threshold · weights are priorities, not population</text>
+  <text x="60" y="664" class="h">VERIFICATION</text>
+  <text x="60" y="690" class="s">108 pytest (brute-force + NetworkX cross-checks, fast-vs-full evaluator equivalence, builder invariants, ingestion) · 8 Playwright E2E (full demo, axe scan)</text>
+  <text x="60" y="710" class="s">Benchmark: scripts/benchmarks/run_benchmark.py → docs/BENCHMARK.md (guided, 40 randomized districts, 40 random grids, Charlotte × 3 policies)</text>
+</svg>
