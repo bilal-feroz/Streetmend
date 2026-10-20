@@ -1,5 +1,5 @@
 // Visual QA helper: drive the app headlessly and capture screenshots.
-// Usage: node scripts/capture.mjs <url> <width> <height> "click=<sel>;wait=<ms>;shot=<file>;text=<sel>;fill=<sel>|<value>;press=<key>"
+// Usage: node scripts/capture.mjs <url> <width> <height> "click=<sel>;wait=<ms>;shot=<file>;text=<sel>;fill=<sel>|<value>;press=<key>;eval=<js>;mouse=<x>,<y>"
 import { chromium } from '@playwright/test'
 const [,, url, w, h, script] = process.argv
 const browser = await chromium.launch()
@@ -18,6 +18,8 @@ for (const a of script.split(';').filter(Boolean)) {
   if (kind === 'wait') await page.waitForTimeout(+arg)
   if (kind === 'scroll') await page.locator(arg).first().scrollIntoViewIfNeeded()
   if (kind === 'shot') await page.screenshot({ path: arg })
+  if (kind === 'eval') console.log('eval =>', JSON.stringify(await page.evaluate(arg)).slice(0, 600))
+  if (kind === 'mouse') { const [x, y] = arg.split(',').map(Number); await page.mouse.click(x, y) }
   if (kind === 'text') console.log(arg, '=>', (await page.locator(arg).first().innerText()).replace(/\n/g, ' | ').slice(0, 300))
 }
 console.log(JSON.stringify({ errors: errors.slice(0, 8) }))

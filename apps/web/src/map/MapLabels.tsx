@@ -63,19 +63,27 @@ export function MapLabels({ handle }: { handle: MapHandle }) {
   useEffect(() => {
     const { layer } = handle
     const place = () => {
+      const w = handle.map.getCanvas().clientWidth
+      const at = new Map(anchors.map((a) => [a.key, layer.project(a.lng, a.lat, a.alt)]))
       for (const a of anchors) {
         const el = refs.current.get(a.key)
         if (!el) continue
-        const p = layer.project(a.lng, a.lat, a.alt)
+        const p = at.get(a.key)
         if (!p) {
           el.style.opacity = '0'
           continue
         }
         el.style.opacity = '1'
         if (a.side) {
-          const w = handle.map.getCanvas().clientWidth
-          const right = p[0] < w - 230
-          el.style.transform = `translate(${Math.round(p[0] + (right ? 18 : -18))}px, ${Math.round(p[1])}px) translate(${right ? '0' : '-100%'}, -50%)`
+          // Endpoint labels face away from the other endpoint, so they never cover the
+          // route or the repairs between them; flip or clamp to stay on screen.
+          const other = at.get(a.key === 'origin' ? 'dest' : 'origin')
+          const lw = el.offsetWidth
+          let right = other ? p[0] >= other[0] : p[0] < w / 2
+          if (right && p[0] + 18 + lw > w - 8 && p[0] - 18 - lw >= 8) right = false
+          else if (!right && p[0] - 18 - lw < 8 && p[0] + 18 + lw <= w - 8) right = true
+          const x = right ? Math.min(p[0] + 18, w - 8 - lw) : Math.max(p[0] - 18 - lw, 8)
+          el.style.transform = `translate(${Math.round(x)}px, ${Math.round(p[1])}px) translate(0, -50%)`
         } else {
           el.style.transform = `translate(${Math.round(p[0])}px, ${Math.round(p[1] + a.dy)}px) translate(-50%, -100%)`
         }

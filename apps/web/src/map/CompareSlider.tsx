@@ -9,6 +9,7 @@ export function CompareSlider() {
   const before = useApp((s) => s.initialEval?.metrics)
   const after = useApp((s) => s.evaluation?.metrics)
   const applied = useApp((s) => s.applied)
+  const presenting = useApp((s) => s.presenting)
   const box = useRef<HTMLDivElement>(null)
   const drag = (clientX: number) => {
     const r = box.current?.getBoundingClientRect()
@@ -40,14 +41,16 @@ export function CompareSlider() {
             <path d="M5 3 L1.5 7 L5 11 M9 3 L12.5 7 L9 11" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
-      </div>
-      <div className="absolute left-3 top-14 rounded-md bg-white/95 px-2.5 py-1.5 text-[11.5px] shadow">
-        <div className="font-semibold text-ink">Before repairs</div>
-        <div className="text-ink-2">{before ? `${before.connected_pairs} of ${before.total_pairs} journeys connected` : '—'}</div>
-      </div>
-      <div className="absolute right-3 top-14 rounded-md bg-white/95 px-2.5 py-1.5 text-right text-[11.5px] shadow">
-        <div className="font-semibold text-ink">After {applied.length ? applied.join(' + ') : 'no repairs'}</div>
-        <div className="text-ink-2">{after ? `${after.connected_pairs} of ${after.total_pairs} journeys connected` : '—'}</div>
+        {/* side captions travel with the divider near its foot (above the presentation bar when it is up),
+            leaving the map centre and the chrome in the corners clear */}
+        <div className={`absolute right-3 whitespace-nowrap ${presenting ? 'bottom-[184px]' : 'bottom-12'} rounded-md border border-line bg-white/95 px-2.5 py-1.5 text-right text-[11.5px] shadow-sm`} data-testid="compare-before">
+          <div className="font-semibold text-ink">Before repairs</div>
+          <div className="text-ink-2">{before ? `${before.connected_pairs} of ${before.total_pairs} journeys connected` : '—'}</div>
+        </div>
+        <div className={`absolute left-3 whitespace-nowrap ${presenting ? 'bottom-[184px]' : 'bottom-12'} rounded-md border border-ok/40 bg-white/95 px-2.5 py-1.5 text-[11.5px] shadow-sm`} data-testid="compare-after">
+          <div className="font-semibold text-ink">After {applied.length ? applied.join(' + ') : 'no repairs'}</div>
+          <div className="text-ok-ink">{after ? `${after.connected_pairs} of ${after.total_pairs} journeys connected` : '—'}</div>
+        </div>
       </div>
     </div>
   )

@@ -42,15 +42,37 @@ function StudyArea() {
   )
 }
 
-export function Header() {
+/** Guided scenario vs. Charlotte Data Explorer (header on desktop, planning sheet below lg). */
+export function DataModeSwitch({ testId = 'data-mode' }: { testId?: string }) {
   const scenarioId = useApp((s) => s.scenarioId)
+  const health = useApp((s) => s.health)
+  const loadScenario = useApp((s) => s.loadScenario)
+  const explorer = scenarioId !== GUIDED_ID
+  const municipalAvailable = health?.scenarios.some((s) => s.id === EXPLORER_ID && s.available) ?? true
+  return (
+    <Segmented
+      size="sm"
+      label="Data mode"
+      value={explorer ? 'explorer' : 'guided'}
+      testId={testId}
+      onChange={(v) => {
+        if (v === 'guided' && explorer) void loadScenario(GUIDED_ID)
+        if (v === 'explorer' && !explorer && municipalAvailable) void loadScenario(EXPLORER_ID)
+      }}
+      options={[
+        { value: 'guided', label: 'Guided scenario', title: 'Hypothetical barriers on real Charlotte streets' },
+        { value: 'explorer', label: 'Data explorer', title: 'Real CDOT municipal records' },
+      ]}
+    />
+  )
+}
+
+export function Header() {
+  const explorer = useApp((s) => s.scenarioId !== GUIDED_ID)
   const mapMode = useApp((s) => s.mapMode)
   const panelOpen = useApp((s) => s.panelOpen)
   const presenting = useApp((s) => s.presenting)
-  const health = useApp((s) => s.health)
-  const { loadScenario, setMapMode, setDialog, setPanelOpen, startPresentation, stopPresentation } = useApp.getState()
-  const explorer = scenarioId !== GUIDED_ID
-  const municipalAvailable = health?.scenarios.some((s) => s.id === EXPLORER_ID && s.available) ?? true
+  const { setMapMode, setDialog, setPanelOpen, startPresentation, stopPresentation } = useApp.getState()
   return (
     <header className="relative z-30 flex h-[52px] shrink-0 items-center gap-2 whitespace-nowrap border-b border-line bg-paper px-3 sm:gap-3 sm:px-4">
       <div className="flex items-center gap-2.5">
@@ -64,20 +86,7 @@ export function Header() {
       <StudyArea />
       <div className="flex-1" />
       <div className="hidden lg:block">
-        <Segmented
-          size="sm"
-          label="Data mode"
-          value={explorer ? 'explorer' : 'guided'}
-          testId="data-mode"
-          onChange={(v) => {
-            if (v === 'guided' && explorer) void loadScenario(GUIDED_ID)
-            if (v === 'explorer' && !explorer && municipalAvailable) void loadScenario(EXPLORER_ID)
-          }}
-          options={[
-            { value: 'guided', label: 'Guided scenario', title: 'Hypothetical barriers on real Charlotte streets' },
-            { value: 'explorer', label: 'Data explorer', title: 'Real CDOT municipal records' },
-          ]}
-        />
+        <DataModeSwitch />
       </div>
       <Segmented
         size="sm"

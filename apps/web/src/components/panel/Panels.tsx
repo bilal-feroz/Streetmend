@@ -118,7 +118,7 @@ function RecordsTab() {
       <div className="space-y-2.5 border-b border-line px-4 py-3">
         <div className="flex items-center justify-between">
           <span className="text-[12.5px] text-ink">{records.ramps.length} CDOT curb-ramp records in the study area</span>
-          <label className="flex items-center gap-1.5 text-[12px] text-ink-2">
+          <label className="ml-3 flex shrink-0 items-center gap-1.5 text-[12px] text-ink-2">
             <input type="checkbox" checked={layers.records} onChange={() => toggleLayer('records')} className="accent-sel" /> on map
           </label>
         </div>
@@ -255,7 +255,8 @@ function QualityTab() {
           <Row k="Origins (OSM residential buildings, aggregated)" v={`${rep.origins} (${c.residential_buildings_used} bldgs)`} />
         </tbody>
       </table>
-      <h2 className="eyebrow mt-4">Ramp record completeness</h2>
+      <h2 className="eyebrow mt-4">Missing values in ramp records</h2>
+      <p className="mt-1 text-[11.5px] text-ink-2">Share of the {ramps?.count ?? 0} records where the field is empty.</p>
       <ul className="mt-1.5 space-y-1">
         {Object.entries(ramps?.missing ?? {}).map(([k, v]) => (
           <li key={k} className="grid grid-cols-[140px_1fr_40px] items-center gap-2 text-[11.5px]">

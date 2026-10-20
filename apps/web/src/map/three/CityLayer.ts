@@ -37,6 +37,7 @@ export class CityLayer implements CustomLayerInterface {
   private camera = new THREE.Camera()
   private sceneMain = new THREE.Scene()
   private scenes: Record<Side, THREE.Scene> = { before: new THREE.Scene(), after: new THREE.Scene() }
+  private markerScenes: Record<Side, THREE.Scene> = { before: new THREE.Scene(), after: new THREE.Scene() }
   readonly networks: Record<Side, NetworkLayer>
   readonly markers: Record<Side, MarkerLayer>
   private resolution = new THREE.Vector2(1, 1)
@@ -64,8 +65,8 @@ export class CityLayer implements CustomLayerInterface {
     this.networks = { before: new NetworkLayer(frame, this.resolution), after: new NetworkLayer(frame, this.resolution) }
     this.markers = { before: new MarkerLayer(frame), after: new MarkerLayer(frame) }
     for (const side of ['before', 'after'] as Side[]) {
-      this.scenes[side].add(this.networks[side].group, this.markers[side].group)
-      this.scenes[side].matrixWorldAutoUpdate = true
+      this.scenes[side].add(this.networks[side].group)
+      this.markerScenes[side].add(this.markers[side].group)
     }
     this.camera.matrixAutoUpdate = false
     this.camera.matrixWorldAutoUpdate = false
@@ -89,6 +90,23 @@ export class CityLayer implements CustomLayerInterface {
     sc.near = 100
     sc.far = 7000
     this.sceneMain.add(this.sun, this.sun.target)
+  }
+
+  /**
+   * Second custom layer, added above the basemap labels: markers stay legible
+   * over street names. It reuses this frame's camera and depth buffer, so a
+   * marker behind a building is still hidden by it.
+   */
+  readonly overlay: CustomLayerInterface = {
+    id: 'streetmend-markers',
+    type: 'custom',
+    renderingMode: '3d',
+    render: () => {
+      if (!this.ready) return
+      this.renderer.resetState()
+      this.renderer.setViewport(0, 0, this.resolution.x, this.resolution.y)
+      this.renderSides(this.markerScenes)
+    },
   }
 
   // ---- MapLibre lifecycle -------------------------------------------------
@@ -150,19 +168,26 @@ export class CityLayer implements CustomLayerInterface {
       this.shadowDirty = false
     }
     r.render(this.sceneMain, this.camera)
+    this.renderSides(this.scenes)
+    this.onRender?.()
+    if (this.anims.size) this.map.triggerRepaint()
+  }
+
+  /** One scene per side; in split view the before side is scissored to the left. */
+  private renderSides(scenes: Record<Side, THREE.Scene>) {
+    const r = this.renderer
     if (typeof this.view === 'object') {
+      const { x: w, y: h } = this.resolution
       const x = Math.round(this.view.split * w)
       r.setScissorTest(true)
       r.setScissor(0, 0, x, h)
-      r.render(this.scenes.before, this.camera)
+      r.render(scenes.before, this.camera)
       r.setScissor(x, 0, w - x, h)
-      r.render(this.scenes.after, this.camera)
+      r.render(scenes.after, this.camera)
       r.setScissorTest(false)
     } else {
-      r.render(this.scenes[this.view], this.camera)
+      r.render(scenes[this.view], this.camera)
     }
-    this.onRender?.()
-    if (this.anims.size) this.map.triggerRepaint()
   }
 
   private repaint() {

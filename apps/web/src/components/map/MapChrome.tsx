@@ -68,7 +68,7 @@ export function CameraToolbar() {
   const [open, setOpen] = useState(false)
   const btn = 'grid h-8 w-8 place-items-center text-ink-2 hover:bg-wash hover:text-ink'
   return (
-    <div className="pointer-events-auto flex flex-col items-end gap-2">
+    <div className="pointer-events-auto flex flex-col items-end gap-2 max-sm:items-start">
       <div className="flex overflow-hidden rounded-lg border border-line bg-paper shadow-sm" role="toolbar" aria-label="Camera presets">
         {PRESETS.map(({ k, label, Icon }) => (
           <Tip key={k} text={label} side="bottom">

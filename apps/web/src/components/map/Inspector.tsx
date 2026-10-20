@@ -81,7 +81,7 @@ export function Inspector({ buildings }: { buildings?: { name: string | null; b:
           {rec && <Row k="Survey date" v={String((iv.attrs?.survey_date as string) ?? 'missing')} />}
           <Row k="Evidence" v={EVIDENCE[iv.evidence] ?? iv.evidence} />
         </div>
-        <div className="mt-2.5 flex gap-2">
+        <div className="sticky bottom-0 mt-2.5 flex gap-2 bg-paper pt-1 shadow-[0_12px_0_0_var(--color-paper)]">
           {on ? (
             <button className="btn-secondary flex-1" onClick={() => void st.remove(iv.id)} data-testid="inspector-remove">
               <Undo2 size={14} /> Remove repair
@@ -116,7 +116,7 @@ export function Inspector({ buildings }: { buildings?: { name: string | null; b:
           {d && d.source_ids.length > 0 && <Row k="Identifier" v={<span className="font-mono text-[11px]">{d.source_ids[0]}</span>} />}
           {o && evaluation && <Row k="Reachable now" v={`${evaluation.per_origin.find((p) => p.origin === o.id)?.reachable.length ?? 0} of ${sc.destinations.length} destinations`} />}
         </div>
-        <div className="mt-2.5 flex gap-2">
+        <div className="sticky bottom-0 mt-2.5 flex gap-2 bg-paper pt-1 shadow-[0_12px_0_0_var(--color-paper)]">
           {o && (
             <button className="btn-secondary flex-1" disabled={journey?.origin === o.id} onClick={() => journey && st.setJourney(o.id, journey.destination)}>
               <MapPin size={14} /> {journey?.origin === o.id ? 'Journey origin' : 'Set as origin'}
@@ -180,7 +180,7 @@ export function Inspector({ buildings }: { buildings?: { name: string | null; b:
   } else return null
 
   return (
-    <div className="pointer-events-auto w-[340px] max-w-[calc(100vw-24px)] rounded-xl border border-line bg-paper p-3 shadow-[0_8px_30px_rgba(30,50,40,0.18)]" role="dialog" aria-label="Details" data-testid="inspector">
+    <div className="pointer-events-auto max-h-full w-[340px] max-w-[calc(100vw-24px)] overflow-y-auto rounded-xl border border-line bg-paper p-3 shadow-[0_8px_30px_rgba(30,50,40,0.18)]" role="dialog" aria-label="Details" data-testid="inspector">
       {body}
     </div>
   )

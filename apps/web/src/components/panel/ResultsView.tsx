@@ -160,7 +160,7 @@ export function ResultsView() {
       )}
 
       <div className="mt-3 grid grid-cols-3 gap-2 rounded-lg bg-wash p-2.5" data-testid="impact">
-        <Stat label="Connected journeys" before={o.connected_pairs_before} after={o.connected_pairs_after} testId="stat-pairs" />
+        <Stat label="Journeys" before={o.connected_pairs_before} after={o.connected_pairs_after} testId="stat-pairs" />
         <Stat label="Weighted access" before={n(o.before)} after={n(o.after)} testId="stat-objective" />
         <Stat label="Selected journey" after={route?.found ? `${Math.round(route.length_m ?? 0)}` : '—'} unit={route?.found ? 'm' : undefined} testId="stat-route" />
       </div>

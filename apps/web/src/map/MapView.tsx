@@ -125,6 +125,7 @@ export function MapView() {
         id: 'rec-selected', type: 'circle', source: 'records', filter: ['==', ['get', 'oid'], -1],
         paint: { 'circle-radius': 11, 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-color': '#3568c8', 'circle-stroke-width': 2.5, 'circle-pitch-alignment': 'map' },
       }, FIRST_LABEL_LAYER)
+      map.addLayer(layer.overlay)
       const h: MapHandle = { map, layer }
       window.__sm = {
         ...h,
