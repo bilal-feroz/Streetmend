@@ -55,7 +55,7 @@ export function MethodologyDialog() {
             path). The result is optimal for the stated candidate set and objective. Ties prefer fewer repairs.
           </li>
           <li>
-            <b className="text-fg">Beam search</b> is used only when combinations exceed 20,000; it is labeled approximate and never called optimal.
+            <b className="text-fg">Beam search</b> is used only when combinations exceed 150,000 (seeded with the exact optimum for a smaller budget); it is labeled approximate and never called optimal.
           </li>
           <li>
             <b className="text-fg">Greedy</b> adds the repair with the largest immediate gain each step and stops when none adds value. <b className="text-fg">Individual ranking</b>{' '}
