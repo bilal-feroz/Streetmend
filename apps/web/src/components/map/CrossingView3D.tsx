@@ -181,7 +181,7 @@ export function CrossingView3D({ nearId, farId, nearOk, farOk, street }: Props) 
         <div ref={host} className="absolute inset-0" />
         <div ref={labels} className="pointer-events-none absolute inset-0">
           {[['a', nearId, nearOk], ['b', farId, farOk]].map(([k, id, ok]) => (
-            <div key={k as string} data-k={k as string} className={`absolute left-0 top-0 rounded px-1.5 py-0.5 text-[11px] font-bold text-white shadow ${ok ? 'bg-ok' : 'bg-bad'}`}>
+            <div key={k as string} data-k={k as string} className={`absolute left-0 top-0 rounded px-1.5 py-0.5 text-[11px] font-bold text-white shadow ${ok ? 'bg-ok-ink' : 'bg-bad-ink'}`}>
               {id as string} {ok ? '✓' : '✕'}
             </div>
           ))}

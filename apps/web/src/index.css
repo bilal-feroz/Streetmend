@@ -12,7 +12,7 @@
   --color-wash: #f1f3ef;
   --color-ink: #22342d;
   --color-ink-2: #5f6f67;
-  --color-ink-3: #8a968f;
+  --color-ink-3: #606c66; /* meta text: >= 4.8:1 on white and on every tinted surface (WCAG AA) */
   --color-line: #e4e9e3;
   --color-line-2: #d3dbd3;
 

@@ -5,6 +5,7 @@ import { api } from '../../api/client'
 import type { OptimizeResponse, ScenarioOut } from '../../api/types'
 import { isAnalysisStale, useApp } from '../../state/store'
 import { Disclosure, Stat } from '../ui'
+import { Assistant } from './Assistant'
 import { crossingName } from './JourneyCard'
 
 const SOLVER: Record<string, string> = {
@@ -179,7 +180,7 @@ export function ResultsView() {
               </span>
               <div className="relative h-4 overflow-hidden rounded bg-wash">
                 <motion.div className={`absolute inset-y-0 left-0 rounded ${i === 0 ? 'bg-sel' : 'bg-line-2'}`} initial={{ width: 0 }} animate={{ width: `${(b.gain / best) * 100}%` }} transition={{ duration: 0.5, delay: i * 0.06 }} />
-                <span className={`absolute inset-y-0 left-1.5 flex items-center text-[10.5px] font-medium ${i === 0 && b.gain > 0 ? 'text-white' : 'text-ink-2'}`}>{b.selected.join(' + ') || 'no repair'}</span>
+                <span className={`absolute inset-y-0 left-1.5 flex items-center text-[10.5px] font-medium ${i === 0 && b.gain > 0 ? 'text-white' : 'text-ink'}`}>{b.selected.join(' + ') || 'no repair'}</span>
               </div>
               <span className="text-right text-[12px] font-semibold tnum text-ink">+{n(b.gain)}</span>
             </div>
@@ -230,6 +231,10 @@ export function ResultsView() {
         </div>
       )}
       <CandidateList />
+      {/* follow-up questions stay possible here; an answer that led to these results stays visible */}
+      <Disclosure title="Ask a planning question" testId="toggle-assistant" defaultOpen={!!useApp.getState().assistantLast}>
+        <Assistant />
+      </Disclosure>
     </section>
   )
 }

@@ -113,7 +113,7 @@ export function Header() {
       <button className="btn-ghost px-1.5" onClick={() => setDialog('settings')} aria-label="Settings" title="Settings" data-testid="open-settings">
         <Settings size={16} aria-hidden />
       </button>
-      <button className="btn-ghost px-1.5 lg:hidden" onClick={() => setPanelOpen(!panelOpen)} aria-label="Toggle planning panel" aria-expanded={panelOpen}>
+      <button className="btn-ghost px-1.5 max-sm:hidden lg:hidden" onClick={() => setPanelOpen(!panelOpen)} aria-label="Toggle planning panel" aria-expanded={panelOpen}>
         <PanelRight size={17} aria-hidden />
       </button>
     </header>
