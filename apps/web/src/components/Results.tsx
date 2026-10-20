@@ -1,6 +1,6 @@
 import { motion } from 'motion/react'
 import { Check, Crosshair, Download, LoaderCircle, Play, RefreshCw, TriangleAlert, Undo2, Wrench } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { api } from '../api/client'
 import { CATEGORY_LABEL, fmtM, fmtNum, SOLVER_LABEL } from '../lib/format'
 import { isAnalysisStale, useApp } from '../state/store'
@@ -36,11 +36,19 @@ export function AnalyzeButton() {
   const stale = useApp(isAnalysisStale)
   const err = useApp((s) => s.analysisError)
   const analyze = useApp((s) => s.analyze)
+  const [elapsed, setElapsed] = useState(0)
+  useEffect(() => {
+    if (!analyzing) return
+    const t0 = performance.now()
+    setElapsed(0)
+    const id = setInterval(() => setElapsed((performance.now() - t0) / 1000), 250)
+    return () => clearInterval(id)
+  }, [analyzing])
   return (
     <div>
       <button className="btn-primary w-full py-2.5 text-[14px]" onClick={() => void analyze()} disabled={analyzing} data-testid="analyze">
         {analyzing ? <LoaderCircle size={16} className="animate-spin" /> : analysis && !stale ? <RefreshCw size={15} /> : <Play size={15} />}
-        {analyzing ? 'Evaluating repair combinations…' : analysis ? 'Re-run analysis' : 'Analyze network'}
+        {analyzing ? `Evaluating repair combinations…${elapsed >= 1 ? ` ${elapsed.toFixed(0)} s` : ''}` : analysis ? 'Re-run analysis' : 'Analyze network'}
       </button>
       {err && (
         <p className="mt-2 flex items-start gap-1.5 text-xs text-bad" role="alert">
