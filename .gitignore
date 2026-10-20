@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+*.egg-info/
+.ruff_cache/
+.mypy_cache/
+
+# Node
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+
+# Test artifacts
+apps/web/test-results/
+apps/web/playwright-report/
+apps/web/blob-report/
+test-results/
+playwright-report/
+
+# Data caches (raw API pulls are reproducible via scripts/ingest)
+data/cache/
+*.gpkg-journal
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
