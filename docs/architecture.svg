@@ -34,9 +34,9 @@
   <rect class="b" x="40" y="276" width="220" height="62" rx="10"/>
   <text class="t" x="56" y="302">CATS Bus Stops</text><text class="s" x="56" y="322">City of Charlotte · 19 in area</text>
   <rect class="b" x="40" y="350" width="220" height="62" rx="10"/>
-  <text class="t" x="56" y="376">OpenStreetMap</text><text class="s" x="56" y="396">streets, POIs, buildings (OSMnx)</text>
+  <text class="t" x="56" y="376">OpenStreetMap</text><text class="s" x="56" y="396">streets, POIs, 5,113 buildings</text>
   <rect class="w" x="40" y="440" width="220" height="62" rx="10"/>
-  <text class="t" x="56" y="466">Synthetic scenario</text><text class="s" x="56" y="486">Harbor District · guided demo</text>
+  <text class="t" x="56" y="466">Guided scenario spec</text><text class="s" x="56" y="486">hypothetical barrier states</text>
 
   <!-- ingestion -->
   <rect class="b" x="300" y="128" width="220" height="210" rx="10"/>
@@ -67,7 +67,7 @@
   <text class="s" x="576" y="376">unknown · evidence label</text>
   <text class="s" x="576" y="398">undirected (no vehicle rules)</text>
   <rect class="w" x="560" y="440" width="220" height="62" rx="10"/>
-  <text class="t" x="576" y="466">scenario/demo.py</text><text class="s" x="576" y="486">same topology, scenario states</text>
+  <text class="t" x="576" y="466">scenario/guided.py</text><text class="s" x="576" y="486">real graph, hypothetical states</text>
 
   <!-- engine -->
   <rect class="g" x="820" y="128" width="190" height="96" rx="10"/>
@@ -94,8 +94,8 @@
   <text class="s" x="1056" y="212">report · records</text>
   <rect class="k" x="1040" y="236" width="170" height="122" rx="10"/>
   <text class="t" x="1056" y="262">Web app</text>
-  <text class="s" x="1056" y="284">React 19 + MapLibre</text>
-  <text class="s" x="1056" y="302">guided demo · explorer</text>
+  <text class="s" x="1056" y="284">React · MapLibre · three.js</text>
+  <text class="s" x="1056" y="302">3D city · guided · explorer</text>
   <text class="s" x="1056" y="320">route / reach animation</text>
   <text class="s" x="1056" y="338">text alternative lists</text>
   <rect class="b" x="1040" y="370" width="170" height="132" rx="10"/>
@@ -130,6 +130,6 @@
   <text x="60" y="600" fill="#e8ecf4" font-size="16" font-family="JetBrains Mono, Consolas, monospace">Score(S) = Σₒ Σ_d  wₒ · w_cat(d) · w_d · 1[ dist_S(o, d) ≤ L ]</text>
   <text x="60" y="626" class="s">dist_S: shortest traversable network distance with repairs S applied · L: access threshold · weights are priorities, not population</text>
   <text x="60" y="664" class="h">VERIFICATION</text>
-  <text x="60" y="690" class="s">115 pytest (brute-force + NetworkX cross-checks, fast-vs-full evaluator equivalence, builder invariants, ingestion) · 8 Playwright E2E (full demo, axe scan)</text>
-  <text x="60" y="710" class="s">Benchmark: scripts/benchmarks/run_benchmark.py → docs/BENCHMARK.md (guided, 40 randomized districts, 40 random grids, Charlotte × 3 policies)</text>
+  <text x="60" y="690" class="s">121 pytest (brute-force + NetworkX cross-checks, fast-vs-full evaluator equivalence, guided-scenario claims, builder invariants, ingestion) · 11 Playwright E2E (20-step flow, 3D alignment, axe)</text>
+  <text x="60" y="710" class="s">Benchmark: scripts/benchmarks/run_benchmark.py → docs/BENCHMARK.md (guided, synthetic district, 40 randomized districts, 40 random grids, Charlotte × 3 policies)</text>
 </svg>

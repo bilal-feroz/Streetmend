@@ -12,13 +12,19 @@ flowchart LR
   end
   I[scripts/ingest<br/>pagination · pyproj · dedupe · provenance] --> N[(data/samples<br/>normalized GeoJSON)]
   N --> M[municipal/build.py<br/>corner graph + policies]
-  D[scenario/demo.py<br/>synthetic district] --> G
+  M --> H[scenario/guided.py<br/>real geometry + hypothetical barriers]
+  P[(data/scenarios<br/>charlotte_guided.json)] --> H
+  D[scenario/demo.py<br/>synthetic district, tests] --> G
   M --> G[PedGraph<br/>states + evidence]
+  H --> G
   G --> E[Evaluator<br/>SciPy Dijkstra · key-node exact]
   E --> X[Solvers<br/>exact · greedy · individual · nearest · beam]
   X --> A[Analysis<br/>synergy · baselines · sensitivity]
   A --> API[FastAPI + Pydantic]
   API --> W[React + MapLibre]
+  F[(OSM building footprints)] --> API
+  T[OpenFreeMap vector tiles] --> W
+  W --> C[Three.js city layer<br/>MapLibre's camera]
   Q[Assistant<br/>rules → Ollama → allowlist] --> API
 ```
 
@@ -38,7 +44,8 @@ flowchart LR
 | `graph/algorithms.py` | Dijkstra routes (edge-exact geometry and length), reachability, reach wave, frontier barriers, components, Yen's k-shortest alternatives |
 | `scenario/model.py` | `Scenario`, `Origin`, `Destination`, `Intervention`; validation (interventions only target non-traversable edges, no edge claimed twice) |
 | `scenario/state.py` | `RepairState`: apply (idempotent), remove, undo, reset; the scenario graph is never mutated |
-| `scenario/demo.py` | Synthetic Harbor District: grid, corners, perpendicular curb ramps, crossings, places, drawing-only context |
+| `scenario/demo.py` | Synthetic Harbor District (test fixture): grid, corners, perpendicular curb ramps, crossings, places |
+| `scenario/guided.py` | Guided scenario: the real Elizabeth graph with every link assumed traversable, plus the hypothetical barrier states and repair candidates from `data/scenarios/charlotte_guided.json` |
 | `scenario/evaluate.py` | Map state for an applied set: effective edge states, journey route, reach wave, remaining blockers on the best repairable route |
 | `optimize/objective.py` | Weighted reachable O-D objective; SciPy CSR evaluation; exact key-node evaluator; batched `score_many`; sound candidate pruning |
 | `optimize/solvers.py` | Exact enumeration, greedy, independent ranking, beam search (seeded with exact sub-budget optima) |
@@ -46,7 +53,7 @@ flowchart LR
 | `municipal/build.py` | Charlotte graph builder and ramp passability policies |
 | `municipal/scenario.py` | Loads prepared data, builds the three policy variants, serves source records |
 | `ai/intents.py` · `rules.py` · `llm.py` · `executor.py` | Allowlist schema, offline rule parser, Ollama client with JSON-schema decoding and grounding check, operation registry |
-| `api/` | FastAPI app, Pydantic contracts, registry, serialization, Markdown report |
+| `api/` | FastAPI app, Pydantic contracts, registry, serialization, Markdown report; `/api/context/buildings` serves the footprint layer (gzip) |
 
 ## Exact fast evaluation
 
@@ -60,14 +67,20 @@ where `M*` is the Floyd–Warshall closure over only the endpoints of `S` (≤ 2
 
 Sound pruning: a candidate that cannot lie on any within-threshold origin–destination path *even with every candidate repaired* has zero marginal value in every repair set, so exact enumeration over the remaining candidates is still exact.
 
-Measured: the exact budget-2 search over Charlotte's 206 relevant strict-policy candidates (21,321 combinations) takes about 3 s; moderate policy, budget 2, about 0.2 s (see `docs/BENCHMARK.md`). The batch kernel uses float64 so batch scores are identical to single-set scores, including at the threshold and in tie-breaking.
+Measured: the exact budget-2 search over Charlotte's 206 relevant strict-policy candidates (21,321 combinations) takes 3–5 s on this laptop depending on load; moderate policy, budget 2, 0.2–0.4 s (see `docs/BENCHMARK.md`). The batch kernel uses float64 so batch scores are identical to single-set scores, including at the threshold and in tie-breaking.
 
 ## Frontend (`apps/web`)
 
-* `state/store.ts`: Zustand store. It holds the applied stack, parameters, evaluation and analysis, auto re-analysis on parameter changes, and repair narration. Narration states only engine-verified facts: "neither alone" claims are re-checked with extra evaluate calls before display.
-* `map/MapView.tsx`: MapLibre GL with WebGL line/circle layers for the network, records and inventory. A blank style is used for the synthetic district (fully offline) and the OpenFreeMap basemap for Charlotte. Reach-wave and route-trace animations are driven by backend distances and geometry, and respect `prefers-reduced-motion`.
-* `map/Markers.tsx`: candidate repairs and places are real `<button>` elements with accessible names (keyboard focusable).
-* `components/`: planning panel (question, budget, priorities, threshold, network condition, analysis, recommendations, synergy chart, baselines, evidence, export), Charlotte explorer (policy, records, data quality), methodology dialog.
+* `state/store.ts`: Zustand store. It holds the applied-repair stack (exact undo), parameters, evaluation and analysis, camera intents, the compare mode, presentation scenes and narration. Requests are sequenced, so a late response for an old state is dropped. Narration states only engine-verified facts: "neither repair completes this crossing alone" is shown only after extra evaluate calls confirm it.
+* `map/MapView.tsx`: MapLibre GL with a custom light style on OpenFreeMap vector tiles (OpenMapTiles schema, no key). The 3D city layer sits below the street labels and the marker layer above them. Camera presets (overview, street focus, network, top-down) use `cameraForBounds` and `easeTo`. Picking order is markers (screen space), then network edges, then buildings (ray cast in 3D).
+* `map/three/CityLayer.ts`: the camera bridge. MapLibre hands each custom layer its projection matrix `P` and mercator view-projection `M`. The Three.js view matrix is `P⁻¹ · M · L`, where `L` maps local metres (east, up, south) around a fixed origin to mercator. Three.js therefore renders with exactly MapLibre's camera, and nothing is positioned with CSS. `alignmentReport()` compares the two projections; the E2E suite requires < 0.5 px at several pitches and bearings (measured error is about 1e-8 px). The layer also holds the sun (shadow map refreshed only when buildings change), the ground shadow catcher, and the scissored before/after split.
+* `map/three/buildings.ts`: footprint extrusion (walls plus triangulated roofs, holes kept) merged into one mesh with per-vertex shading. A building index supports picking, tinting the destination building and the 2D/3D height animation.
+* `map/three/network.ts`: the pedestrian network as screen-space fat lines (`LineSegments2`), one draw call per state category, plus the route (white halo, green core), the potential route and the reach wave. Every line is engine geometry.
+* `map/three/markers.ts`, `icons.ts`: depth-tested, constant-size sprites. Repair states use glyphs as well as colour: bar = blocked, check = repaired, ? = unknown, letter = labeled candidate, dashed ring = hypothetical barrier.
+* `map/MapLabels.tsx`, `map/CompareSlider.tsx`: DOM labels placed each frame from the same projection; the split handle is a keyboard-operable slider.
+* `components/map/CrossingView3D.tsx`: a separate small Three.js renderer for the curb-ramp inspector. The geometry is conceptual and captioned as such; the ramp states come from the engine.
+* `components/panel/`: journey card, plan view (budget, priority, advanced settings, assistant), results view (headline, recommendations, "why this combination" bars, stats, baselines, uncertainty, export), and the explorer tabs (plan, records, data quality).
+* Accessibility: every map fact is also in the panel (repairs can be located, applied and removed from the lists); keyboard-operable controls; `prefers-reduced-motion`; WCAG AA contrast, checked with axe in the E2E suite.
 
 ## Contrast with AskStreets
 

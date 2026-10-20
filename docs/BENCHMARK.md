@@ -1,31 +1,54 @@
 # StreetMend benchmark
 
-Generated 2026-10-20 18:47 UTC by `scripts/benchmarks/run_benchmark.py` on Python 3.12.13 (Windows-11-10.0.26200-SP0). Raw results: `docs/benchmark_results.json`.
+Generated 2026-10-20 21:09 UTC by `scripts/benchmarks/run_benchmark.py` on Python 3.12.13 (Windows-11-10.0.26200-SP0). Raw results: `docs/benchmark_results.json`.
 
 Objective: weighted reachable origin-destination pairs within the access threshold (healthcare priority weights 3/1/1 unless noted). Gains are objective increases over the unrepaired network. Baselines are the same implementations the product shows; nothing is tuned per instance.
 
-## 1. Guided scenario (synthetic, designed to illustrate synergy)
+## 1. Guided scenario: real Charlotte streets, hypothetical barriers
 
-Reported for transparency: this scenario was constructed to contain a dependent pair, so it is not evidence of typical gains.
+The scenario shown in the app. Streets, crossings and places are the real Elizabeth candidate graph; every link is assumed traversable except the barrier states in `data/scenarios/charlotte_guided.json`, which were chosen to contain a dependent pair (both curb ramps of one East 7th Street crossing). Reported for transparency, not as evidence of typical gains.
 
 | Priority | Budget | Exact selection | Exact gain | Greedy | Individual | Nearest | Combos | Runtime |
 |---|---|---|---|---|---|---|---|---|
-| balanced | 1 | E | 5 | 5 | 5 | 0 | 9 | 2.5 ms |
+| balanced | 1 | - | 0 | 0 | 0 | 0 | 4 | 8.2 ms |
+| balanced | 2 | A, B | 57 | 0 | 0 | 57 | 10 | 9.2 ms |
+| balanced | 3 | A, B | 57 | 0 | 0 | 57 | 14 | 10.9 ms |
+| balanced | 4 | A, B | 57 | 0 | 0 | 57 | 15 | 11.5 ms |
+| healthcare | 1 | - | 0 | 0 | 0 | 0 | 4 | 9.6 ms |
+| healthcare | 2 | A, B | 123 | 0 | 0 | 123 | 10 | 10.6 ms |
+| healthcare | 3 | A, B | 123 | 0 | 0 | 123 | 14 | 10.2 ms |
+| healthcare | 4 | A, B | 123 | 0 | 0 | 123 | 15 | 8.9 ms |
+| transit | 1 | - | 0 | 0 | 0 | 0 | 4 | 7.5 ms |
+| transit | 2 | A, B | 57 | 0 | 0 | 57 | 10 | 12.0 ms |
+| transit | 3 | A, B | 57 | 0 | 0 | 57 | 14 | 9.1 ms |
+| transit | 4 | A, B | 57 | 0 | 0 | 57 | 15 | 12.0 ms |
+| education | 1 | - | 0 | 0 | 0 | 0 | 4 | 10.0 ms |
+| education | 2 | A, B | 105 | 0 | 0 | 0 | 10 | 11.1 ms |
+| education | 3 | A, B | 105 | 0 | 0 | 0 | 14 | 10.7 ms |
+| education | 4 | A, B | 105 | 0 | 0 | 105 | 15 | 10.4 ms |
+
+## 1b. Synthetic Harbor District (test fixture, designed to illustrate synergy)
+
+The original synthetic district, kept for tests. Constructed to contain a dependent pair, so it is not evidence of typical gains.
+
+| Priority | Budget | Exact selection | Exact gain | Greedy | Individual | Nearest | Combos | Runtime |
+|---|---|---|---|---|---|---|---|---|
+| balanced | 1 | E | 5 | 5 | 5 | 0 | 9 | 2.4 ms |
 | balanced | 2 | A, B | 12 | 9 | 5 | 12 | 45 | 2.6 ms |
-| balanced | 3 | A, B, E | 17 | 10 | 5 | 12 | 129 | 5.0 ms |
-| balanced | 4 | A, B, E, K | 18 | 10 | 6 | 12 | 255 | 7.0 ms |
-| healthcare | 1 | C | 8 | 8 | 8 | 0 | 9 | 2.2 ms |
-| healthcare | 2 | A, B | 28 | 13 | 13 | 0 | 45 | 2.7 ms |
-| healthcare | 3 | A, B, E | 33 | 14 | 13 | 28 | 129 | 3.9 ms |
-| healthcare | 4 | A, B, E, K | 34 | 14 | 13 | 28 | 255 | 6.6 ms |
-| transit | 1 | C | 8 | 8 | 8 | 0 | 9 | 2.5 ms |
+| balanced | 3 | A, B, E | 17 | 10 | 5 | 12 | 129 | 4.3 ms |
+| balanced | 4 | A, B, E, K | 18 | 10 | 6 | 12 | 255 | 6.7 ms |
+| healthcare | 1 | C | 8 | 8 | 8 | 0 | 9 | 2.1 ms |
+| healthcare | 2 | A, B | 28 | 13 | 13 | 0 | 45 | 2.8 ms |
+| healthcare | 3 | A, B, E | 33 | 14 | 13 | 28 | 129 | 4.0 ms |
+| healthcare | 4 | A, B, E, K | 34 | 14 | 13 | 28 | 255 | 6.4 ms |
+| transit | 1 | C | 8 | 8 | 8 | 0 | 9 | 2.3 ms |
 | transit | 2 | A, B | 20 | 13 | 13 | 20 | 45 | 2.4 ms |
-| transit | 3 | A, B, E | 25 | 14 | 13 | 20 | 129 | 3.9 ms |
-| transit | 4 | A, B, E, K | 26 | 14 | 13 | 20 | 255 | 9.1 ms |
-| education | 1 | E | 15 | 15 | 15 | 15 | 9 | 2.6 ms |
-| education | 2 | C, E | 19 | 19 | 15 | 18 | 45 | 3.6 ms |
-| education | 3 | A, B, E | 27 | 22 | 15 | 18 | 129 | 4.0 ms |
-| education | 4 | A, B, E, K | 30 | 22 | 18 | 18 | 255 | 6.8 ms |
+| transit | 3 | A, B, E | 25 | 14 | 13 | 20 | 129 | 4.1 ms |
+| transit | 4 | A, B, E, K | 26 | 14 | 13 | 20 | 255 | 7.1 ms |
+| education | 1 | E | 15 | 15 | 15 | 15 | 9 | 2.1 ms |
+| education | 2 | C, E | 19 | 19 | 15 | 18 | 45 | 2.5 ms |
+| education | 3 | A, B, E | 27 | 22 | 15 | 18 | 129 | 5.0 ms |
+| education | 4 | A, B, E, K | 30 | 22 | 18 | 18 | 255 | 8.1 ms |
 
 ## 2. Randomized districts (corner/ramp topology)
 
@@ -33,12 +56,12 @@ Reported for transparency: this scenario was constructed to contain a dependent 
 
 | Budget | Instances with gain | Baseline | Share below optimum | Mean ratio to optimum | Worst ratio | Mean exact runtime |
 |---|---|---|---|---|---|---|
-| 2 | 23/40 | greedy | 0.043 | 0.97 | 0.32 | 3.15 ms |
-| 2 | 23/40 | independent | 0.261 | 0.901 | 0.2 | 3.15 ms |
-| 2 | 23/40 | nearest | 0.739 | 0.411 | 0.0 | 3.15 ms |
-| 3 | 23/40 | greedy | 0.043 | 0.969 | 0.286 | 6.86 ms |
-| 3 | 23/40 | independent | 0.261 | 0.916 | 0.179 | 6.86 ms |
-| 3 | 23/40 | nearest | 0.652 | 0.598 | 0.0 | 6.86 ms |
+| 2 | 23/40 | greedy | 0.043 | 0.97 | 0.32 | 4.94 ms |
+| 2 | 23/40 | independent | 0.261 | 0.901 | 0.2 | 4.94 ms |
+| 2 | 23/40 | nearest | 0.739 | 0.411 | 0.0 | 4.94 ms |
+| 3 | 23/40 | greedy | 0.043 | 0.969 | 0.286 | 10.41 ms |
+| 3 | 23/40 | independent | 0.261 | 0.916 | 0.179 | 10.41 ms |
+| 3 | 23/40 | nearest | 0.652 | 0.598 | 0.0 | 10.41 ms |
 
 ## 3. Unstructured random grids
 
@@ -46,12 +69,12 @@ Reported for transparency: this scenario was constructed to contain a dependent 
 
 | Budget | Instances with gain | Baseline | Share below optimum | Mean ratio to optimum | Worst ratio | Mean exact runtime |
 |---|---|---|---|---|---|---|
-| 2 | 35/40 | greedy | 0.2 | 0.83 | 0.0 | 2.23 ms |
-| 2 | 35/40 | independent | 0.343 | 0.77 | 0.0 | 2.23 ms |
-| 2 | 35/40 | nearest | 0.857 | 0.267 | 0.0 | 2.23 ms |
-| 3 | 35/40 | greedy | 0.257 | 0.805 | 0.0 | 3.07 ms |
-| 3 | 35/40 | independent | 0.429 | 0.738 | 0.0 | 3.07 ms |
-| 3 | 35/40 | nearest | 0.857 | 0.305 | 0.0 | 3.07 ms |
+| 2 | 35/40 | greedy | 0.2 | 0.83 | 0.0 | 3.23 ms |
+| 2 | 35/40 | independent | 0.343 | 0.77 | 0.0 | 3.23 ms |
+| 2 | 35/40 | nearest | 0.857 | 0.267 | 0.0 | 3.23 ms |
+| 3 | 35/40 | greedy | 0.257 | 0.805 | 0.0 | 3.91 ms |
+| 3 | 35/40 | independent | 0.429 | 0.738 | 0.0 | 3.91 ms |
+| 3 | 35/40 | nearest | 0.857 | 0.305 | 0.0 | 3.91 ms |
 
 ## 4. Charlotte, Elizabeth study area (real CDOT records + OSM)
 
@@ -59,15 +82,15 @@ Candidate graph: 2042 nodes, 2584 edges, 99 origins, 39 destinations. Results de
 
 | Policy | Budget | Candidates | Solver | Selection | Gain | Greedy | Individual | Nearest | Combos | Runtime |
 |---|---|---|---|---|---|---|---|---|---|---|
-| strict | 1 | 232 | exact | R20691 | 39 | 39 | 39 | 0 | 206 | 36 ms |
-| strict | 2 | 232 | exact | R20740, R20741 | 186 | 53 | 53 | 0 | 21321 | 3156 ms |
-| strict | 3 | 232 | beam (approx.) | R20718, R20742, R21684 | 415 | 53 | 53 | 0 | 32413 | 6558 ms |
-| moderate | 1 | 58 | exact | R21683 | 304 | 304 | 304 | 0 | 56 | 17 ms |
-| moderate | 2 | 58 | exact | R20741, R21683 | 915 | 915 | 915 | 108 | 1596 | 233 ms |
-| moderate | 3 | 58 | exact | R20737, R20741, R21683 | 1212 | 1212 | 1143 | 108 | 29316 | 6110 ms |
-| lenient | 1 | 14 | exact | R12178 | 240 | 240 | 240 | 0 | 14 | 12 ms |
-| lenient | 2 | 14 | exact | R105438, R12178 | 296 | 296 | 296 | 0 | 105 | 24 ms |
-| lenient | 3 | 14 | exact | R105438, R10701, R12178 | 348 | 348 | 338 | 13 | 469 | 103 ms |
+| strict | 1 | 232 | exact | R20691 | 39 | 39 | 39 | 0 | 206 | 56 ms |
+| strict | 2 | 232 | exact | R20740, R20741 | 186 | 53 | 53 | 0 | 21321 | 5323 ms |
+| strict | 3 | 232 | beam (approx.) | R20718, R20742, R21684 | 415 | 53 | 53 | 0 | 32413 | 10038 ms |
+| moderate | 1 | 58 | exact | R21683 | 304 | 304 | 304 | 0 | 56 | 26 ms |
+| moderate | 2 | 58 | exact | R20741, R21683 | 915 | 915 | 915 | 108 | 1596 | 382 ms |
+| moderate | 3 | 58 | exact | R20737, R20741, R21683 | 1212 | 1212 | 1143 | 108 | 29316 | 9307 ms |
+| lenient | 1 | 14 | exact | R12178 | 240 | 240 | 240 | 0 | 14 | 16 ms |
+| lenient | 2 | 14 | exact | R105438, R12178 | 296 | 296 | 296 | 0 | 105 | 28 ms |
+| lenient | 3 | 14 | exact | R105438, R10701, R12178 | 348 | 348 | 338 | 13 | 469 | 142 ms |
 
 ## Reading these results
 

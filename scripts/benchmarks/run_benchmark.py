@@ -1,8 +1,10 @@
 """Reproducible benchmark: combination-aware exact search vs simple baselines.
 
 Families
-1. guided      - the synthetic Harbor District demo (designed to exhibit synergy;
-                 reported for transparency, not as evidence of typical gains)
+1. guided      - a. the synthetic Harbor District (test fixture) and b. the guided
+                 scenario on real Charlotte streets with hypothetical barriers.
+                 Both are designed to exhibit synergy and are reported for
+                 transparency, not as evidence of typical gains.
 2. districts   - 40 randomized synthetic districts with the same corner/ramp
                  topology but random ramp failures (every failed ramp is a
                  candidate). Seeds 0..39, failure rate 12%.
@@ -121,6 +123,21 @@ def main() -> None:
             guided.append(r)
     results["guided"] = guided
 
+    # 1b. guided scenario on real Elizabeth streets (hypothetical barrier states)
+    guided_real = []
+    try:
+        from streetmend.scenario.guided import load_guided_scenario
+
+        gsc = load_guided_scenario()
+        for preset, w in PRIORITY_PRESETS.items():
+            for b in (1, 2, 3, 4):
+                r = run_instance(gsc, w, b)
+                r["priority"] = preset
+                guided_real.append(r)
+    except FileNotFoundError as exc:
+        results["guided_real_error"] = str(exc)
+    results["guided_real"] = guided_real
+
     # 2. randomized districts (structured topology)
     districts = {}
     for b in (2, 3):
@@ -166,12 +183,19 @@ def render(R) -> str:
          "Objective: weighted reachable origin-destination pairs within the access threshold "
          "(healthcare priority weights 3/1/1 unless noted). Gains are objective increases over the unrepaired network. "
          "Baselines are the same implementations the product shows; nothing is tuned per instance.", ""]
-    L += ["## 1. Guided scenario (synthetic, designed to illustrate synergy)", "",
-          "Reported for transparency: this scenario was constructed to contain a dependent pair, so it is not evidence of typical gains.", "",
-          "| Priority | Budget | Exact selection | Exact gain | Greedy | Individual | Nearest | Combos | Runtime |", "|---|---|---|---|---|---|---|---|---|"]
-    for r in R["guided"]:
-        L.append(f"| {r['priority']} | {r['budget']} | {', '.join(r['opt_selected']) or '-'} | {r['opt_gain']:g} | {r['greedy_gain']:g} | "
-                 f"{r['independent_gain']:g} | {r['nearest_gain']:g} | {r['evaluations']} | {r['runtime_ms']:.1f} ms |")
+    head = ["| Priority | Budget | Exact selection | Exact gain | Greedy | Individual | Nearest | Combos | Runtime |", "|---|---|---|---|---|---|---|---|---|"]
+    row = lambda r: (f"| {r['priority']} | {r['budget']} | {', '.join(r['opt_selected']) or '-'} | {r['opt_gain']:g} | {r['greedy_gain']:g} | "  # noqa: E731
+                     f"{r['independent_gain']:g} | {r['nearest_gain']:g} | {r['evaluations']} | {r['runtime_ms']:.1f} ms |")
+    if R.get("guided_real"):
+        L += ["## 1. Guided scenario: real Charlotte streets, hypothetical barriers", "",
+              "The scenario shown in the app. Streets, crossings and places are the real Elizabeth candidate graph; every link is assumed "
+              "traversable except the barrier states in `data/scenarios/charlotte_guided.json`, which were chosen to contain a dependent "
+              "pair (both curb ramps of one East 7th Street crossing). Reported for transparency, not as evidence of typical gains.", "", *head]
+        L += [row(r) for r in R["guided_real"]]
+        L += [""]
+    L += ["## 1b. Synthetic Harbor District (test fixture, designed to illustrate synergy)", "",
+          "The original synthetic district, kept for tests. Constructed to contain a dependent pair, so it is not evidence of typical gains.", "", *head]
+    L += [row(r) for r in R["guided"]]
     for key, title, desc in (("districts", "2. Randomized districts (corner/ramp topology)",
                               "40 seeds, the demo's street grid with 12% of curb ramps failing at random; every failed ramp is a candidate."),
                              ("grids", "3. Unstructured random grids", "40 seeds, 7x7 grid graphs with random blocked/unknown edges and 10 candidates; no crossing structure.")):

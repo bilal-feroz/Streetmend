@@ -23,12 +23,21 @@ StreetMend is a planning and research prototype. Its outputs are **planning esti
 * The objective counts weighted origin–destination pairs within a threshold. It ignores route quality beyond length (slope, surface, shade, safety) and partial accessibility.
 * "Optimal" means optimal for the stated candidate set, objective, weights and threshold, and only for exact-enumeration results. Beam-search results are approximate.
 * Exact enumeration is combinatorial. Large budgets over many candidates fall back to beam search (for example strict policy, budget 3).
-* The synthetic Harbor District was designed to contain a dependent repair pair. Its numbers illustrate the method and are not evidence of typical real-world gains.
+* The guided scenario's barrier states are hypothetical and were chosen so that a dependent repair pair exists (as was the synthetic Harbor District used in tests). Their numbers illustrate the method and are not evidence of typical real-world gains or of conditions at those corners.
+
+## Map and 3D limitations
+* **Estimated building heights.** 4,721 of 5,113 buildings (92%) have no height or levels tag in OpenStreetMap and are drawn at a type-based estimated height. Roofs are flat and the ground is flat (no terrain). OSM footprint coverage can be incomplete or out of date.
+* **Illustrative crossing view.** The 3D curb-ramp inspector shows conceptual geometry, not surveyed dimensions or slopes.
+* **Basemap needs a connection.** Tiles and label fonts load from OpenFreeMap. Offline, the app says so; the buildings, network, routes, markers and all analysis still work on a plain background.
+* **WebGL2 required.** The 3D city needs a WebGL2 browser. 2D mode flattens the same layer and does not reduce the GPU requirement.
 
 ## AI limitations
 * The local model (`qwen3:4b` on a 4 GB laptop GPU) takes about 3.7 s per warm call and about 13 s cold. It can misroute unusual phrasing, but every intent is validated and executed deterministically, so a misroute yields a wrong *operation*, never a wrong *number*.
 * The Qwen 3.5 9B model mentioned in the project brief was not present on this machine, so the installed `qwen3:4b` was used. No model was downloaded or fine-tuned.
 
 ## Environment notes
-* The machine has an NVIDIA RTX 3050 Laptop GPU (4 GB). GPU acceleration was not useful for the graph engine at neighborhood scale: compiled CPU Dijkstra and vectorized NumPy are fast enough (sub-second for the default analyses). The GPU is used only for local LLM inference through Ollama.
+* The machine has an NVIDIA RTX 3050 Laptop GPU (4 GB), not the RTX 5080 mentioned in the rebuild brief, so everything was sized and measured on the 3050.
+  * GPU acceleration was not useful for the graph engine at neighborhood scale: compiled CPU Dijkstra and vectorized NumPy are fast enough (sub-second for the default analyses).
+  * The GPU runs local LLM inference through Ollama.
+  * It also renders the 3D city in the browser: 60 fps while orbiting, measured in Chromium via ANGLE/Direct3D 11.
 * The official `gis.charlottenc.gov` MapServer timed out from the development network. Data was taken from the City's ArcGIS Online feature services with the same schema.

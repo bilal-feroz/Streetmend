@@ -32,9 +32,9 @@ Score(S) = Σ_{o∈O} Σ_{d∈D}  w_o · w_cat(d) · w_d · 1[ dist_S(o, d) ≤ 
 ```
 
 * `dist_S(o,d)`: shortest network distance (metres, Dijkstra) over edges that are traversable in the base model or made traversable by repairs in `S`.
-* `L`: access threshold. The demo uses 600 m and Charlotte uses 800 m; both are adjustable in the UI. It is a planning parameter, not a medical or legal standard.
+* `L`: access threshold. The guided scenario and Charlotte use 800 m (the synthetic test district uses 600 m); it is adjustable in the UI. It is a planning parameter, not a medical or legal standard.
 * `w_cat`: planner priority weights. Presets: healthcare 3/1/1, transit 1/3/1, education 1/1/3, balanced 1/1/1; sliders allow any values 0–5.
-* `w_o`: origin weight. Demo: 1 per residential cluster. Charlotte: number of OSM residential buildings aggregated on a sidewalk segment, which is a proxy and **not** population.
+* `w_o`: origin weight. Charlotte and the guided scenario: number of OSM residential buildings aggregated on a sidewalk segment, which is a proxy and **not** population. Synthetic test district: 1 per residential cluster.
 * `w_d`: destination weight, 1 by default.
 
 The score counts **weighted origin–destination pairs**, not people. Relative gain is shown only when the baseline score is positive.
@@ -67,9 +67,32 @@ For the selected set S, the analysis reports:
 
 Explanation sentences are generated from templates filled with these computed facts.
 
-## 5. Synthetic guided scenario
+## 5. Guided scenario: real streets, hypothetical barriers
 
-Harbor District is a 6 × 4 street grid split by a four-lane boulevard (Harbor Blvd) that can be crossed only at two signalized intersections. Every corner has perpendicular curb ramps. Nine ramps are blocked candidates, and three sidewalk segments are unknown or missing. The Cedar St crossing of Harbor Blvd has failed ramps at both ends (A, B), so neither repair alone connects anything. Recommendations, routes and metrics are computed live. Only the scenario states are designed; outcomes are not hardcoded.
+The guided scenario runs on the real Elizabeth candidate graph (§6): the same corners, crossings, curb landings, sidewalk sides, destinations and bus stops. Only the **passability states are hypothetical**:
+
+* every modeled link is set to *traversable* with evidence `assumed` and the reason "Hypothetical scenario: assumed traversable (scenario setting, not a survey finding)";
+* the barrier states listed in `data/scenarios/charlotte_guided.json` are set to *blocked* and tagged `hypothetical`:
+  * the curb ramps at both ends of the East 7th Street crossing at Hawthorne Lane (repair candidates A and B);
+  * two decoy ramps on Hawthorne Lane (D, E);
+  * two "no usable crossing" settings that keep the detour longer than the threshold.
+
+The configuration was found by `scripts/scenarios/design_guided.py`, which searched the real graph for a crossing on a short home → Novant Health Presbyterian route where the engine confirms four facts:
+* the journey is unavailable with neither repair, with A only and with B only;
+* A + B reconnects it within 800 m;
+* exact search selects A + B at budget 2;
+* a simple baseline does worse.
+
+`tests/test_guided.py` re-verifies every one of these claims against the engine. The journey has 14 origins and 6 destinations:
+* Novant Health Presbyterian;
+* St. Jude Affiliate Clinic;
+* ABS Kids;
+* Elizabeth Traditional Elementary;
+* CATS stops 07930 and 07980.
+
+Recommendations, routes and metrics are computed live; only the scenario states are designed. The UI labels the scenario *Hypothetical barriers · real Charlotte streets* on the map and in every barrier's details, so no viewer should read a barrier as a claim about real conditions at that corner.
+
+The original fully synthetic Harbor District (a 6 × 4 grid split by a boulevard, with a dependent pair A, B on the Cedar St crossing) remains in the engine as a test fixture and as section 1b of the benchmark.
 
 ## 6. Charlotte candidate graph
 
@@ -108,3 +131,20 @@ Built from data (see DATA_SOURCES.md) in UTM 17N metres:
 5. Optional model narration is accepted only if every standalone number, number word and magnitude word (hundred, double, percent...) in it also appears in the computed facts. Digits inside identifiers such as `R20740` do not count as numbers. Budgets above the interactive limit of 6 are capped, with a note.
 
 Measured on this machine (NVIDIA RTX 3050 Laptop GPU, 4 GB): about 3.7 s per warm model call, about 13 s cold.
+
+## 8. Map, 3D city and visual encodings
+
+* **Basemap**: OpenFreeMap vector tiles (OpenMapTiles schema, OpenStreetMap data), no API key, attribution always visible. No Google Maps or Google Earth imagery is used.
+* **3D buildings**: 5,113 OpenStreetMap building footprints in and around the study area (`data/samples/charlotte_city/buildings.geojson`). Heights come from:
+
+  | Source | Buildings | Height used |
+  |---|---|---|
+  | OSM `height` tag | 333 | the tagged height |
+  | OSM `building:levels` | 59 | levels × 3.2 m, plus roof levels |
+  | neither tag | 4,721 | a type-based estimate (for example 7 m for a house) |
+
+  Estimated heights are a visualization assumption and do not affect any computation. The building inspector shows each building's height source.
+* **Alignment**: the Three.js layer renders with MapLibre's own projection matrices, so footprints, network lines, routes and markers stay on the basemap at every zoom, pitch and bearing; the E2E suite measures the agreement (< 0.5 px required).
+* **Curb-ramp inspector**: the small 3D crossing view is illustrative (generic road, curbs, crosswalk and ramps). Its dimensions and slopes are not surveyed; only the ramp states (blocked / repaired) come from the engine.
+* **Status is never colour-only**: markers carry glyphs (bar = blocked, check = repaired, ? = unknown, letter = candidate) and hypothetical barriers have a dashed ring; journey state is also written in words in the panel.
+
