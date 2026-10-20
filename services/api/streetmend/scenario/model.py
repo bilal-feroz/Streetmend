@@ -47,7 +47,7 @@ class Intervention:
 class Scenario:
     id: str
     name: str
-    mode: Literal["synthetic", "municipal"]
+    mode: Literal["synthetic", "municipal", "hypothetical"]
     description: str
     graph: PedGraph
     origins: list[Origin]

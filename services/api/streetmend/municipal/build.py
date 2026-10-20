@@ -451,7 +451,7 @@ def build_municipal(data_dir: Path, policy: str = "moderate", max_distance_m: fl
                      f"Crossing of {leg.name or 'street'} at {iname}",
                      "Marked crosswalk recorded in CDOT ramp survey." if marked else
                      "Unmarked crossing at an intersection leg assumed; signals, traffic and crossing time are not modeled.",
-                     intersection=iname, leg=leg.name)
+                     intersection=iname, leg=leg.name, highway=streets[leg.edge]["highway"] or "")
             rep.counts["crossings"] += 1
 
     for rid, eids in ramp_edges.items():

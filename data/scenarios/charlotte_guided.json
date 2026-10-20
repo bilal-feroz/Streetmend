@@ -1,0 +1,85 @@
+{
+ "description": "Hypothetical scenario on real Elizabeth streets: residents of Hawthorne Lane need a step-free route to Novant Health Presbyterian Medical Center. Barrier locations are scenario settings.",
+ "max_distance_m": 800.0,
+ "default_journey": [
+  "O:S:300:R",
+  "D:osm:way/466001923"
+ ],
+ "origins": [
+  "O:S:163:L",
+  "O:S:202:R",
+  "O:S:194:R",
+  "O:S:192:R",
+  "O:S:302:R",
+  "O:S:194:L",
+  "O:S:250:R",
+  "O:S:233:L",
+  "O:S:300:R",
+  "O:S:11:R",
+  "O:S:128:R",
+  "O:S:183:L",
+  "O:S:193:L",
+  "O:S:193:R"
+ ],
+ "destinations": [
+  "D:osm:way/466001923",
+  "D:osm:way/835896170",
+  "D:osm:way/785966394",
+  "D:cats:07930",
+  "D:cats:07980",
+  "D:osm:way/369316283"
+ ],
+ "barriers": [
+  {
+   "edge": "R:172578423:1:1",
+   "candidate": "A",
+   "kind": "install_curb_ramp",
+   "crossing": "X:172578423:1",
+   "pair": "B",
+   "label": "Install curb ramp at the East 7th Street crossing, East 7th Street & Hawthorne Lane (near side)",
+   "reason": "Hypothetical: no curb ramp at this end of the East 7th Street crossing (scenario setting, not a survey finding)."
+  },
+  {
+   "edge": "R:172578423:0:1",
+   "candidate": "B",
+   "kind": "install_curb_ramp",
+   "crossing": "X:172578423:1",
+   "pair": "A",
+   "label": "Install curb ramp at the East 7th Street crossing, East 7th Street & Hawthorne Lane (far side)",
+   "reason": "Hypothetical: no curb ramp at the far end of the East 7th Street crossing (scenario setting, not a survey finding)."
+  },
+  {
+   "edge": "X:172578423:3",
+   "candidate": null,
+   "reason": "Hypothetical: no usable crossing of East 7th Street on this leg (scenario setting)."
+  },
+  {
+   "edge": "X:172728480:2",
+   "candidate": null,
+   "reason": "Hypothetical: no usable crossing of East 7th Street on this leg (scenario setting)."
+  },
+  {
+   "edge": "R:5788949543:0:1",
+   "candidate": "D",
+   "kind": "reconstruct_curb_ramp",
+   "label": "Reconstruct curb ramp, Hawthorne Lane",
+   "reason": "Hypothetical: damaged curb ramp (scenario setting, not a survey finding)."
+  },
+  {
+   "edge": "R:5788949543:0:0",
+   "candidate": "E",
+   "kind": "reconstruct_curb_ramp",
+   "label": "Reconstruct curb ramp, Hawthorne Lane",
+   "reason": "Hypothetical: damaged curb ramp (scenario setting, not a survey finding)."
+  }
+ ],
+ "story": {
+  "route_m": 647.6,
+  "gain_ab": 123.0,
+  "greedy_selected": [],
+  "greedy_gain": 0.0,
+  "budget1_selected": [],
+  "budget1_gain": 0.0,
+  "hard_settings": 2
+ }
+}

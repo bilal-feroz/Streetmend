@@ -11,6 +11,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import PlainTextResponse
 
 from streetmend import __version__
@@ -39,6 +40,7 @@ app = FastAPI(
     description="Combination-aware pedestrian accessibility repair planning. Planning prototype; not an ADA compliance tool.",
     lifespan=lifespan,
 )
+app.add_middleware(GZipMiddleware, minimum_size=2048)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=os.environ.get("STREETMEND_CORS", "http://localhost:5173,http://127.0.0.1:5173").split(","),
@@ -153,3 +155,16 @@ def municipal_records():
         return load_records()
     except FileNotFoundError as exc:
         raise HTTPException(503, detail=f"Municipal records not prepared: {exc}") from exc
+
+
+@app.get("/api/context/buildings")
+def buildings():
+    """OSM building footprints for the 3D city area of interest (visualization context, not graph input)."""
+    from fastapi.responses import Response
+
+    from streetmend.municipal.scenario import DATA_DIR
+
+    path = DATA_DIR / "samples" / "charlotte_city" / "buildings.geojson"
+    if not path.exists():
+        raise HTTPException(503, detail="Building footprints not prepared. Run scripts/ingest/fetch_buildings.py.")
+    return Response(path.read_bytes(), media_type="application/geo+json", headers={"Cache-Control": "public, max-age=3600"})

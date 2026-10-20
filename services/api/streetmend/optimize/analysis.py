@@ -178,12 +178,12 @@ def analyze(sc: Scenario, p: AnalysisParams) -> dict[str, Any]:
         "synergy": _fmt(synergy),
         "alternatives": alternatives,
         "sensitivity": sensitivity,
-        "explanation": explain(opt, base_score, gain, singles, loo, synergy, new_pairs, best_baseline, base_score, labels, ev, p),
+        "explanation": explain(opt, base_score, gain, singles, loo, synergy, new_pairs, best_baseline, base_score, labels, ev, p, baselines),
         "assumptions": sc.assumptions,
     }
 
 
-def explain(opt, base, gain, singles, loo, synergy, new_pairs, best_baseline, base_score, labels, ev, p) -> list[str]:
+def explain(opt, base, gain, singles, loo, synergy, new_pairs, best_baseline, base_score, labels, ev, p, baselines=()) -> list[str]:
     """Deterministic, template-based explanation built only from computed facts."""
 
     out: list[str] = []
@@ -209,10 +209,15 @@ def explain(opt, base, gain, singles, loo, synergy, new_pairs, best_baseline, ba
                        f"(removing any one loses {', '.join(f'{loo[c]:g}' for c in zero_alone)}).")
     elif synergy > EPS:
         out.append(f"The combination is worth {synergy:g} more than the sum of the individual gains.")
+    gr = next((b for b in baselines if b.solver == "greedy"), None)
     if best_baseline.score + EPS < base + gain:
         out.append(f"The best simple baseline ({best_baseline.solver.replace('_', ' ')}) reaches {best_baseline.score:g} "
                    f"with {', '.join(best_baseline.selected) or 'no repairs'}; the recommendation is {base + gain - best_baseline.score:g} higher.")
+    elif gr is not None and gr.score + EPS >= base + gain:
+        out.append("Greedy also reaches the same objective: these repairs act largely independently, so simple ranking is already optimal here.")
     else:
-        out.append(f"The {best_baseline.solver.replace('_', ' ')} baseline reaches the same objective here; "
-                   "when repairs act independently, simple ranking can already be optimal.")
+        out.append(f"The {best_baseline.solver.replace('_', ' ')} baseline happens to reach the same objective here"
+                   + (f", while greedy reaches {gr.score:g}." if gr is not None else "."))
+    if gr is not None and not gr.selected and gain > EPS:
+        out.append("Greedy and individual ranking recommend nothing here: no single repair adds value on its own.")
     return out

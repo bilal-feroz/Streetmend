@@ -181,3 +181,16 @@ def test_duplicate_candidate_ids_are_deduplicated(client):
     assert a["params"]["candidate_count"] == 3
     for alt in a["alternatives"]:
         assert len(alt["selected"]) == len(set(alt["selected"]))
+
+
+def test_buildings_context_endpoint(client):
+    r = client.get("/api/context/buildings", headers={"Accept-Encoding": "gzip"})
+    if r.status_code == 503:
+        pytest.skip("buildings not prepared")
+    assert r.status_code == 200
+    fc = r.json()
+    assert fc["metadata"]["license"].startswith("ODbL") and len(fc["features"]) > 1000
+    f = fc["features"][0]
+    assert f["geometry"]["type"] in ("Polygon", "MultiPolygon") and "h" in f["properties"]
+    lon, lat = (f["geometry"]["coordinates"][0][0] if f["geometry"]["type"] == "Polygon" else f["geometry"]["coordinates"][0][0][0])
+    assert -80.86 < lon < -80.80 and 35.19 < lat < 35.24
