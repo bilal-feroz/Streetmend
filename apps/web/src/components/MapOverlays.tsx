@@ -3,6 +3,7 @@ import { ArrowRight, CircleCheck, CircleX, Layers, Maximize, Route, Sparkles, X 
 import { useState } from 'react'
 import { fmtM, fmtNum } from '../lib/format'
 import { useApp, type Layers as LayerState } from '../state/store'
+import { RECORD_CATS } from './MunicipalPanel'
 
 export function JourneyCard() {
   const sc = useApp((s) => s.scenario)
@@ -131,6 +132,8 @@ const LEGEND = [
 
 export function Legend() {
   const [open, setOpen] = useState(true)
+  const municipal = useApp((s) => s.scenario?.mode === 'municipal')
+  const showRecords = useApp((s) => s.layers.records)
   return (
     <div className="pointer-events-auto rounded-lg border border-ink-600 bg-ink-850/90 shadow-xl backdrop-blur">
       <button className="flex w-full items-center justify-between gap-6 px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-fg-3" aria-expanded={open} onClick={() => setOpen(!open)}>
@@ -144,6 +147,15 @@ export function Legend() {
               {l.label}
             </li>
           ))}
+          {municipal && showRecords &&
+            Object.values(RECORD_CATS).map((c) => (
+              <li key={c.label} className="flex items-center gap-2 text-[11.5px] text-fg-2">
+                <span className="flex w-5 justify-center">
+                  <span className="h-2.5 w-2.5 rounded-full border border-ink-900" style={{ background: c.color }} />
+                </span>
+                Record: {c.label}
+              </li>
+            ))}
         </ul>
       )}
     </div>
@@ -151,6 +163,8 @@ export function Legend() {
 }
 
 const LAYER_LABELS: Record<keyof LayerState, string> = {
+  records: 'CDOT ramp records',
+  inventory: 'CDOT sidewalk inventory',
   network: 'Pedestrian network',
   wave: 'Reach & route',
   candidates: 'Repair candidates',
@@ -160,6 +174,7 @@ const LAYER_LABELS: Record<keyof LayerState, string> = {
 }
 
 export function LayersControl() {
+  const municipal = useApp((s) => s.scenario?.mode === 'municipal')
   const layers = useApp((s) => s.layers)
   const toggle = useApp((s) => s.toggleLayer)
   const focusOn = useApp((s) => s.focusOn)
@@ -176,7 +191,7 @@ export function LayersControl() {
       </div>
       {open && (
         <div className="absolute right-0 top-9 w-52 rounded-lg border border-ink-500 bg-ink-850/95 p-2 shadow-2xl backdrop-blur">
-          {(Object.keys(LAYER_LABELS) as (keyof LayerState)[]).map((k) => (
+          {(Object.keys(LAYER_LABELS) as (keyof LayerState)[]).filter((k) => municipal ? k !== 'context' && k !== 'labels' : k !== 'records' && k !== 'inventory').map((k) => (
             <label key={k} className="flex cursor-pointer items-center justify-between rounded px-1.5 py-1 text-[12.5px] text-fg-2 hover:bg-ink-700">
               {LAYER_LABELS[k]}
               <input type="checkbox" checked={layers[k]} onChange={() => toggle(k)} className="accent-sel" />

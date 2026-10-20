@@ -24,13 +24,14 @@ function Collapsible({ title, children, defaultOpen = false, testId }: { title: 
   )
 }
 
-export function PlanningPanel() {
+export function PlanningPanel({ header }: { header?: ReactNode } = {}) {
   const analysis = useApp((s) => s.analysis)
   const scenario = useApp((s) => s.scenario)
   const setMethodology = useApp((s) => s.setMethodology)
   return (
     <div className="flex h-full flex-col">
       <div className="scroll-thin flex-1 overflow-y-auto overscroll-contain">
+        {header}
         <Section title="Planning question" step={1} id="sec-ask">
           <AskBox />
         </Section>

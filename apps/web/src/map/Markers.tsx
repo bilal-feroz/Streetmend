@@ -17,6 +17,7 @@ export function CandidateMarker({ id }: { id: string }) {
   })
   const isSel = useApp((s) => s.selected?.type === 'intervention' && s.selected.id === id)
   const select = useApp((s) => s.select)
+  const compact = useApp((s) => s.scenario?.mode === 'municipal')
   if (!iv) return null
   const repaired = applied && compare === 'current'
   const ring = isSel ? 'ring-2 ring-fg ring-offset-2 ring-offset-ink-900' : ''
@@ -26,6 +27,21 @@ export function CandidateMarker({ id }: { id: string }) {
       ? 'bg-sel-dim text-fg border-sel'
       : 'bg-bad-dim text-bad border-bad/80'
   const pulse = !repaired && (recommended || highlighted) ? 'sm-pulse-blue' : !repaired && blocking ? 'sm-pulse' : ''
+  const showId = !compact || recommended || highlighted || isSel || repaired
+  if (compact && !showId) {
+    return (
+      <button
+        type="button"
+        className={`sm-marker block h-[11px] w-[11px] rounded-full border-2 ${tone} ${pulse}`}
+        aria-label={`Candidate repair ${id}: ${iv.label}. Blocked.`}
+        data-testid={`candidate-${id}`}
+        onClick={(e) => {
+          e.stopPropagation()
+          select({ type: 'intervention', id })
+        }}
+      />
+    )
+  }
   return (
     <button
       type="button"
@@ -59,6 +75,7 @@ export function PlaceMarker({ id }: { id: string }) {
   const isSel = useApp((s) => s.selected?.type === 'place' && s.selected.id === id)
   const select = useApp((s) => s.select)
   const municipal = useApp((s) => s.scenario?.mode === 'municipal')
+  if (!origin && !dest) return null // stale marker during a scenario switch
   const label = origin?.label ?? dest?.label ?? id
   const isOrigin = !!origin
   const inJourney = journey && (journey.origin === id || journey.destination === id)
@@ -75,6 +92,20 @@ export function PlaceMarker({ id }: { id: string }) {
         : 'bg-ink-750 text-fg-2 border-ink-400'
   const jRing = inJourney ? (isOrigin ? 'ring-2 ring-sel ring-offset-2 ring-offset-ink-900' : '') : ''
   const showLabel = !municipal || inJourney || isSel
+  if (municipal && isOrigin && !inJourney && !isSel) {
+    return (
+      <button
+        type="button"
+        className="sm-marker block h-2 w-2 rounded-full border border-ink-900 bg-fg-2/80"
+        aria-label={`Origin: ${label}`}
+        data-testid={`place-${id}`}
+        onClick={(e) => {
+          e.stopPropagation()
+          select({ type: 'place', id })
+        }}
+      />
+    )
+  }
   return (
     <button
       type="button"
@@ -86,8 +117,8 @@ export function PlaceMarker({ id }: { id: string }) {
         select({ type: 'place', id })
       }}
     >
-      <span className={`grid h-7 w-7 place-items-center rounded-md border-[1.5px] shadow-lg shadow-black/50 ${base} ${jRing} ${isSel ? 'outline-2 outline-fg' : ''}`}>
-        <Icon size={15} strokeWidth={2.2} aria-hidden />
+      <span className={`grid place-items-center rounded-md border-[1.5px] shadow-lg shadow-black/50 ${municipal ? 'h-5 w-5' : 'h-7 w-7'} ${base} ${jRing} ${isSel ? 'outline-2 outline-fg' : ''}`}>
+        <Icon size={municipal ? 11 : 15} strokeWidth={2.2} aria-hidden />
       </span>
       {showLabel && (
         <span

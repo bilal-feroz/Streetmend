@@ -41,7 +41,7 @@ export default function App() {
           <MapView />
           <div className="pointer-events-none absolute inset-0 z-10 flex flex-col p-3">
             <div className="flex items-start justify-between gap-3">
-              {!municipal && <JourneyCard />}
+              <JourneyCard />
               <div className="flex-1" />
               <div className="mr-[42px] mt-0">
                 <LayersControl />
@@ -52,9 +52,9 @@ export default function App() {
             </div>
             <div className="flex-1" />
             <div className="flex items-end justify-between gap-3">
-              <div className="hidden md:block">{!municipal && <Legend />}</div>
+              <div className="hidden md:block"><Legend /></div>
             </div>
-            <div className="mt-2 mr-[120px] max-md:mr-0">{!municipal && <BottomStrip />}</div>
+            <div className="mt-2 mr-[120px] max-md:mr-0"><BottomStrip /></div>
           </div>
           {loading && (
             <div className="absolute inset-0 z-20 grid place-items-center bg-ink-900/60">

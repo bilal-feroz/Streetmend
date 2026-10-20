@@ -52,7 +52,7 @@ function addLayers(map: MLMap, withContext: boolean) {
   const src = (id: string) => {
     if (!map.getSource(id)) map.addSource(id, { type: 'geojson', data: EMPTY as GeoJSON.FeatureCollection })
   }
-  ;['ctx-blocks', 'ctx-buildings', 'ctx-streets', 'ctx-center', 'net', 'curbs', 'route-trace', 'route-potential'].forEach(src)
+  ;['ctx-blocks', 'ctx-buildings', 'ctx-streets', 'ctx-center', 'net', 'curbs', 'route-trace', 'route-potential', 'records', 'inventory'].forEach(src)
   const add: Parameters<MLMap['addLayer']>[0][] = []
   if (withContext) {
     add.push(
@@ -72,6 +72,14 @@ function addLayers(map: MLMap, withContext: boolean) {
   const w = (base: number) => ['interpolate', ['exponential', 1.6], ['zoom'], 14, base * 0.45, 16.5, base, 19, base * 2.6] as ExpressionSpecification
   add.push(
     {
+      id: 'inv-lines', type: 'line', source: 'inventory', layout: { visibility: 'none', 'line-cap': 'round' },
+      paint: {
+        'line-color': ['match', ['get', 'presence'], 'Sidewalk', '#7dd3fc', 'No Sidewalk', '#ff6b6b', '#fbbf24'],
+        'line-width': ['interpolate', ['linear'], ['zoom'], 14, 1, 18, 3],
+        'line-opacity': 0.55,
+      },
+    },
+    {
       id: 'net-sidewalk', type: 'line', source: 'net',
       filter: ['all', ['!=', ['get', 'kind'], 'crossing'], ['==', state, 'traversable']],
       layout: { 'line-cap': 'round', 'line-join': 'round' },
@@ -85,7 +93,7 @@ function addLayers(map: MLMap, withContext: boolean) {
     {
       id: 'net-unknown', type: 'line', source: 'net', filter: ['==', state, 'unknown'],
       layout: { 'line-cap': 'round' },
-      paint: { 'line-color': C.unk, 'line-width': w(2), 'line-opacity': 0.85, 'line-dasharray': [0.6, 1.8] },
+      paint: { 'line-color': C.unk, 'line-width': w(1.6), 'line-opacity': 0.55, 'line-dasharray': [0.6, 1.8] },
     },
     {
       id: 'net-blocked', type: 'line', source: 'net', filter: ['in', state, ['literal', ['blocked', 'repairable']]],
@@ -130,6 +138,20 @@ function addLayers(map: MLMap, withContext: boolean) {
       id: 'net-selected', type: 'line', source: 'net', filter: ['==', ['get', 'id'], ''],
       layout: { 'line-cap': 'round' },
       paint: { 'line-color': C.sel, 'line-width': w(6), 'line-opacity': 0.9 },
+    },
+    {
+      id: 'rec-circles', type: 'circle', source: 'records', layout: { visibility: 'none' },
+      paint: {
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 14, 2.5, 18, 6],
+        'circle-color': ['match', ['get', 'cat'], 'no_ramp', '#ff6b6b', 'noncompliant_severe', '#fb923c', 'noncompliant_minor', '#94a3b8',
+          'compliant', '#34d399', 'remediated', '#2dd4bf', '#fbbf24'],
+        'circle-stroke-color': '#060a13',
+        'circle-stroke-width': 1,
+      },
+    },
+    {
+      id: 'rec-selected', type: 'circle', source: 'records', filter: ['==', ['get', 'oid'], -1],
+      paint: { 'circle-radius': 10, 'circle-color': 'rgba(0,0,0,0)', 'circle-stroke-color': '#e8ecf4', 'circle-stroke-width': 2 },
     },
     // Invisible wide hit target so thin edges are easy to click.
     { id: 'net-hit', type: 'line', source: 'net', paint: { 'line-color': '#000', 'line-width': 14, 'line-opacity': 0 } },
@@ -234,6 +256,33 @@ export function MapView() {
     set('curbs', curbPoints(scenario))
   }, [ready, scenario, styleNonce])
 
+  // ---- municipal source records ------------------------------------------------
+  const records = useApp((s) => s.records)
+  const scenarioId = useApp((s) => s.scenarioId)
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready || !records || !map.getSource('records')) return
+    const policy = scenarioId.endsWith('-strict') ? 'strict' : scenarioId.endsWith('-lenient') ? 'lenient' : 'moderate'
+    ;(map.getSource('records') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: records.ramps.map((r) => ({
+        type: 'Feature',
+        geometry: r.geometry,
+        properties: { oid: r.properties.OBJECTID, cat: r.properties.classification[policy], state: r.properties.state[policy] },
+      })),
+    } as GeoJSON.FeatureCollection)
+    ;(map.getSource('inventory') as GeoJSONSource).setData({
+      type: 'FeatureCollection',
+      features: records.sidewalks.map((f) => ({ type: 'Feature', geometry: f.geometry, properties: { presence: f.properties.SidewalkPresence } })),
+    } as GeoJSON.FeatureCollection)
+  }, [ready, records, scenarioId, styleNonce])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready || !map.getLayer('rec-selected')) return
+    map.setFilter('rec-selected', ['==', ['get', 'oid'], selected?.type === 'record' ? Number(selected.id) : -1])
+  }, [ready, selected, styleNonce])
+
   // ---- markers ---------------------------------------------------------------
   useEffect(() => {
     const map = mapRef.current
@@ -322,11 +371,13 @@ export function MapView() {
     vis(['ctx-blocks', 'ctx-buildings', 'ctx-streets', 'ctx-median'], layers.context)
     vis(['net-sidewalk', 'net-crossing', 'net-unknown', 'net-blocked', 'net-repaired', 'curbs', 'net-frontier'], layers.network)
     vis(['net-wave', 'route-potential'], layers.wave)
+    vis(['rec-circles', 'rec-selected'], layers.records && municipal)
+    vis(['inv-lines'], layers.inventory && municipal)
     slots.forEach((s) => {
       const on = s.kind === 'candidate' ? layers.candidates : s.kind === 'place' ? layers.places : layers.labels && layers.context
       s.el.style.display = on ? '' : 'none'
     })
-  }, [ready, layers, slots, styleNonce])
+  }, [ready, layers, slots, styleNonce, municipal])
 
   useEffect(() => {
     const map = mapRef.current
@@ -339,6 +390,14 @@ export function MapView() {
     const map = mapRef.current
     if (!map || !ready) return
     const onClick = (e: MapLayerMouseEvent) => {
+      if (map.getLayer('rec-circles') && map.getLayoutProperty('rec-circles', 'visibility') !== 'none') {
+        const rec = map.queryRenderedFeatures([[e.point.x - 5, e.point.y - 5], [e.point.x + 5, e.point.y + 5]], { layers: ['rec-circles'] })[0]
+        if (rec) {
+          select({ type: 'record', id: String(rec.properties?.oid) })
+          useApp.getState().setPanelTab('records')
+          return
+        }
+      }
       const f = map.queryRenderedFeatures([[e.point.x - 6, e.point.y - 6], [e.point.x + 6, e.point.y + 6]], { layers: INTERACTIVE.filter((l) => map.getLayer(l)) })
       const hit = f.find((x) => x.properties?.id && x.layer.id !== 'route-core') ?? f[0]
       if (hit?.properties?.id) select({ type: 'edge', id: String(hit.properties.id) })

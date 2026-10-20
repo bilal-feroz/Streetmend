@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { api, ApiError } from '../api/client'
+import { api, ApiError, type MunicipalRecords } from '../api/client'
 import type {
   AssistantResponse,
   EvaluateResponse,
@@ -17,7 +17,7 @@ export const PRESETS: Record<Priority, Weights> = {
   education: { healthcare: 1, transit: 1, education: 3 },
 }
 
-export type Selection = { type: 'intervention' | 'edge' | 'place'; id: string } | null
+export type Selection = { type: 'intervention' | 'edge' | 'place' | 'record'; id: string } | null
 
 export interface Banner {
   kind: 'reconnected' | 'partial' | 'info' | 'error'
@@ -27,6 +27,8 @@ export interface Banner {
 }
 
 export interface Layers {
+  records: boolean
+  inventory: boolean
   network: boolean
   wave: boolean
   candidates: boolean
@@ -81,6 +83,9 @@ interface AppState {
 
   methodologyOpen: boolean
   panelOpen: boolean
+  panelTab: 'plan' | 'records' | 'quality'
+  records: MunicipalRecords | null
+  recordsError: string | null
 
   init: () => Promise<void>
   loadScenario: (id: string) => Promise<void>
@@ -104,6 +109,7 @@ interface AppState {
   setMethodology: (open: boolean) => void
   setPanelOpen: (open: boolean) => void
   setUseLLM: (v: boolean) => void
+  setPanelTab: (t: 'plan' | 'records' | 'quality') => void
 }
 
 let evalSeq = 0
@@ -245,7 +251,7 @@ export const useApp = create<AppState>((set, get) => {
     compare: 'current',
     selected: null,
     highlight: [],
-    layers: { network: true, wave: true, candidates: true, places: true, context: true, labels: true },
+    layers: { records: false, inventory: false, network: true, wave: true, candidates: true, places: true, context: true, labels: true },
     banner: null,
     focus: null,
     assistantPending: false,
@@ -254,6 +260,9 @@ export const useApp = create<AppState>((set, get) => {
     useLLM: true,
     methodologyOpen: false,
     panelOpen: false,
+    panelTab: 'plan',
+    records: null,
+    recordsError: null,
 
     init: async () => {
       api.health().then((h) => set({ health: h })).catch(() => set({ health: null }))
@@ -264,6 +273,9 @@ export const useApp = create<AppState>((set, get) => {
       set({ loading: true, error: null, scenarioId: id, analysis: null, analysisKey: null, applied: [], banner: null, selected: null, highlight: [], evaluation: null, initialEval: null })
       try {
         const sc = await api.scenario(id)
+        if (sc.mode === 'municipal' && !get().records) {
+          api.records().then((r) => set({ records: r })).catch((e) => set({ recordsError: errMsg(e) }))
+        }
         const dj = sc.default_journey
         set({ scenario: sc, journey: dj ? { origin: dj[0], destination: dj[1] } : null, cutoff: sc.max_distance_m, loading: false })
         const ev = await evaluate()
@@ -394,6 +406,7 @@ export const useApp = create<AppState>((set, get) => {
     setMethodology: (open) => set({ methodologyOpen: open }),
     setPanelOpen: (open) => set({ panelOpen: open }),
     setUseLLM: (v) => set({ useLLM: v }),
+    setPanelTab: (t) => set({ panelTab: t }),
   }
 })
 

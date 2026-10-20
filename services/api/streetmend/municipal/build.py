@@ -451,7 +451,8 @@ def build_municipal(data_dir: Path, policy: str = "moderate", max_distance_m: fl
         m = ramp_meta[rid]
         r, rc = m["rec"], m["cls"]
         verb = "Install curb ramp" if rc.candidate_kind == "install_curb_ramp" else "Reconstruct curb ramp"
-        iid = f"R{r.get('RP_AssetID') or rid}".replace(" ", "")
+        asset = (r.get("RP_AssetID") or "").replace(" ", "")
+        iid = asset if asset.startswith("R") else f"R{asset or rid}"
         if iid in interventions:
             iid = f"{iid}-{rid}"
         lon, lat = r["_lonlat"]
@@ -583,11 +584,24 @@ def build_municipal(data_dir: Path, policy: str = "moderate", max_distance_m: fl
     for o in origins:
         g.nodes[o.id].label = o.label
 
-    # Default journey: highest-weight origin to the main hospital (if present).
+    # Default journey: a home -> hospital pair that is unavailable today but would
+    # be connected if candidate repairs were made (so the map shows the barrier).
     default = None
-    hosp = next((d_ for d_ in dests if "presbyterian" in d_.label.lower()), dests[0] if dests else None)
-    if origins and hosp:
-        default = (max(origins, key=lambda o: (o.weight, o.id)).id, hosp.id)
+    import networkx as nx
+
+    enabled_all = {e for iv in interventions.values() for e in iv.edge_ids}
+    g0, g_all = g.to_networkx(set()), g.to_networkx(enabled_all)
+    health = sorted((d_ for d_ in dests if d_.category == DestinationCategory.HEALTHCARE),
+                    key=lambda d_: (0 if "presbyterian" in d_.label.lower() else 1 if "hospital" in d_.label.lower() else 2, d_.id))
+    for d_ in health:
+        r0 = nx.single_source_dijkstra_path_length(g0, d_.id, cutoff=max_distance_m, weight="weight")
+        r1 = nx.single_source_dijkstra_path_length(g_all, d_.id, cutoff=max_distance_m, weight="weight")
+        cand = [o for o in origins if o.id in r1 and o.id not in r0]
+        if cand:
+            default = (max(cand, key=lambda o: (o.weight, o.id)).id, d_.id)
+            break
+    if default is None and origins and dests:
+        default = (max(origins, key=lambda o: (o.weight, o.id)).id, (health or dests)[0].id)
 
     report = {
         "policy": policy,

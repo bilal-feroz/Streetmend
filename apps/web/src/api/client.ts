@@ -61,11 +61,54 @@ export const api = {
   records: () => request<MunicipalRecords>('/api/municipal/records', { timeoutMs: 30_000 }),
 }
 
+export interface RecordFeature<P = Record<string, unknown>, G = { type: string; coordinates: unknown }> {
+  type: 'Feature'
+  geometry: G
+  properties: P
+}
+
+export interface RampProps {
+  OBJECTID: number
+  RP_AssetID: string | null
+  ADA_ID: string | null
+  RP_IntID: string | null
+  RP_Type: string | null
+  RP_Street1: string | null
+  RP_Street2: string | null
+  RP_LocInInt: string | null
+  RP_SurveyDate: string | null
+  survey_date: string | null
+  RP_ComplianceStatus: string | null
+  RP_InitValidStatus: string | null
+  RP_XWalk1: string | null
+  RP_XWalk1Dir: string | null
+  RP_XWalk2: string | null
+  RP_XWalk2Dir: string | null
+  RP_Slope: number | null
+  RP_XSlope: number | null
+  RP_GutterLipHt: number | null
+  RP_SurfCond: string | null
+  RP_Obs: string | null
+  RP_ObsType: string | null
+  Remediated: string | null
+  RemediatedType: string | null
+  RemediatedDate: string | null
+  ActualCosts: number | null
+  TechnicalInfeasibility: string | null
+  classification: Record<string, string>
+  state: Record<string, string>
+  [k: string]: unknown
+}
+
 export interface MunicipalRecords {
   area: { id: string; name: string; bbox: [number, number, number, number] }
   provenance: Record<string, unknown>[]
-  ramps: Record<string, unknown>[]
-  sidewalks: Record<string, unknown>[]
-  bus_stops: Record<string, unknown>[]
-  quality: Record<string, unknown>
+  ramps: RecordFeature<RampProps, { type: 'Point'; coordinates: [number, number] }>[]
+  sidewalks: RecordFeature<Record<string, string | number | null>, { type: 'LineString'; coordinates: [number, number][] }>[]
+  bus_stops: RecordFeature[]
+  quality: {
+    retrieved_at: string
+    layers: Record<string, { count?: number; missing?: Record<string, number>; duplicates_removed?: unknown[]; server_count?: number; transform?: { from_epsg: number; to_epsg: number; samples: number; max_error_m: number | null; note: string } }>
+  }
+  policies: Record<string, string>
 }
