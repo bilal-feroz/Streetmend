@@ -130,6 +130,6 @@
   <text x="60" y="600" fill="#e8ecf4" font-size="16" font-family="JetBrains Mono, Consolas, monospace">Score(S) = Σₒ Σ_d  wₒ · w_cat(d) · w_d · 1[ dist_S(o, d) ≤ L ]</text>
   <text x="60" y="626" class="s">dist_S: shortest traversable network distance with repairs S applied · L: access threshold · weights are priorities, not population</text>
   <text x="60" y="664" class="h">VERIFICATION</text>
-  <text x="60" y="690" class="s">108 pytest (brute-force + NetworkX cross-checks, fast-vs-full evaluator equivalence, builder invariants, ingestion) · 8 Playwright E2E (full demo, axe scan)</text>
+  <text x="60" y="690" class="s">115 pytest (brute-force + NetworkX cross-checks, fast-vs-full evaluator equivalence, builder invariants, ingestion) · 8 Playwright E2E (full demo, axe scan)</text>
   <text x="60" y="710" class="s">Benchmark: scripts/benchmarks/run_benchmark.py → docs/BENCHMARK.md (guided, 40 randomized districts, 40 random grids, Charlotte × 3 policies)</text>
 </svg>

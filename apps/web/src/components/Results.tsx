@@ -270,10 +270,19 @@ export function Impact() {
       </div>
 
       {analysis.sensitivity.unknown_edge_count > 0 && (
-        <p className="text-[11.5px] leading-snug text-fg-3">
-          <span className="text-unk">Sensitivity:</span> if all {analysis.sensitivity.unknown_edge_count} unknown-condition edges were traversable, the optimum would be{' '}
-          <span className="font-mono text-fg-2">{analysis.sensitivity.optimal_selected.join(', ') || 'none'}</span>
-          {analysis.sensitivity.recommendation_changes ? ' — the recommendation depends on unverified conditions.' : ' — the recommendation is unchanged.'}
+        <p className="text-[11.5px] leading-snug text-fg-3" data-testid="sensitivity">
+          <span className="text-unk">Sensitivity:</span> if all {analysis.sensitivity.unknown_edge_count} unknown-condition edges were traversable,{' '}
+          {analysis.sensitivity.optimal_is_exact ? (
+            <>
+              the exact optimum would be <span className="font-mono text-fg-2">{analysis.sensitivity.optimal_selected.join(', ') || 'none'}</span>
+              {analysis.sensitivity.recommendation_changes ? ' — the recommendation depends on unverified conditions.' : ' — the recommendation is unchanged.'}
+            </>
+          ) : (
+            <>
+              greedy would pick <span className="font-mono text-fg-2">{analysis.sensitivity.optimal_selected.join(', ') || 'none'}</span>. Too many combinations for an
+              exact optimistic re-run, so whether the recommendation changes is not determined.
+            </>
+          )}
         </p>
       )}
     </div>

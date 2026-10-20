@@ -238,7 +238,13 @@ def build_municipal(data_dir: Path, policy: str = "moderate", max_distance_m: fl
         it.legs.sort(key=lambda l: l.angle)
         d = len(it.legs)
         if d == 1:
-            it.corners = [(it.x, it.y)]
+            # Dead end (cul-de-sac or a street cut by the study-area edge): keep the
+            # left and right sides as separate corners. Wrapping around the end
+            # would join both sides of the street without a crossing or ramps.
+            leg = it.legs[0]
+            off = leg.half_width + SIDEWALK_OFFSET
+            it.corners = [(it.x + off * math.cos(leg.angle + s * math.pi / 2), it.y + off * math.sin(leg.angle + s * math.pi / 2))
+                          for s in (1, -1)]  # [left of the outgoing leg, right of it]
             continue
         for k in range(d):
             a, b = it.legs[k], it.legs[(k + 1) % d]
@@ -357,8 +363,9 @@ def build_municipal(data_dir: Path, policy: str = "moderate", max_distance_m: fl
         kv = _leg_index(iv, i, s["line"], False)
         du, dv = len(iu.legs), len(iv.legs)
         for side in (1, -1):
-            cu = ku if side == 1 else (ku - 1) % du
-            cv = (kv - 1) % dv if side == 1 else kv
+            # Dead ends have [left, right] corners relative to their single leg.
+            cu = (0 if side == 1 else 1) if du == 1 else (ku if side == 1 else (ku - 1) % du)
+            cv = (1 if side == 1 else 0) if dv == 1 else ((kv - 1) % dv if side == 1 else kv)
             off = s["line"].offset_curve(side * (s["hw"] + SIDEWALK_OFFSET))
             mid_pts = list(off.coords)[1:-1] if off.geom_type == "LineString" and not off.is_empty else []
             pts = [iu.corners[cu], *mid_pts, iv.corners[cv]]

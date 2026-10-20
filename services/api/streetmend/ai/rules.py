@@ -6,6 +6,8 @@ import re
 
 from .intents import Intent
 
+MAX_BUDGET = 6  # interactive limit, matches Intent.budget and the API
+
 NUMBER_WORDS = {"zero": 0, "no": 0, "one": 1, "single": 1, "a single": 1, "two": 2, "pair": 2, "couple": 2,
                 "both": 2, "three": 3, "four": 4, "five": 5, "six": 6}
 CATEGORY_WORDS = {
@@ -51,6 +53,8 @@ def parse(text: str, known_ids: set[str]) -> Intent | None:
         return Intent(operation="apply_repair", intervention_id=m.group(2))
     cat = _category(t)
     n = _budget(t)
+    if n is not None:
+        n = min(n, MAX_BUDGET)
     if re.search(r"\bwhy\b|explain|reason|justify", t):
         return Intent(operation="explain_recommendation")
     if re.search(r"disconnected|unreachable|remain|can(no|')t reach|cannot reach|isolated|still blocked|not reachable", t):

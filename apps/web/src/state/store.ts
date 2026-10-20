@@ -52,6 +52,7 @@ interface AppState {
   error: string | null
 
   applied: string[]
+  history: string[][] // previous applied sets, for exact undo
   journey: { origin: string; destination: string } | null
   budget: number
   weights: Weights
@@ -247,6 +248,7 @@ export const useApp = create<AppState>((set, get) => {
     loading: true,
     error: null,
     applied: [],
+    history: [],
     journey: null,
     budget: 2,
     weights: PRESETS.healthcare,
@@ -283,7 +285,11 @@ export const useApp = create<AppState>((set, get) => {
     },
 
     loadScenario: async (id) => {
-      set({ loading: true, error: null, scenarioId: id, analysis: null, analysisKey: null, applied: [], banner: null, selected: null, highlight: [], evaluation: null, initialEval: null, assistantLast: null, assistantError: null })
+      // Invalidate in-flight work from the previous scenario.
+      analysisSeq++
+      evalSeq++
+      clearTimeout(reanalyzeTimer)
+      set({ loading: true, analyzing: false, error: null, scenarioId: id, analysis: null, analysisKey: null, applied: [], history: [], banner: null, selected: null, highlight: [], evaluation: null, initialEval: null, assistantLast: null, assistantError: null })
       try {
         const sc = await api.scenario(id)
         if (sc.mode === 'municipal' && !get().records) {
@@ -334,22 +340,23 @@ export const useApp = create<AppState>((set, get) => {
     apply: async (id) => {
       if (get().applied.includes(id)) return
       const before = get().evaluation
-      set((s) => ({ applied: [...s.applied, id], compare: 'current' }))
+      set((s) => ({ history: [...s.history, s.applied], applied: [...s.applied, id], compare: 'current' }))
       const after = await evaluate({ animate: true })
       await narrateRepair(id, before, after)
     },
     remove: async (id) => {
-      set((s) => ({ applied: s.applied.filter((x) => x !== id), banner: null }))
+      if (!get().applied.includes(id)) return
+      set((s) => ({ history: [...s.history, s.applied], applied: s.applied.filter((x) => x !== id), banner: null }))
       await evaluate({ animate: true })
     },
     undo: async () => {
-      const a = get().applied
-      if (!a.length) return
-      set({ applied: a.slice(0, -1), banner: null })
+      const h = get().history
+      if (!h.length) return
+      set({ applied: h[h.length - 1], history: h.slice(0, -1), banner: null })
       await evaluate({ animate: true })
     },
     reset: async () => {
-      set({ applied: [], banner: null, compare: 'current', selected: null, highlight: [] })
+      set((s) => ({ history: s.applied.length ? [...s.history, s.applied] : s.history, applied: [], banner: null, compare: 'current', selected: null, highlight: [] }))
       await evaluate({ animate: true })
       set({ focus: { kind: 'bounds', nonce: ++focusSeq } })
     },
@@ -374,7 +381,17 @@ export const useApp = create<AppState>((set, get) => {
       const s = get()
       set({ assistantPending: true, assistantError: null })
       try {
-        const res = await api.assistant({ text, scenario_id: s.scenarioId, applied: s.applied, budget: s.budget, weights: s.weights, use_llm: s.useLLM })
+        const res = await api.assistant({
+          text,
+          scenario_id: s.scenarioId,
+          applied: s.applied,
+          budget: s.budget,
+          weights: s.weights,
+          use_llm: s.useLLM,
+          cutoff_m: s.cutoff,
+          origin: s.journey?.origin,
+          destination: s.journey?.destination,
+        })
         set({ assistantLast: res, assistantPending: false })
         const a = res.client_action
         if (!a) return

@@ -2,8 +2,8 @@
 
 The model only ever (a) picks an allowlisted operation with typed arguments,
 validated by Pydantic, or (b) rephrases facts that the engine computed; a
-narration containing any number that is not present in those facts is
-rejected. The product works fully without a model.
+narration containing any standalone number, number word or magnitude word
+(hundred, double, percent...) that is not present in those facts is rejected. The product works fully without a model.
 """
 
 from __future__ import annotations
@@ -95,24 +95,38 @@ def interpret(text: str) -> tuple[Intent | None, dict[str, Any]]:
         meta["latency_ms"] = round((time.perf_counter() - t0) * 1000, 1)
 
 
-_NUM = re.compile(r"(?<![A-Za-z])\d+(?:\.\d+)?")
-_WORDS = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9,
-          "ten": 10, "single": 1, "both": 2, "pair": 2}
+# Standalone numbers only: digits inside identifiers such as "R20740" are not numbers.
+_NUM = re.compile(r"(?<![\w.])\d+(?:[.,]\d+)*(?![\w])")
+_WORDS = {"zero": 0, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9,
+          "ten": 10, "eleven": 11, "twelve": 12, "thirteen": 13, "fourteen": 14, "fifteen": 15, "sixteen": 16,
+          "seventeen": 17, "eighteen": 18, "nineteen": 19, "twenty": 20, "thirty": 30, "forty": 40, "fifty": 50,
+          "sixty": 60, "seventy": 70, "eighty": 80, "ninety": 90, "single": 1, "both": 2, "pair": 2, "dozen": 12}
+# Quantity words that imply a magnitude; allowed only if the facts use them too.
+_QUANT = ("hundred", "thousand", "million", "dozens", "double", "doubles", "doubled", "twice", "triple", "tripled",
+          "half", "percent", "%", "majority", "most", "all residents", "everyone")
 
 
 def _numbers(s: str) -> set[float]:
-    out = {float(x) for x in _NUM.findall(s)}
+    out = {float(x.replace(",", "")) for x in _NUM.findall(s)}
     out |= {float(n) for w, n in _WORDS.items() if re.search(rf"\b{w}\b", s, re.I)}
     return out
 
 
+def _quantities(s: str) -> set[str]:
+    low = s.lower()
+    return {q for q in _QUANT if (q in low if not q.isalpha() else re.search(rf"\b{q}\b", low))}
+
+
 def grounded(narrative: str, facts: list[str]) -> bool:
-    """Every number (digits or number words) in the narrative must appear in the computed facts."""
+    """Every number (digits or number words) and every magnitude word in the
+    narrative must also appear in the computed facts."""
 
     allowed: set[float] = set()
+    allowed_q: set[str] = set()
     for f in facts:
         allowed |= _numbers(f)
-    return _numbers(narrative) <= allowed
+        allowed_q |= _quantities(f)
+    return _numbers(narrative) <= allowed and _quantities(narrative) <= allowed_q
 
 
 def narrate(facts: list[str]) -> tuple[str | None, dict[str, Any]]:

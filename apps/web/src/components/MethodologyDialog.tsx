@@ -84,7 +84,7 @@ export function MethodologyDialog() {
         <H>AI interface</H>
         <p>
           Planning questions are parsed by a deterministic rule parser; unrecognised phrasing can be routed to a local model (Ollama) that may only choose one allowlisted
-          operation with typed, validated arguments. The model never computes routes or scores, and any model-written sentence containing a number not present in the engine's
+          operation with typed, validated arguments. The model never computes routes or scores, and any model-written sentence containing a number or magnitude word not present in the engine's
           computed facts is rejected.
         </p>
 

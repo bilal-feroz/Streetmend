@@ -130,3 +130,54 @@ def test_potential_route_names_remaining_blockers(client):
     assert s1["journey"]["potential_blockers"] == ["B"]
     s2 = client.post("/api/scenarios/demo/evaluate", json={"applied": ["A", "B"], "origin": "O2", "destination": "D_CLINIC"}).json()
     assert s2["journey"]["potential_route"] is None and s2["journey"]["potential_blockers"] == []
+
+
+def test_assistant_large_budget_is_capped_not_500(client):
+    for text in ("best 8 repairs", "what if we only fund 10 repairs", "top 20 fixes for transit"):
+        r = client.post("/api/assistant", json={"text": text, "use_llm": False})
+        assert r.status_code == 200, (text, r.text)
+        body = r.json()
+        if body["interpretation"]["intent"]:
+            assert (body["interpretation"]["intent"]["budget"] or 0) <= 6
+            assert any("capped" in f for f in body["facts"])
+
+
+def test_assistant_uses_ui_cutoff_and_journey(client):
+    body = client.post("/api/assistant", json={"text": "apply C", "use_llm": False, "origin": "O1", "destination": "D_CLINIC",
+                                                "cutoff_m": 600}).json()
+    assert any("now connected" in f for f in body["facts"])  # O1 reaches the clinic via C within 600 m
+    body = client.post("/api/assistant", json={"text": "apply C", "use_llm": False, "origin": "O2", "destination": "D_CLINIC"}).json()
+    assert any("still not connected" in f for f in body["facts"])
+
+
+def test_grounding_rejects_id_digits_and_magnitude_words():
+    from streetmend.ai.llm import grounded
+
+    facts = ["Selected 2 repair(s): R20740 (Reconstruct ramp).", "Objective rises from 11 to 39 (+28)."]
+    assert grounded("Two repairs raise the objective from 11 to 39.", facts)
+    assert not grounded("About 740 residents gain access.", facts)
+    assert not grounded("Twenty more homes connect.", facts)
+    assert not grounded("Access doubles for hundreds of people.", facts)
+    assert not grounded("Access improves by 28 percent.", facts)
+
+
+def test_sensitivity_never_calls_greedy_an_optimum():
+    from streetmend.municipal.scenario import AREA_DIR
+
+    if not (AREA_DIR / "ramps.geojson").exists():
+        pytest.skip("municipal data not prepared")
+    from streetmend.municipal.scenario import load_municipal_scenario
+    from streetmend.optimize.analysis import AnalysisParams, analyze
+    from streetmend.optimize.objective import PRIORITY_PRESETS
+
+    a = analyze(load_municipal_scenario("strict"), AnalysisParams(budget=2, weights=PRIORITY_PRESETS["healthcare"]))
+    s = a["sensitivity"]
+    if not s["optimal_is_exact"]:
+        assert s["recommendation_changes"] is None and s["optimal_method"] == "greedy"
+
+
+def test_duplicate_candidate_ids_are_deduplicated(client):
+    a = client.post("/api/scenarios/demo/optimize", json={"budget": 2, "candidate_ids": ["E", "E", "E", "F", "G"]}).json()
+    assert a["params"]["candidate_count"] == 3
+    for alt in a["alternatives"]:
+        assert len(alt["selected"]) == len(set(alt["selected"]))

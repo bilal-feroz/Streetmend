@@ -226,7 +226,9 @@ export interface OptimizeResponse {
     score_with_selected: number
     optimal_selected: string[]
     optimal_score: number
-    recommendation_changes: boolean
+    optimal_method: string
+    optimal_is_exact: boolean
+    recommendation_changes: boolean | null
     unknown_edge_count: number
   }
   explanation: string[]

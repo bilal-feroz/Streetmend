@@ -28,7 +28,7 @@ So the planning question is not "which ramp is worst?" but:
 | **Combination-aware optimization** | Exact enumeration of every repair set within the budget (optimal for the stated candidate set and objective), plus greedy, individual-ranking and nearest-to-destination baselines. Beam search for very large candidate sets, always labeled approximate. |
 | **Evidence, not decoration** | Every route on the map is a real graph path, every number is computed by the engine, and synergy is measured explicitly: each repair's gain alone, its marginal value within the set, and newly connected origin–destination pairs. |
 | **Two operating modes** | **Guided Simulation**: a synthetic district built to demonstrate the dependent-repair problem; works fully offline. **Charlotte Data Explorer**: real CDOT curb-ramp and sidewalk records, CATS bus stops and OpenStreetMap streets/destinations for the Elizabeth neighborhood. |
-| **Natural-language questions** | "Which two repairs improve access to healthcare the most?" A deterministic rule parser handles common phrasing; unrecognized phrasing can go to a local model (Ollama, `qwen3:4b`) that may only choose one allowlisted operation with validated arguments. The model never computes routes or scores. |
+| **Natural-language questions** | "Which two repairs improve access to healthcare the most?" A deterministic rule parser handles common phrasing; unrecognized phrasing can go to a local model (Ollama, `qwen3:4b`) that may only choose one allowlisted operation with validated arguments. The model never computes routes or scores; optional model wording is rejected if it contains any number or magnitude word not in the computed facts. |
 
 ### Why combinations matter (measured, not asserted)
 
@@ -56,7 +56,7 @@ A 73-second screen capture of the working app is in [docs/media/streetmend-demo.
 * **Engine** (`services/api/streetmend`): Python, NetworkX for routing/inspection, SciPy compiled Dijkstra for batch evaluation, an exact key-node evaluator for fast combination scoring, Shapely/pyproj for geometry.
 * **API**: FastAPI with Pydantic request/response models.
 * **Web** (`apps/web`): React 19, TypeScript, Tailwind CSS v4, MapLibre GL JS (WebGL layers), Motion, Zustand.
-* **AI**: rule parser plus an optional Ollama model behind a Pydantic allowlist; grounding check on any model-written sentence.
+* **AI**: rule parser plus an optional Ollama model behind a Pydantic allowlist; grounding check on any model-written sentence (standalone numbers, number words and magnitude words must appear in the computed facts).
 
 Details: [ARCHITECTURE.md](ARCHITECTURE.md) · Method: [METHODOLOGY.md](METHODOLOGY.md) · Data: [DATA_SOURCES.md](DATA_SOURCES.md) · Limits: [LIMITATIONS.md](LIMITATIONS.md)
 
@@ -104,7 +104,7 @@ Follow [DEMO_SCRIPT.md](DEMO_SCRIPT.md) for the 90–120 second live demo.
 ## Tests
 
 ```bash
-cd services/api && uv run pytest          # 108 tests: engine, optimizer, API, assistant, municipal builder, ingestion
+cd services/api && uv run pytest          # 115 tests: engine, optimizer, API, assistant, municipal builder, ingestion
 cd apps/web && npx playwright test        # 8 E2E tests: full demo flow, recomputation, Charlotte explorer, keyboard, axe scan
 uv run --project services/api python scripts/benchmarks/run_benchmark.py   # regenerates docs/BENCHMARK.md
 ```

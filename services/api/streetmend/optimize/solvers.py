@@ -230,6 +230,10 @@ def solve(ev: Evaluator, candidates: list[str], budget: int, max_exact_evaluatio
         seeds = [tuple(s) for s, _ in sub.ranked_sets if s]
         notes.append(f"Beam search seeded with the exact optimum for budget {k} ({', '.join(sub.selected) or 'none'}).")
     r = beam_search(ev, candidates, budget, width=60, seed_sets=seeds)
+    g = greedy(ev, candidates, budget)
+    if g.score > r.score + EPS:  # the heuristic must never report less than a baseline
+        r.selected, r.score = g.selected, g.score
+        notes.append("Greedy found a better set than the beam; the greedy set is reported (still approximate).")
     r.notes = notes + r.notes
     r.evaluations = ev.evaluations - evals0
     r.runtime_ms = (time.perf_counter() - t0) * 1000

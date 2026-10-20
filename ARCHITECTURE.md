@@ -27,7 +27,7 @@ flowchart LR
 1. **The engine is the source of truth.** Every route, metric, ranking and explanation sentence is produced by deterministic code from the scenario graph and the applied-repair set.
 2. **Unknown is not accessible.** Edges with missing evidence are `UNKNOWN` and excluded from modeled traversability. A separate sensitivity pass reports what would change if they were passable.
 3. **Explicit topology.** Corners on different sides of a street are never connected directly; a crossing requires curb-ramp edges at both ends. The graph is undirected, so vehicle one-way rules never restrict pedestrians.
-4. **Stateless evaluation.** The client sends the ordered list of applied repairs, and the server validates it (`RepairState`) and recomputes. Undo and reset can therefore never desynchronize the map from the engine, and a server restart loses nothing.
+4. **Stateless evaluation.** The client sends the ordered list of applied repairs, and the server validates it (`RepairState`) and recomputes, so the map always reflects the engine and a server restart loses nothing. Undo restores the exact previous repair set (after an apply, a removal or a reset).
 5. **AI is an interaction layer.** The assistant can only emit one of eleven allowlisted, typed operations. There is no code generation or execution, no free-form database query, and no file access.
 
 ## Module map (`services/api/streetmend`)
@@ -60,7 +60,7 @@ where `M*` is the Floyd–Warshall closure over only the endpoints of `S` (≤ 2
 
 Sound pruning: a candidate that cannot lie on any within-threshold origin–destination path *even with every candidate repaired* has zero marginal value in every repair set, so exact enumeration over the remaining candidates is still exact.
 
-Measured: the exact budget-2 search over Charlotte's 206 relevant strict-policy candidates (21,321 combinations) takes about 2.9 s; moderate policy, budget 2, about 0.2 s (see `docs/BENCHMARK.md`).
+Measured: the exact budget-2 search over Charlotte's 206 relevant strict-policy candidates (21,321 combinations) takes about 3 s; moderate policy, budget 2, about 0.2 s (see `docs/BENCHMARK.md`). The batch kernel uses float64 so batch scores are identical to single-set scores, including at the threshold and in tie-breaking.
 
 ## Frontend (`apps/web`)
 

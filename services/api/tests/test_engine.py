@@ -349,3 +349,31 @@ def test_score_many_matches_score(seed):
     ev_batch, ev_one = Evaluator(sc), Evaluator(sc, fast=False)
     sets = [s for k in range(4) for s in combinations(sorted(sc.interventions), k)]
     assert ev_batch.score_many(sets) == pytest.approx([ev_one.score(frozenset(s)) for s in sets])
+
+
+def test_batch_scores_identical_to_score_near_cutoff_and_ties():
+    """float64 batch kernel: exact agreement at the threshold and for fractional weights."""
+    from streetmend.graph import Edge, EdgeKind, Evidence, Node, NodeKind, PedGraph
+    from streetmend.scenario.model import Destination, Intervention, Origin, Scenario
+    from streetmend.graph import DestinationCategory
+
+    g = PedGraph()
+    for i, x in enumerate([0.0, 0.003, 0.006]):
+        g.add_node(Node(f"n{i}", NodeKind.CORNER, x, 0.0))
+    g.add_node(Node("d1", NodeKind.DESTINATION, 0.006, 0.001))
+    g.add_node(Node("d2", NodeKind.DESTINATION, 0.006, -0.001))
+    def edge(eid, u, v, length, state):
+        return Edge(eid, u, v, EdgeKind.SIDEWALK, length, [(0, 0), (0.001, 0)], state, Evidence.SYNTHETIC)
+    g.add_edge(edge("e0", "n0", "n1", 300.0, Passability.TRAVERSABLE))
+    g.add_edge(edge("e1", "n1", "n2", 300.0005, Passability.BLOCKED))  # route 600.0005 m vs L = 600
+    g.add_edge(edge("e2", "n1", "d1", 100.0, Passability.BLOCKED))
+    g.add_edge(edge("e3", "n1", "d2", 100.0, Passability.BLOCKED))
+    g.add_edge(edge("e4", "n2", "d1", 0.5, Passability.TRAVERSABLE))
+    ivs = {k: Intervention(k, k, "x", [e], 0, 0) for k, e in (("A", "e1"), ("Y", "e2"), ("Z", "e3"))}
+    dests = [Destination("d1", "d1", DestinationCategory.HEALTHCARE, 0.1), Destination("d2", "d2", DestinationCategory.HEALTHCARE, 0.3)]
+    sc = Scenario("t", "t", "synthetic", "", g, [Origin("n0", "o")], dests, ivs, max_distance_m=600.0)
+    sc.validate()
+    sets = [s for k in range(3) for s in combinations(sorted(ivs), k)]
+    batch = Evaluator(sc).score_many(sets)
+    single = [Evaluator(sc, fast=False).score(frozenset(s)) for s in sets]
+    assert batch == single  # exact equality, not approximate

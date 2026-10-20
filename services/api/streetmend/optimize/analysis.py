@@ -75,7 +75,7 @@ def _solver_summary(ev: Evaluator, r: SolverResult, base: float, labels: dict[st
 
 def analyze(sc: Scenario, p: AnalysisParams) -> dict[str, Any]:
     ev = Evaluator(sc, p.weights, cutoff_m=p.cutoff_m)
-    cands = sorted(p.candidate_ids if p.candidate_ids is not None else sc.interventions)
+    cands = sorted(set(p.candidate_ids if p.candidate_ids is not None else sc.interventions))
     labels = {i: sc.interventions[i].label for i in sc.interventions}
     olabel = {o.id: o.label for o in sc.origins}
     dmeta = {d.id: d for d in sc.destinations}
@@ -134,8 +134,10 @@ def analyze(sc: Scenario, p: AnalysisParams) -> dict[str, Any]:
         "score_with_selected": _fmt(ev_opt.score(S)),
         "optimal_selected": sens.selected,
         "optimal_score": _fmt(sens.score),
-        "optimal_method": "exact_enumeration" if sens_exact else "greedy (too many combinations for an exact optimistic re-run)",
-        "recommendation_changes": sorted(sens.selected) != sorted(opt.selected),
+        "optimal_method": "exact_enumeration" if sens_exact else "greedy",
+        "optimal_is_exact": sens_exact,
+        # Only an exact optimistic optimum can show that the recommendation changes.
+        "recommendation_changes": (sorted(sens.selected) != sorted(opt.selected)) if sens_exact else None,
         "unknown_edge_count": sum(1 for e in sc.graph.edges.values() if e.state.value == "unknown"),
     }
 

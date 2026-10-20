@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-20 18:12 UTC",
+ "generated_at": "2026-10-20 18:47 UTC",
  "machine": {
   "python": "3.12.13",
   "platform": "Windows-11-10.0.26200-SP0",
@@ -13,7 +13,7 @@
    "solver": "exact_enumeration",
    "exact": true,
    "evaluations": 9,
-   "runtime_ms": 2.52,
+   "runtime_ms": 2.55,
    "opt_gain": 5.0,
    "opt_selected": [
     "E"
@@ -39,7 +39,7 @@
    "solver": "exact_enumeration",
    "exact": true,
    "evaluations": 45,
-   "runtime_ms": 3.06,
+   "runtime_ms": 2.59,
    "opt_gain": 12.0,
    "opt_selected": [
     "A",
@@ -69,7 +69,7 @@
    "solver": "exact_enumeration",
    "exact": true,
    "evaluations": 129,
-   "runtime_ms": 4.1,
+   "runtime_ms": 4.96,
    "opt_gain": 17.0,
    "opt_selected": [
     "A",
@@ -103,7 +103,7 @@
    "solver": "exact_enumeration",
    "exact": true,
    "evaluations": 255,
-   "runtime_ms": 7.12,
+   "runtime_ms": 6.98,
    "opt_gain": 18.0,
    "opt_selected": [
     "A",
@@ -140,7 +140,7 @@
    "solver": "exact_enumeration",
    "exact": true,
    "evaluations": 9,
-   "runtime_ms": 1.96,
+   "runtime_ms": 2.21,
    "opt_gain": 8.0,
    "opt_selected": [
     "C"
@@ -166,7 +166,7 @@
    "solver": "exact_enumeration",
    "exact": true,
    "evaluations": 45,
-   "runtime_ms": 2.43,
+   "runtime_ms": 2.69,
    "opt_gain": 28.0,
    "opt_selected": [
     "A",
@@ -196,7 +196,7 @@
    "solver": "exact_enumeration",
    "exact": true,
    "evaluations": 129,
-   "runtime_ms": 4.04,
+   "runtime_ms": 3.94,
    "opt_gain": 33.0,
    "opt_selected": [
     "A",
@@ -230,7 +230,7 @@
    "solver": "exact_enumeration",
    "exact": true,
    "evaluations": 255,
-   "runtime_ms": 9.63,
+   "runtime_ms": 6.61,
    "opt_gain": 34.0,
    "opt_selected": [
     "A",
@@ -267,7 +267,7 @@
    "solver": "exact_enumeration",
    "exact": true,
    "evaluations": 9,
-   "runtime_ms": 2.72,
+   "runtime_ms": 2.48,
    "opt_gain": 8.0,
    "opt_selected": [
     "C"
@@ -293,7 +293,7 @@
    "solver": "exact_enumeration",
    "exact": true,
    "evaluations": 45,
-   "runtime_ms": 3.8,
+   "runtime_ms": 2.4,
    "opt_gain": 20.0,
    "opt_selected": [
     "A",
@@ -323,7 +323,7 @@
    "solver": "exact_enumeration",
    "exact": true,
    "evaluations": 129,
-   "runtime_ms": 4.12,
+   "runtime_ms": 3.94,
    "opt_gain": 25.0,
    "opt_selected": [
     "A",
@@ -357,7 +357,7 @@
    "solver": "exact_enumeration",
    "exact": true,
    "evaluations": 255,
-   "runtime_ms": 6.86,
+   "runtime_ms": 9.08,
    "opt_gain": 26.0,
    "opt_selected": [
     "A",
@@ -394,7 +394,7 @@
    "solver": "exact_enumeration",
    "exact": true,
    "evaluations": 9,
-   "runtime_ms": 2.14,
+   "runtime_ms": 2.64,
    "opt_gain": 15.0,
    "opt_selected": [
     "E"
@@ -420,7 +420,7 @@
    "solver": "exact_enumeration",
    "exact": true,
    "evaluations": 45,
-   "runtime_ms": 2.5,
+   "runtime_ms": 3.64,
    "opt_gain": 19.0,
    "opt_selected": [
     "C",
@@ -450,7 +450,7 @@
    "solver": "exact_enumeration",
    "exact": true,
    "evaluations": 129,
-   "runtime_ms": 4.13,
+   "runtime_ms": 4.05,
    "opt_gain": 27.0,
    "opt_selected": [
     "A",
@@ -484,7 +484,7 @@
    "solver": "exact_enumeration",
    "exact": true,
    "evaluations": 255,
-   "runtime_ms": 7.52,
+   "runtime_ms": 6.81,
    "opt_gain": 30.0,
    "opt_selected": [
     "A",
@@ -535,8 +535,8 @@
      "mean_ratio_to_optimum": 0.411,
      "min_ratio_to_optimum": 0.0
     },
-    "mean_runtime_ms": 3.14,
-    "max_runtime_ms": 5.26,
+    "mean_runtime_ms": 3.15,
+    "max_runtime_ms": 4.71,
     "all_exact": true
    },
    "rows": [
@@ -548,7 +548,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 21,
-     "runtime_ms": 2.35,
+     "runtime_ms": 2.78,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -569,7 +569,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 55,
-     "runtime_ms": 3.29,
+     "runtime_ms": 3.06,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -590,7 +590,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 15,
-     "runtime_ms": 2.93,
+     "runtime_ms": 2.13,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -611,7 +611,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 45,
-     "runtime_ms": 2.6,
+     "runtime_ms": 2.74,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -632,7 +632,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 55,
-     "runtime_ms": 2.81,
+     "runtime_ms": 3.13,
      "opt_gain": 6.0,
      "opt_selected": [
       "F5"
@@ -660,7 +660,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 78,
-     "runtime_ms": 3.33,
+     "runtime_ms": 3.28,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -681,7 +681,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 45,
-     "runtime_ms": 2.6,
+     "runtime_ms": 2.66,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -702,7 +702,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 91,
-     "runtime_ms": 5.26,
+     "runtime_ms": 4.63,
      "opt_gain": 20.0,
      "opt_selected": [
       "F9"
@@ -729,7 +729,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 55,
-     "runtime_ms": 3.76,
+     "runtime_ms": 2.72,
      "opt_gain": 8.0,
      "opt_selected": [
       "F1"
@@ -757,7 +757,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 136,
-     "runtime_ms": 4.29,
+     "runtime_ms": 3.85,
      "opt_gain": 29.0,
      "opt_selected": [
       "F11",
@@ -787,7 +787,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 55,
-     "runtime_ms": 2.81,
+     "runtime_ms": 2.96,
      "opt_gain": 3.0,
      "opt_selected": [
       "F5"
@@ -814,7 +814,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 105,
-     "runtime_ms": 3.6,
+     "runtime_ms": 3.64,
      "opt_gain": 22.0,
      "opt_selected": [
       "F4",
@@ -844,7 +844,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 105,
-     "runtime_ms": 4.35,
+     "runtime_ms": 3.65,
      "opt_gain": 7.0,
      "opt_selected": [
       "F1",
@@ -874,7 +874,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 10,
-     "runtime_ms": 2.47,
+     "runtime_ms": 2.34,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -895,7 +895,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 91,
-     "runtime_ms": 3.15,
+     "runtime_ms": 3.13,
      "opt_gain": 21.0,
      "opt_selected": [
       "F5",
@@ -925,7 +925,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 55,
-     "runtime_ms": 2.74,
+     "runtime_ms": 3.51,
      "opt_gain": 7.0,
      "opt_selected": [
       "F4"
@@ -952,7 +952,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 55,
-     "runtime_ms": 2.89,
+     "runtime_ms": 3.33,
      "opt_gain": 12.0,
      "opt_selected": [
       "F5"
@@ -980,7 +980,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 45,
-     "runtime_ms": 2.64,
+     "runtime_ms": 2.58,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -1001,7 +1001,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 15,
-     "runtime_ms": 2.07,
+     "runtime_ms": 2.17,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -1022,7 +1022,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 91,
-     "runtime_ms": 3.87,
+     "runtime_ms": 3.31,
      "opt_gain": 15.0,
      "opt_selected": [
       "F6"
@@ -1050,7 +1050,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 105,
-     "runtime_ms": 3.63,
+     "runtime_ms": 3.43,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -1071,7 +1071,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 45,
-     "runtime_ms": 2.59,
+     "runtime_ms": 3.61,
      "opt_gain": 1.0,
      "opt_selected": [
       "F3"
@@ -1098,7 +1098,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 28,
-     "runtime_ms": 2.48,
+     "runtime_ms": 2.92,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -1119,7 +1119,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 66,
-     "runtime_ms": 2.85,
+     "runtime_ms": 3.6,
      "opt_gain": 3.0,
      "opt_selected": [
       "F8"
@@ -1146,7 +1146,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 36,
-     "runtime_ms": 2.71,
+     "runtime_ms": 2.37,
      "opt_gain": 1.0,
      "opt_selected": [
       "F2"
@@ -1173,7 +1173,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 45,
-     "runtime_ms": 3.27,
+     "runtime_ms": 3.32,
      "opt_gain": 7.0,
      "opt_selected": [
       "F1",
@@ -1203,7 +1203,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 136,
-     "runtime_ms": 4.06,
+     "runtime_ms": 4.71,
      "opt_gain": 21.0,
      "opt_selected": [
       "F8",
@@ -1232,7 +1232,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 55,
-     "runtime_ms": 2.85,
+     "runtime_ms": 3.24,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -1253,7 +1253,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 28,
-     "runtime_ms": 2.22,
+     "runtime_ms": 3.37,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -1274,7 +1274,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 21,
-     "runtime_ms": 2.45,
+     "runtime_ms": 2.2,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -1295,7 +1295,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 28,
-     "runtime_ms": 2.41,
+     "runtime_ms": 2.37,
      "opt_gain": 21.0,
      "opt_selected": [
       "F3",
@@ -1325,7 +1325,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 78,
-     "runtime_ms": 4.28,
+     "runtime_ms": 3.56,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -1346,7 +1346,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 120,
-     "runtime_ms": 3.69,
+     "runtime_ms": 3.4,
      "opt_gain": 5.0,
      "opt_selected": [
       "F11",
@@ -1376,7 +1376,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 91,
-     "runtime_ms": 3.62,
+     "runtime_ms": 3.35,
      "opt_gain": 28.0,
      "opt_selected": [
       "F7"
@@ -1404,7 +1404,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 36,
-     "runtime_ms": 2.95,
+     "runtime_ms": 2.85,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -1425,7 +1425,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 66,
-     "runtime_ms": 3.31,
+     "runtime_ms": 3.19,
      "opt_gain": 1.0,
      "opt_selected": [
       "F2"
@@ -1452,7 +1452,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 21,
-     "runtime_ms": 2.46,
+     "runtime_ms": 2.36,
      "opt_gain": 21.0,
      "opt_selected": [
       "F2"
@@ -1480,7 +1480,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 105,
-     "runtime_ms": 4.62,
+     "runtime_ms": 4.09,
      "opt_gain": 15.0,
      "opt_selected": [
       "F6",
@@ -1510,7 +1510,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 36,
-     "runtime_ms": 2.52,
+     "runtime_ms": 2.97,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -1531,7 +1531,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 45,
-     "runtime_ms": 2.63,
+     "runtime_ms": 3.29,
      "opt_gain": 25.0,
      "opt_selected": [
       "F6",
@@ -1573,8 +1573,8 @@
      "mean_ratio_to_optimum": 0.598,
      "min_ratio_to_optimum": 0.0
     },
-    "mean_runtime_ms": 6.49,
-    "max_runtime_ms": 17.23,
+    "mean_runtime_ms": 6.86,
+    "max_runtime_ms": 18.85,
     "all_exact": true
    },
    "rows": [
@@ -1586,7 +1586,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 41,
-     "runtime_ms": 2.65,
+     "runtime_ms": 2.62,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -1608,7 +1608,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 175,
-     "runtime_ms": 4.74,
+     "runtime_ms": 4.77,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -1630,7 +1630,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 25,
-     "runtime_ms": 2.91,
+     "runtime_ms": 2.38,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -1652,7 +1652,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 129,
-     "runtime_ms": 4.22,
+     "runtime_ms": 4.8,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -1674,7 +1674,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 175,
-     "runtime_ms": 4.87,
+     "runtime_ms": 5.8,
      "opt_gain": 6.0,
      "opt_selected": [
       "F5"
@@ -1703,7 +1703,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 298,
-     "runtime_ms": 6.69,
+     "runtime_ms": 7.82,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -1725,7 +1725,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 129,
-     "runtime_ms": 3.93,
+     "runtime_ms": 4.8,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -1747,7 +1747,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 377,
-     "runtime_ms": 8.65,
+     "runtime_ms": 9.16,
      "opt_gain": 20.0,
      "opt_selected": [
       "F9"
@@ -1775,7 +1775,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 175,
-     "runtime_ms": 7.65,
+     "runtime_ms": 5.73,
      "opt_gain": 8.0,
      "opt_selected": [
       "F1"
@@ -1804,7 +1804,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 696,
-     "runtime_ms": 13.36,
+     "runtime_ms": 16.5,
      "opt_gain": 29.0,
      "opt_selected": [
       "F11",
@@ -1836,7 +1836,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 175,
-     "runtime_ms": 5.66,
+     "runtime_ms": 7.19,
      "opt_gain": 3.0,
      "opt_selected": [
       "F5"
@@ -1864,7 +1864,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 469,
-     "runtime_ms": 11.08,
+     "runtime_ms": 18.85,
      "opt_gain": 22.0,
      "opt_selected": [
       "F4",
@@ -1896,7 +1896,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 469,
-     "runtime_ms": 10.89,
+     "runtime_ms": 9.63,
      "opt_gain": 8.0,
      "opt_selected": [
       "F1",
@@ -1930,7 +1930,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 14,
-     "runtime_ms": 2.16,
+     "runtime_ms": 2.22,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -1952,7 +1952,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 377,
-     "runtime_ms": 8.34,
+     "runtime_ms": 9.36,
      "opt_gain": 27.0,
      "opt_selected": [
       "F5",
@@ -1985,7 +1985,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 175,
-     "runtime_ms": 5.72,
+     "runtime_ms": 5.28,
      "opt_gain": 7.0,
      "opt_selected": [
       "F4"
@@ -2013,7 +2013,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 175,
-     "runtime_ms": 6.03,
+     "runtime_ms": 5.54,
      "opt_gain": 12.0,
      "opt_selected": [
       "F5"
@@ -2042,7 +2042,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 129,
-     "runtime_ms": 8.05,
+     "runtime_ms": 4.23,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -2064,7 +2064,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 25,
-     "runtime_ms": 3.75,
+     "runtime_ms": 2.32,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -2086,7 +2086,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 377,
-     "runtime_ms": 8.5,
+     "runtime_ms": 9.07,
      "opt_gain": 15.0,
      "opt_selected": [
       "F6"
@@ -2116,7 +2116,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 469,
-     "runtime_ms": 10.29,
+     "runtime_ms": 10.86,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -2138,7 +2138,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 129,
-     "runtime_ms": 4.0,
+     "runtime_ms": 4.52,
      "opt_gain": 1.0,
      "opt_selected": [
       "F3"
@@ -2166,7 +2166,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 63,
-     "runtime_ms": 2.94,
+     "runtime_ms": 3.66,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -2188,7 +2188,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 231,
-     "runtime_ms": 6.13,
+     "runtime_ms": 6.61,
      "opt_gain": 3.0,
      "opt_selected": [
       "F8"
@@ -2216,7 +2216,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 92,
-     "runtime_ms": 3.55,
+     "runtime_ms": 4.05,
      "opt_gain": 1.0,
      "opt_selected": [
       "F2"
@@ -2244,7 +2244,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 129,
-     "runtime_ms": 4.47,
+     "runtime_ms": 4.82,
      "opt_gain": 7.0,
      "opt_selected": [
       "F1",
@@ -2276,7 +2276,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 696,
-     "runtime_ms": 17.23,
+     "runtime_ms": 16.28,
      "opt_gain": 21.0,
      "opt_selected": [
       "F8",
@@ -2306,7 +2306,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 175,
-     "runtime_ms": 5.66,
+     "runtime_ms": 6.77,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -2328,7 +2328,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 63,
-     "runtime_ms": 2.9,
+     "runtime_ms": 3.6,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -2350,7 +2350,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 41,
-     "runtime_ms": 3.32,
+     "runtime_ms": 3.41,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -2372,7 +2372,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 63,
-     "runtime_ms": 3.98,
+     "runtime_ms": 3.74,
      "opt_gain": 21.0,
      "opt_selected": [
       "F3",
@@ -2403,7 +2403,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 298,
-     "runtime_ms": 8.9,
+     "runtime_ms": 8.65,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -2425,7 +2425,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 575,
-     "runtime_ms": 12.2,
+     "runtime_ms": 12.26,
      "opt_gain": 6.0,
      "opt_selected": [
       "F11",
@@ -2459,7 +2459,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 377,
-     "runtime_ms": 9.31,
+     "runtime_ms": 9.04,
      "opt_gain": 28.0,
      "opt_selected": [
       "F7"
@@ -2488,7 +2488,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 92,
-     "runtime_ms": 5.16,
+     "runtime_ms": 3.51,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -2510,7 +2510,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 231,
-     "runtime_ms": 8.09,
+     "runtime_ms": 6.32,
      "opt_gain": 1.0,
      "opt_selected": [
       "F2"
@@ -2538,7 +2538,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 41,
-     "runtime_ms": 3.03,
+     "runtime_ms": 2.69,
      "opt_gain": 21.0,
      "opt_selected": [
       "F2"
@@ -2567,7 +2567,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 469,
-     "runtime_ms": 11.15,
+     "runtime_ms": 16.39,
      "opt_gain": 15.0,
      "opt_selected": [
       "F6",
@@ -2598,7 +2598,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 92,
-     "runtime_ms": 3.57,
+     "runtime_ms": 4.78,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -2620,7 +2620,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 129,
-     "runtime_ms": 3.98,
+     "runtime_ms": 4.53,
      "opt_gain": 28.0,
      "opt_selected": [
       "F5",
@@ -2666,8 +2666,8 @@
      "mean_ratio_to_optimum": 0.267,
      "min_ratio_to_optimum": 0.0
     },
-    "mean_runtime_ms": 2.05,
-    "max_runtime_ms": 3.51,
+    "mean_runtime_ms": 2.23,
+    "max_runtime_ms": 4.73,
     "all_exact": true
    },
    "rows": [
@@ -2679,7 +2679,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 15,
-     "runtime_ms": 1.96,
+     "runtime_ms": 1.95,
      "opt_gain": 3.0,
      "opt_selected": [
       "c2"
@@ -2707,7 +2707,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 45,
-     "runtime_ms": 2.35,
+     "runtime_ms": 2.48,
      "opt_gain": 7.0,
      "opt_selected": [
       "c0",
@@ -2737,7 +2737,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 21,
-     "runtime_ms": 1.95,
+     "runtime_ms": 1.9,
      "opt_gain": 11.0,
      "opt_selected": [
       "c1",
@@ -2788,7 +2788,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 28,
-     "runtime_ms": 2.19,
+     "runtime_ms": 1.89,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -2809,7 +2809,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 36,
-     "runtime_ms": 2.02,
+     "runtime_ms": 2.19,
      "opt_gain": 3.0,
      "opt_selected": [
       "c2"
@@ -2836,7 +2836,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 3,
-     "runtime_ms": 1.55,
+     "runtime_ms": 1.63,
      "opt_gain": 9.0,
      "opt_selected": [
       "c5"
@@ -2863,7 +2863,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 45,
-     "runtime_ms": 2.08,
+     "runtime_ms": 2.51,
      "opt_gain": 4.5,
      "opt_selected": [
       "c2",
@@ -2887,7 +2887,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 10,
-     "runtime_ms": 1.69,
+     "runtime_ms": 1.64,
      "opt_gain": 3.0,
      "opt_selected": [
       "c2"
@@ -2915,7 +2915,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 10,
-     "runtime_ms": 2.15,
+     "runtime_ms": 1.97,
      "opt_gain": 3.0,
      "opt_selected": [
       "c6"
@@ -2942,7 +2942,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 10,
-     "runtime_ms": 1.67,
+     "runtime_ms": 2.0,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -2963,7 +2963,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 15,
-     "runtime_ms": 1.67,
+     "runtime_ms": 2.26,
      "opt_gain": 1.0,
      "opt_selected": [
       "c5",
@@ -2987,7 +2987,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 21,
-     "runtime_ms": 2.29,
+     "runtime_ms": 1.82,
      "opt_gain": 3.0,
      "opt_selected": [
       "c3",
@@ -3011,7 +3011,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 15,
-     "runtime_ms": 2.43,
+     "runtime_ms": 2.14,
      "opt_gain": 10.5,
      "opt_selected": [
       "c0",
@@ -3041,7 +3041,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 28,
-     "runtime_ms": 1.93,
+     "runtime_ms": 3.22,
      "opt_gain": 22.5,
      "opt_selected": [
       "c3",
@@ -3071,7 +3071,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 28,
-     "runtime_ms": 2.06,
+     "runtime_ms": 1.97,
      "opt_gain": 4.5,
      "opt_selected": [
       "c4",
@@ -3100,7 +3100,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 15,
-     "runtime_ms": 1.77,
+     "runtime_ms": 1.7,
      "opt_gain": 3.0,
      "opt_selected": [
       "c0"
@@ -3128,7 +3128,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 36,
-     "runtime_ms": 2.11,
+     "runtime_ms": 1.97,
      "opt_gain": 7.5,
      "opt_selected": [
       "c2",
@@ -3158,7 +3158,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 10,
-     "runtime_ms": 1.74,
+     "runtime_ms": 2.82,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -3179,7 +3179,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 21,
-     "runtime_ms": 1.89,
+     "runtime_ms": 1.83,
      "opt_gain": 16.5,
      "opt_selected": [
       "c0",
@@ -3208,7 +3208,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 15,
-     "runtime_ms": 1.77,
+     "runtime_ms": 2.33,
      "opt_gain": 6.0,
      "opt_selected": [
       "c2"
@@ -3236,7 +3236,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 6,
-     "runtime_ms": 1.89,
+     "runtime_ms": 1.55,
      "opt_gain": 4.5,
      "opt_selected": [
       "c2",
@@ -3266,7 +3266,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 6,
-     "runtime_ms": 2.06,
+     "runtime_ms": 2.62,
      "opt_gain": 13.5,
      "opt_selected": [
       "c0",
@@ -3295,7 +3295,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 45,
-     "runtime_ms": 2.35,
+     "runtime_ms": 4.73,
      "opt_gain": 16.0,
      "opt_selected": [
       "c6"
@@ -3322,7 +3322,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 10,
-     "runtime_ms": 1.77,
+     "runtime_ms": 1.68,
      "opt_gain": 3.0,
      "opt_selected": [
       "c3"
@@ -3349,7 +3349,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 36,
-     "runtime_ms": 2.24,
+     "runtime_ms": 2.75,
      "opt_gain": 2.0,
      "opt_selected": [
       "c0"
@@ -3376,7 +3376,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 15,
-     "runtime_ms": 2.35,
+     "runtime_ms": 2.56,
      "opt_gain": 4.5,
      "opt_selected": [
       "c5",
@@ -3404,7 +3404,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 21,
-     "runtime_ms": 2.14,
+     "runtime_ms": 1.87,
      "opt_gain": 5.0,
      "opt_selected": [
       "c7"
@@ -3431,7 +3431,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 10,
-     "runtime_ms": 1.7,
+     "runtime_ms": 2.0,
      "opt_gain": 4.5,
      "opt_selected": [
       "c6"
@@ -3458,7 +3458,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 45,
-     "runtime_ms": 2.81,
+     "runtime_ms": 3.33,
      "opt_gain": 12.0,
      "opt_selected": [
       "c0",
@@ -3488,7 +3488,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 28,
-     "runtime_ms": 2.57,
+     "runtime_ms": 1.86,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -3509,7 +3509,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 15,
-     "runtime_ms": 1.71,
+     "runtime_ms": 2.13,
      "opt_gain": 10.5,
      "opt_selected": [
       "c3",
@@ -3539,7 +3539,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 10,
-     "runtime_ms": 1.94,
+     "runtime_ms": 2.03,
      "opt_gain": 3.0,
      "opt_selected": [
       "c7"
@@ -3566,7 +3566,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 21,
-     "runtime_ms": 1.78,
+     "runtime_ms": 1.84,
      "opt_gain": 6.0,
      "opt_selected": [
       "c2",
@@ -3595,7 +3595,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 21,
-     "runtime_ms": 2.23,
+     "runtime_ms": 2.3,
      "opt_gain": 10.5,
      "opt_selected": [
       "c0",
@@ -3625,7 +3625,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 21,
-     "runtime_ms": 1.75,
+     "runtime_ms": 2.49,
      "opt_gain": 14.0,
      "opt_selected": [
       "c0",
@@ -3655,7 +3655,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 28,
-     "runtime_ms": 2.27,
+     "runtime_ms": 2.53,
      "opt_gain": 9.0,
      "opt_selected": [
       "c2"
@@ -3682,7 +3682,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 36,
-     "runtime_ms": 2.07,
+     "runtime_ms": 2.32,
      "opt_gain": 4.5,
      "opt_selected": [
       "c4",
@@ -3712,7 +3712,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 36,
-     "runtime_ms": 3.51,
+     "runtime_ms": 2.03,
      "opt_gain": 7.0,
      "opt_selected": [
       "c5",
@@ -3742,7 +3742,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 10,
-     "runtime_ms": 1.92,
+     "runtime_ms": 2.41,
      "opt_gain": 1.0,
      "opt_selected": [
       "c0",
@@ -3779,8 +3779,8 @@
      "mean_ratio_to_optimum": 0.305,
      "min_ratio_to_optimum": 0.0
     },
-    "mean_runtime_ms": 2.84,
-    "max_runtime_ms": 5.01,
+    "mean_runtime_ms": 3.07,
+    "max_runtime_ms": 6.01,
     "all_exact": true
    },
    "rows": [
@@ -3792,7 +3792,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 25,
-     "runtime_ms": 2.03,
+     "runtime_ms": 3.72,
      "opt_gain": 3.0,
      "opt_selected": [
       "c2"
@@ -3821,7 +3821,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 129,
-     "runtime_ms": 3.62,
+     "runtime_ms": 4.6,
      "opt_gain": 7.0,
      "opt_selected": [
       "c0",
@@ -3853,7 +3853,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 41,
-     "runtime_ms": 2.29,
+     "runtime_ms": 2.6,
      "opt_gain": 11.0,
      "opt_selected": [
       "c1",
@@ -3906,7 +3906,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 63,
-     "runtime_ms": 2.54,
+     "runtime_ms": 3.12,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -3928,7 +3928,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 92,
-     "runtime_ms": 3.58,
+     "runtime_ms": 3.26,
      "opt_gain": 3.0,
      "opt_selected": [
       "c2"
@@ -3956,7 +3956,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 3,
-     "runtime_ms": 1.65,
+     "runtime_ms": 1.68,
      "opt_gain": 9.0,
      "opt_selected": [
       "c5"
@@ -3984,7 +3984,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 129,
-     "runtime_ms": 3.71,
+     "runtime_ms": 4.65,
      "opt_gain": 4.5,
      "opt_selected": [
       "c2",
@@ -4009,7 +4009,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 14,
-     "runtime_ms": 2.33,
+     "runtime_ms": 2.05,
      "opt_gain": 3.0,
      "opt_selected": [
       "c2"
@@ -4038,7 +4038,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 14,
-     "runtime_ms": 1.8,
+     "runtime_ms": 1.77,
      "opt_gain": 9.0,
      "opt_selected": [
       "c2",
@@ -4068,7 +4068,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 14,
-     "runtime_ms": 1.85,
+     "runtime_ms": 2.77,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -4090,7 +4090,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 25,
-     "runtime_ms": 1.96,
+     "runtime_ms": 2.06,
      "opt_gain": 1.0,
      "opt_selected": [
       "c5",
@@ -4115,7 +4115,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 41,
-     "runtime_ms": 2.82,
+     "runtime_ms": 3.61,
      "opt_gain": 3.0,
      "opt_selected": [
       "c3",
@@ -4140,7 +4140,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 25,
-     "runtime_ms": 2.98,
+     "runtime_ms": 2.69,
      "opt_gain": 11.5,
      "opt_selected": [
       "c0",
@@ -4174,7 +4174,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 63,
-     "runtime_ms": 2.61,
+     "runtime_ms": 2.67,
      "opt_gain": 22.5,
      "opt_selected": [
       "c3",
@@ -4205,7 +4205,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 63,
-     "runtime_ms": 2.59,
+     "runtime_ms": 4.54,
      "opt_gain": 4.5,
      "opt_selected": [
       "c4",
@@ -4235,7 +4235,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 25,
-     "runtime_ms": 3.11,
+     "runtime_ms": 3.68,
      "opt_gain": 3.0,
      "opt_selected": [
       "c0"
@@ -4264,7 +4264,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 92,
-     "runtime_ms": 3.21,
+     "runtime_ms": 3.07,
      "opt_gain": 8.5,
      "opt_selected": [
       "c2",
@@ -4298,7 +4298,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 14,
-     "runtime_ms": 1.86,
+     "runtime_ms": 2.25,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -4320,7 +4320,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 41,
-     "runtime_ms": 2.21,
+     "runtime_ms": 2.3,
      "opt_gain": 16.5,
      "opt_selected": [
       "c0",
@@ -4350,7 +4350,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 25,
-     "runtime_ms": 2.14,
+     "runtime_ms": 2.08,
      "opt_gain": 6.0,
      "opt_selected": [
       "c2"
@@ -4379,7 +4379,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 7,
-     "runtime_ms": 2.22,
+     "runtime_ms": 2.48,
      "opt_gain": 4.5,
      "opt_selected": [
       "c2",
@@ -4410,7 +4410,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 7,
-     "runtime_ms": 1.75,
+     "runtime_ms": 3.3,
      "opt_gain": 13.5,
      "opt_selected": [
       "c0",
@@ -4440,7 +4440,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 129,
-     "runtime_ms": 5.01,
+     "runtime_ms": 6.01,
      "opt_gain": 16.0,
      "opt_selected": [
       "c6"
@@ -4468,7 +4468,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 14,
-     "runtime_ms": 2.94,
+     "runtime_ms": 3.76,
      "opt_gain": 3.0,
      "opt_selected": [
       "c3"
@@ -4496,7 +4496,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 92,
-     "runtime_ms": 3.68,
+     "runtime_ms": 4.04,
      "opt_gain": 2.0,
      "opt_selected": [
       "c0"
@@ -4524,7 +4524,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 25,
-     "runtime_ms": 2.38,
+     "runtime_ms": 2.28,
      "opt_gain": 5.5,
      "opt_selected": [
       "c5",
@@ -4554,7 +4554,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 41,
-     "runtime_ms": 3.2,
+     "runtime_ms": 2.68,
      "opt_gain": 5.0,
      "opt_selected": [
       "c7"
@@ -4582,7 +4582,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 14,
-     "runtime_ms": 1.85,
+     "runtime_ms": 2.37,
      "opt_gain": 4.5,
      "opt_selected": [
       "c6"
@@ -4610,7 +4610,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 129,
-     "runtime_ms": 4.25,
+     "runtime_ms": 4.75,
      "opt_gain": 21.0,
      "opt_selected": [
       "c0",
@@ -4644,7 +4644,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 63,
-     "runtime_ms": 2.56,
+     "runtime_ms": 3.51,
      "opt_gain": 0.0,
      "opt_selected": [],
      "greedy_gain": 0.0,
@@ -4666,7 +4666,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 25,
-     "runtime_ms": 2.17,
+     "runtime_ms": 2.73,
      "opt_gain": 10.5,
      "opt_selected": [
       "c3",
@@ -4697,7 +4697,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 14,
-     "runtime_ms": 2.88,
+     "runtime_ms": 2.03,
      "opt_gain": 3.0,
      "opt_selected": [
       "c7"
@@ -4725,7 +4725,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 41,
-     "runtime_ms": 4.59,
+     "runtime_ms": 2.64,
      "opt_gain": 6.0,
      "opt_selected": [
       "c2",
@@ -4755,7 +4755,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 41,
-     "runtime_ms": 2.47,
+     "runtime_ms": 2.42,
      "opt_gain": 10.5,
      "opt_selected": [
       "c0",
@@ -4786,7 +4786,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 41,
-     "runtime_ms": 3.97,
+     "runtime_ms": 3.1,
      "opt_gain": 15.0,
      "opt_selected": [
       "c0",
@@ -4820,7 +4820,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 63,
-     "runtime_ms": 2.99,
+     "runtime_ms": 2.84,
      "opt_gain": 11.0,
      "opt_selected": [
       "c1",
@@ -4850,7 +4850,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 92,
-     "runtime_ms": 4.51,
+     "runtime_ms": 5.05,
      "opt_gain": 5.5,
      "opt_selected": [
       "c4",
@@ -4884,7 +4884,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 92,
-     "runtime_ms": 4.01,
+     "runtime_ms": 3.6,
      "opt_gain": 7.0,
      "opt_selected": [
       "c5",
@@ -4915,7 +4915,7 @@
      "solver": "exact_enumeration",
      "exact": true,
      "evaluations": 14,
-     "runtime_ms": 2.91,
+     "runtime_ms": 1.85,
      "opt_gain": 1.0,
      "opt_selected": [
       "c0",
@@ -4943,7 +4943,7 @@
    "solver": "exact_enumeration",
    "exact": true,
    "evaluations": 206,
-   "runtime_ms": 36.54,
+   "runtime_ms": 35.96,
    "opt_gain": 39.0,
    "opt_selected": [
     "R20691"
@@ -4961,7 +4961,7 @@
     "R23798"
    ],
    "policy": "strict",
-   "nodes": 2022,
+   "nodes": 2042,
    "edges": 2584,
    "origins": 99,
    "destinations": 39
@@ -4973,7 +4973,7 @@
    "solver": "exact_enumeration",
    "exact": true,
    "evaluations": 21321,
-   "runtime_ms": 2868.12,
+   "runtime_ms": 3156.02,
    "opt_gain": 186.0,
    "opt_selected": [
     "R20740",
@@ -4995,7 +4995,7 @@
     "R12170"
    ],
    "policy": "strict",
-   "nodes": 2022,
+   "nodes": 2042,
    "edges": 2584,
    "origins": 99,
    "destinations": 39
@@ -5006,8 +5006,8 @@
    "budget": 3,
    "solver": "beam_search",
    "exact": false,
-   "evaluations": 32335,
-   "runtime_ms": 6115.94,
+   "evaluations": 32413,
+   "runtime_ms": 6558.5,
    "opt_gain": 415.0,
    "opt_selected": [
     "R20718",
@@ -5031,7 +5031,7 @@
     "R12169"
    ],
    "policy": "strict",
-   "nodes": 2022,
+   "nodes": 2042,
    "edges": 2584,
    "origins": 99,
    "destinations": 39
@@ -5043,7 +5043,7 @@
    "solver": "exact_enumeration",
    "exact": true,
    "evaluations": 56,
-   "runtime_ms": 17.58,
+   "runtime_ms": 16.56,
    "opt_gain": 304.0,
    "opt_selected": [
     "R21683"
@@ -5061,7 +5061,7 @@
     "R12169"
    ],
    "policy": "moderate",
-   "nodes": 2022,
+   "nodes": 2042,
    "edges": 2584,
    "origins": 99,
    "destinations": 39
@@ -5073,7 +5073,7 @@
    "solver": "exact_enumeration",
    "exact": true,
    "evaluations": 1596,
-   "runtime_ms": 207.79,
+   "runtime_ms": 232.71,
    "opt_gain": 915.0,
    "opt_selected": [
     "R20741",
@@ -5095,7 +5095,7 @@
     "R20718"
    ],
    "policy": "moderate",
-   "nodes": 2022,
+   "nodes": 2042,
    "edges": 2584,
    "origins": 99,
    "destinations": 39
@@ -5107,7 +5107,7 @@
    "solver": "exact_enumeration",
    "exact": true,
    "evaluations": 29316,
-   "runtime_ms": 5426.7,
+   "runtime_ms": 6109.91,
    "opt_gain": 1212.0,
    "opt_selected": [
     "R20737",
@@ -5133,7 +5133,7 @@
     "R21331"
    ],
    "policy": "moderate",
-   "nodes": 2022,
+   "nodes": 2042,
    "edges": 2584,
    "origins": 99,
    "destinations": 39
@@ -5145,7 +5145,7 @@
    "solver": "exact_enumeration",
    "exact": true,
    "evaluations": 14,
-   "runtime_ms": 11.37,
+   "runtime_ms": 12.1,
    "opt_gain": 240.0,
    "opt_selected": [
     "R12178"
@@ -5163,7 +5163,7 @@
     "R112391"
    ],
    "policy": "lenient",
-   "nodes": 2022,
+   "nodes": 2042,
    "edges": 2584,
    "origins": 99,
    "destinations": 39
@@ -5175,7 +5175,7 @@
    "solver": "exact_enumeration",
    "exact": true,
    "evaluations": 105,
-   "runtime_ms": 20.87,
+   "runtime_ms": 24.29,
    "opt_gain": 296.0,
    "opt_selected": [
     "R105438",
@@ -5197,7 +5197,7 @@
     "R10700"
    ],
    "policy": "lenient",
-   "nodes": 2022,
+   "nodes": 2042,
    "edges": 2584,
    "origins": 99,
    "destinations": 39
@@ -5209,7 +5209,7 @@
    "solver": "exact_enumeration",
    "exact": true,
    "evaluations": 469,
-   "runtime_ms": 84.69,
+   "runtime_ms": 103.33,
    "opt_gain": 348.0,
    "opt_selected": [
     "R105438",
@@ -5235,7 +5235,7 @@
     "R10701"
    ],
    "policy": "lenient",
-   "nodes": 2022,
+   "nodes": 2042,
    "edges": 2584,
    "origins": 99,
    "destinations": 39

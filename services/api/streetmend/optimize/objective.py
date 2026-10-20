@@ -163,11 +163,12 @@ class Evaluator:
         ro = np.flatnonzero(np.isfinite(self._A).any(axis=1)) if self._A.size else np.zeros(0, dtype=np.int64)
         rd = np.flatnonzero(np.isfinite(self._B).any(axis=0)) if self._B.size else np.zeros(0, dtype=np.int64)
         self._bo, self._bd = ro, rd
-        self._bA = self._A[ro].astype(np.float32)
-        self._bB = self._B[:, rd].astype(np.float32)
-        self._bK = self._K.astype(np.float32)
-        self._bD0 = self._D0[np.ix_(ro, rd)].astype(np.float32)
-        self._bW = (self.pair_weights[np.ix_(ro, rd)] * ~base_reach[np.ix_(ro, rd)]).astype(np.float32)
+        # float64 throughout so batch scores are identical to score() (cutoff
+        # comparisons and weight sums, including tie-breaking).
+        self._bA = self._A[ro]
+        self._bB = self._B[:, rd]
+        self._bK = self._K
+        self._bW = self.pair_weights[np.ix_(ro, rd)] * ~base_reach[np.ix_(ro, rd)]
         self._fast_ready = True
 
     def _distances_fast(self, key: frozenset[str]) -> np.ndarray:
@@ -256,10 +257,9 @@ class Evaluator:
                     W[r] = np.concatenate([p[2] for p in parts])
                 M = self._bK[P[:, :, None], P[:, None, :]]
                 rows = np.arange(len(chunk))
-                W32 = W.astype(np.float32)
                 for e in range(n_edges):
                     ia, ib = 2 * e, 2 * e + 1
-                    v = np.minimum(M[rows, ia, ib], W32[:, e])
+                    v = np.minimum(M[rows, ia, ib], W[:, e])
                     M[rows, ia, ib] = v
                     M[rows, ib, ia] = v
                 for k in range(2 * n_edges):
@@ -267,9 +267,8 @@ class Evaluator:
                 A = np.transpose(self._bA[:, P], (1, 0, 2))  # (B, n_o', m)
                 T = (A[:, :, :, None] + M[:, None, :, :]).min(axis=2)
                 R = (T[:, :, :, None] + self._bB[P][:, None, :, :]).min(axis=2)  # (B, n_o', n_d')
-                # float32 on sums of metres: compare with a small tolerance
-                reach = R <= np.float32(lim) + np.float32(1e-3) if self.cutoff_m is not None else np.isfinite(R)
-                scores = self._base_score + (self._bW[None] * reach).sum(axis=(1, 2), dtype=np.float64)
+                reach = R <= lim if self.cutoff_m is not None else np.isfinite(R)
+                scores = self._base_score + (self._bW[None] * reach).sum(axis=(1, 2))
                 for r, i in enumerate(chunk):
                     out[i] = float(scores[r])
                     self._score_cache[keys[i]] = float(scores[r])

@@ -212,6 +212,7 @@ export function BottomStrip() {
   const compare = useApp((s) => s.compare)
   const ev = useApp((s) => s.evaluation)
   const init = useApp((s) => s.initialEval)
+  const canUndo = useApp((s) => s.history.length > 0)
   const { setCompare, undo, replay } = useApp.getState()
   if (!sc) return null
   const search = analyzing
@@ -269,7 +270,7 @@ export function BottomStrip() {
           </button>
         ))}
       </div>
-      <button className="btn-ghost shrink-0 px-2 py-1 text-[12px]" onClick={() => void undo()} disabled={!applied.length} data-testid="undo">
+      <button className="btn-ghost shrink-0 px-2 py-1 text-[12px]" onClick={() => void undo()} disabled={!canUndo} data-testid="undo" title="Undo the last repair change">
         Undo
       </button>
       <button className="btn-ghost shrink-0 px-2 py-1 text-[12px] max-sm:hidden" onClick={() => replay()}>

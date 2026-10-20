@@ -229,7 +229,8 @@ class SensitivityOut(BaseModel):
     optimal_selected: list[str]
     optimal_score: float
     optimal_method: str = "exact_enumeration"
-    recommendation_changes: bool
+    optimal_is_exact: bool = True
+    recommendation_changes: bool | None
     unknown_edge_count: int
 
 
@@ -265,6 +266,9 @@ class AssistantRequest(BaseModel):
     applied: list[str] = Field(default_factory=list, max_length=64)
     budget: int = Field(2, ge=0, le=6)
     weights: WeightsIn | None = None
+    cutoff_m: float | None = Field(None, gt=0, le=10_000)
+    origin: str | None = None
+    destination: str | None = None
     use_llm: bool = True
 
     @field_validator("text")

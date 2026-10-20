@@ -138,7 +138,11 @@ def assistant(req: S.AssistantRequest):
 
     sc = _scenario(req.scenario_id)
     _check_ids(sc, req.applied, "interventions")
-    return handle(sc, req.text, req.applied, req.budget, _weights(req.weights), req.use_llm)
+    journey = (req.origin, req.destination) if req.origin and req.destination else None
+    for nid in journey or ():
+        if nid not in sc.graph.nodes:
+            raise HTTPException(422, detail=f"unknown node '{nid}'")
+    return handle(sc, req.text, req.applied, req.budget, _weights(req.weights), req.use_llm, req.cutoff_m, journey)
 
 
 @app.get("/api/municipal/records")

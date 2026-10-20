@@ -8,8 +8,11 @@ number in a response comes from the engine.
 
 from __future__ import annotations
 
+import re
 import time
 from typing import Any
+
+from pydantic import ValidationError
 
 from streetmend.graph import haversine_m
 from streetmend.optimize.analysis import AnalysisParams, analyze
@@ -57,7 +60,8 @@ def _summ(a: dict) -> dict:
             "connected_pairs_after": a["objective"]["connected_pairs_after"]}
 
 
-def execute(sc: Scenario, intent: Intent, applied: list[str], budget: int, weights: CategoryWeights) -> dict[str, Any]:
+def execute(sc: Scenario, intent: Intent, applied: list[str], budget: int, weights: CategoryWeights,
+            cutoff_m: float | None = None, journey: tuple[str, str] | None = None) -> dict[str, Any]:
     op = intent.operation
     if op == "unsupported":
         return {"facts": ["That request is outside the supported planning operations.", SUPPORTED_HELP], "result": None}
@@ -65,7 +69,7 @@ def execute(sc: Scenario, intent: Intent, applied: list[str], budget: int, weigh
     if op in ("optimize_repairs", "explain_recommendation"):
         b = intent.budget if intent.budget is not None else budget
         w = _w(weights, intent.priority)
-        a = analyze(sc, AnalysisParams(budget=b, weights=w))
+        a = analyze(sc, AnalysisParams(budget=b, weights=w, cutoff_m=cutoff_m))
         facts = list(a["explanation"])
         if op == "explain_recommendation":
             for c in a["contributions"]:
@@ -75,8 +79,8 @@ def execute(sc: Scenario, intent: Intent, applied: list[str], budget: int, weigh
 
     if op == "compare_budgets":
         nb = intent.budget if intent.budget is not None else max(0, budget - 1)
-        cur = analyze(sc, AnalysisParams(budget=budget, weights=weights))
-        alt = analyze(sc, AnalysisParams(budget=nb, weights=weights))
+        cur = analyze(sc, AnalysisParams(budget=budget, weights=weights, cutoff_m=cutoff_m))
+        alt = analyze(sc, AnalysisParams(budget=nb, weights=weights, cutoff_m=cutoff_m))
         cs, as_ = _summ(cur), _summ(alt)
         facts = [
             f"With {budget} repair(s): {', '.join(cs['selected']) or 'none'} for a gain of {cs['gain']:g}.",
@@ -89,8 +93,8 @@ def execute(sc: Scenario, intent: Intent, applied: list[str], budget: int, weigh
 
     if op == "compare_priorities":
         pr = intent.priority or "balanced"
-        cur = analyze(sc, AnalysisParams(budget=budget, weights=weights))
-        alt = analyze(sc, AnalysisParams(budget=budget, weights=PRIORITY_PRESETS[pr]))
+        cur = analyze(sc, AnalysisParams(budget=budget, weights=weights, cutoff_m=cutoff_m))
+        alt = analyze(sc, AnalysisParams(budget=budget, weights=PRIORITY_PRESETS[pr], cutoff_m=cutoff_m))
         cs, as_ = _summ(cur), _summ(alt)
         same = sorted(cs["selected"]) == sorted(as_["selected"])
         facts = [
@@ -102,7 +106,7 @@ def execute(sc: Scenario, intent: Intent, applied: list[str], budget: int, weigh
                 "client_action": {"type": "set_priority_preview", "priority": pr}}
 
     if op == "show_disconnected":
-        st = evaluate_state(sc, applied, weights=weights)
+        st = evaluate_state(sc, applied, weights=weights, cutoff_m=cutoff_m)
         labels = {d.id: d.label for d in sc.destinations}
         olabels = {o.id: o.label for o in sc.origins}
         missing = []
@@ -121,7 +125,7 @@ def execute(sc: Scenario, intent: Intent, applied: list[str], budget: int, weigh
     if op == "candidates_near":
         cat = intent.category or "transit"
         targets = [d for d in sc.destinations if d.category.value == cat]
-        ev = Evaluator(sc, weights)
+        ev = Evaluator(sc, weights, cutoff_m=cutoff_m)
         base = ev.score()
         rows = []
         for iv in sc.interventions.values():
@@ -141,7 +145,7 @@ def execute(sc: Scenario, intent: Intent, applied: list[str], budget: int, weigh
         if iid not in sc.interventions:
             return {"facts": [f"Unknown repair id '{iid}'."], "result": None}
         new = applied + ([iid] if iid not in applied else [])
-        st = evaluate_state(sc, new, *(sc.default_journey or (None, None)), weights=weights)
+        st = evaluate_state(sc, new, *(journey or sc.default_journey or (None, None)), weights=weights, cutoff_m=cutoff_m)
         found = st["journey"]["route"]["found"] if st["journey"] else None
         facts = [f"Applied {iid} ({sc.interventions[iid].label}).",
                  f"Objective is now {st['metrics']['score']:g}; {st['metrics']['connected_pairs']} of {st['metrics']['total_pairs']} pairs connected."]
@@ -158,13 +162,20 @@ def execute(sc: Scenario, intent: Intent, applied: list[str], budget: int, weigh
     return {"facts": [SUPPORTED_HELP], "result": None}
 
 
-def handle(sc: Scenario, text: str, applied: list[str], budget: int, weights: CategoryWeights, use_llm: bool) -> dict[str, Any]:
-    intent, meta = interpret(text, set(sc.interventions), use_llm)
+def handle(sc: Scenario, text: str, applied: list[str], budget: int, weights: CategoryWeights, use_llm: bool,
+           cutoff_m: float | None = None, journey: tuple[str, str] | None = None) -> dict[str, Any]:
+    try:
+        intent, meta = interpret(text, set(sc.interventions), use_llm)
+    except ValidationError as exc:  # defensive: an out-of-range argument is never a server error
+        intent, meta = None, {"source": "rules", "error": f"request arguments out of range ({exc.error_count()} error(s))"}
     if intent is None:
         return {"ok": False, "interpretation": {**meta, "intent": None}, "operation": None,
                 "facts": ["I could not map that request to a supported operation.", SUPPORTED_HELP],
                 "result": None, "client_action": None, "narrative": None}
-    out = execute(sc, intent, applied, budget, weights)
+    out = execute(sc, intent, applied, budget, weights, cutoff_m, journey)
+    asked = [int(x) for x in re.findall(r"(?<![\w.])(\d+)(?![\w])", text)]
+    if intent.budget == rules.MAX_BUDGET and any(x > rules.MAX_BUDGET for x in asked):
+        out["facts"] = [f"Budget capped at {rules.MAX_BUDGET} repairs (interactive limit)."] + out["facts"]
     narrative, nmeta = None, None
     if use_llm and intent.operation in ("explain_recommendation",) and llm.llm_status().get("available"):
         narrative, nmeta = llm.narrate(out["facts"])

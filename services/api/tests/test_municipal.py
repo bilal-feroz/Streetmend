@@ -44,6 +44,19 @@ def test_corners_only_connect_through_crossings_or_sidewalks(scenarios):
             assert e.u.split(":")[1] != e.v.split(":")[1]
 
 
+def test_two_sides_of_a_street_never_share_a_corner(scenarios):
+    g = scenarios["moderate"].graph
+    sides: dict[tuple[str, str], set[str]] = {}
+    for e in g.edges.values():
+        if e.kind == EdgeKind.SIDEWALK and e.id.startswith("S:"):
+            _, seg, side, _ = e.id.split(":")
+            ends = {n for n in (e.u, e.v) if g.nodes[n].kind == NodeKind.CORNER}
+            sides.setdefault((seg, side), set()).update(ends)
+    for (seg, side), corners in sides.items():
+        if side == "L" and (seg, "R") in sides:
+            assert not (corners & sides[(seg, "R")]), seg  # includes dead ends and study-area stubs
+
+
 def test_missing_evidence_stays_unknown(scenarios):
     g = scenarios["moderate"].graph
     unknown = [e for e in g.edges.values() if e.state == Passability.UNKNOWN]

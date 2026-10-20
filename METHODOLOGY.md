@@ -47,7 +47,7 @@ The score counts **weighted origin–destination pairs**, not people. Relative g
 * the exact optimum of the largest tractable smaller budget;
 * all pairs among the 40 candidates with the highest leave-one-out potential.
 
-The beam keeps width 60. It is reported as *approximate* and is never called optimal.
+The beam keeps width 60. If greedy finds a better set, the greedy set is reported instead, so the heuristic never shows less than a baseline. It is reported as *approximate* and is never called optimal.
 
 **Baselines**, implemented exactly as shown in the product (none is weakened):
 * *Greedy*: repeatedly add the repair with the largest immediate gain; stop when none adds value.
@@ -63,7 +63,7 @@ For the selected set S, the analysis reports:
 * newly connected O-D pairs with before/after route lengths, and newly reachable destinations;
 * up to five alternative sets;
 * comparison with every baseline;
-* **sensitivity**: the same analysis with unknown edges treated as traversable (an optimistic bound).
+* **sensitivity**: the same analysis with unknown edges treated as traversable (an optimistic bound). The optimistic optimum is computed exactly when it needs at most 25,000 combinations; otherwise a greedy set is shown, labeled as such, and no claim is made about whether the recommendation would change.
 
 Explanation sentences are generated from templates filled with these computed facts.
 
@@ -76,7 +76,7 @@ Harbor District is a 6 × 4 street grid split by a four-lane boulevard (Harbor B
 Built from data (see DATA_SOURCES.md) in UTM 17N metres:
 
 1. **Street skeleton.** OSM drive-network centerlines; motorways, trunks and busways are excluded. Street half-width comes from the highway class or lane count.
-2. **Corners.** Each intersection gets one corner per angular sector between consecutive legs, placed on the sector bisector at `(half-width + 2.5 m) / sin(θ/2)`, capped at 22 m.
+2. **Corners.** Each intersection gets one corner per angular sector between consecutive legs, placed on the sector bisector at `(half-width + 2.5 m) / sin(θ/2)`, capped at 22 m. A dead end (cul-de-sac, or a street cut by the study-area edge) gets separate left and right corners, so the two sides of a street never join without a crossing.
 3. **Sidewalks.** One edge per street side, between matching corners. CDOT Sidewalk Inventory lines are matched to a side by perpendicular offset, direction (≤ 35°), coverage overlap and street-name agreement.
    * Coverage ≥ 40% of the segment: the majority presence class decides the state (`Sidewalk` → traversable; `No Sidewalk` / `Not possible to construct` → blocked).
    * Otherwise the side is UNKNOWN.
@@ -105,6 +105,6 @@ Built from data (see DATA_SOURCES.md) in UTM 17N metres:
 2. If it does not recognize the request and the local model is enabled and available, Ollama (`qwen3:4b`, temperature 0, JSON-schema constrained decoding) proposes an intent.
 3. Every intent is validated by Pydantic against eleven allowlisted operations with typed arguments. Unknown repair IDs are rejected.
 4. The operation runs in the engine. Facts are produced by templates from engine output.
-5. Optional model narration is accepted only if every number in it (digits or number words) appears in the computed facts.
+5. Optional model narration is accepted only if every standalone number, number word and magnitude word (hundred, double, percent...) in it also appears in the computed facts. Digits inside identifiers such as `R20740` do not count as numbers. Budgets above the interactive limit of 6 are capped, with a note.
 
 Measured on this machine (NVIDIA RTX 3050 Laptop GPU, 4 GB): about 3.7 s per warm model call, about 13 s cold.

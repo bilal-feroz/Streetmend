@@ -96,9 +96,13 @@ def markdown_report(sc: Scenario, analysis: dict[str, Any], state: dict[str, Any
         lines.append("None.")
     lines += ["", "## Explanation"] + [f"- {x}" for x in analysis["explanation"]]
     s = analysis["sensitivity"]
-    lines += ["", "## Sensitivity", f"- {s['assumption']}",
-              f"- Unknown-condition edges: {s['unknown_edge_count']}; optimistic optimum {', '.join(s['optimal_selected']) or '-'} "
-              f"({'differs from' if s['recommendation_changes'] else 'matches'} the recommendation)."]
+    if s.get("optimal_is_exact", True):
+        verdict = (f"exact optimistic optimum {', '.join(s['optimal_selected']) or '-'} "
+                   f"({'differs from' if s['recommendation_changes'] else 'matches'} the recommendation)")
+    else:
+        verdict = (f"best set found by greedy under the optimistic assumption: {', '.join(s['optimal_selected']) or '-'} "
+                   "(not an optimum; too many combinations for an exact re-run)")
+    lines += ["", "## Sensitivity", f"- {s['assumption']}", f"- Unknown-condition edges: {s['unknown_edge_count']}; {verdict}."]
     if state:
         lines += ["", "## Current map state", f"- Applied repairs: {', '.join(state['applied']) or 'none'}",
                   f"- Objective at current state: {state['metrics']['score']:g}"]

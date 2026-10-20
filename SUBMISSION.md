@@ -36,16 +36,16 @@ Two modes:
 * **Honest counterpoint**: under the moderate and lenient policies, and in most of 40 randomized districts, greedy already matches the optimum. StreetMend is valuable exactly where repairs interact, and it tells you whether that is the case.
 
 ## Technical architecture
-* **Engine (Python)**: NetworkX for routing and inspection; SciPy compiled Dijkstra for evaluation; an exact *key-node* evaluator that scores a repair combination with one tiny Floyd–Warshall over the repaired edges' endpoints plus vectorized min-plus products; sound candidate pruning. Exact search over 21,321 combinations of real Charlotte candidates takes about 2.9 s.
-* **API**: FastAPI with Pydantic contracts. Stateless evaluation from the applied-repair list, so undo and reset can never desynchronize.
+* **Engine (Python)**: NetworkX for routing and inspection; SciPy compiled Dijkstra for evaluation; an exact *key-node* evaluator that scores a repair combination with one tiny Floyd–Warshall over the repaired edges' endpoints plus vectorized min-plus products; sound candidate pruning. Exact search over 21,321 combinations of real Charlotte candidates takes about 3 s.
+* **API**: FastAPI with Pydantic contracts. Stateless evaluation from the applied-repair list; undo restores the exact previous repair set and the map is always recomputed from it.
 * **Web**: React 19, TypeScript, Tailwind v4, MapLibre GL JS (WebGL), Motion. Accessible DOM buttons for every repair and place, a full text alternative list, reduced-motion support.
-* **AI**: a deterministic rule parser first. For unrecognized phrasing, a local Ollama model (`qwen3:4b`, JSON-schema decoding) may only choose one of eleven allowlisted operations with typed arguments. The engine executes it; any model-written sentence with a number not present in the computed facts is rejected. The product works fully without the model.
+* **AI**: a deterministic rule parser first. For unrecognized phrasing, a local Ollama model (`qwen3:4b`, JSON-schema decoding) may only choose one of eleven allowlisted operations with typed arguments. The engine executes it; any model-written sentence containing a standalone number, number word or magnitude word (hundred, double, percent...) that is not in the computed facts is rejected. The product works fully without the model.
 
 ## Datasets
 City of Charlotte / CDOT ADA Curb Ramps, CDOT Sidewalk Inventory, CATS Bus Stops (ArcGIS REST, NC State Plane EPSG:2264 reprojected with pyproj and cross-checked against server reprojection, max difference 0.82 m); OpenStreetMap via OSMnx (ODbL). Provenance, retrieval times, missing-field statistics and match coverage are visible in the app.
 
 ## Quantitative evaluation
-* 108 Python tests:
+* 115 Python tests:
   * exact search vs brute force using an independent NetworkX implementation;
   * fast evaluator vs full Dijkstra for every subset of up to three repairs;
   * the dependent-pair synergy case;

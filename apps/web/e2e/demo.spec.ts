@@ -59,6 +59,13 @@ test('guided demo: two dependent repairs reconnect the journey', async ({ page, 
   await page.getByTestId('reset').click()
   await expect(status(page)).toContainText('Two inaccessible connections (A, B)')
   await expect(page.getByTestId('bottom-strip')).toContainText('none')
+  // Undo restores the exact previous state, including after a reset or a removal.
+  await page.getByTestId('undo').click()
+  await expect(status(page)).toContainText('Connected')
+  await page.getByTestId('remove-A').click()
+  await expect(status(page)).toContainText('(A)')
+  await page.getByTestId('undo').click()
+  await expect(status(page)).toContainText('Connected')
 })
 
 test('changing parameters recomputes the recommendation', async ({ page }) => {
