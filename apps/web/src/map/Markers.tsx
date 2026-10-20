@@ -91,7 +91,7 @@ export function PlaceMarker({ id }: { id: string }) {
       </span>
       {showLabel && (
         <span
-          className={`max-w-[150px] truncate rounded bg-ink-900/80 px-1.5 py-0.5 text-[11px] font-medium leading-tight backdrop-blur-sm ${inJourney ? 'text-fg' : 'text-fg-2'} hidden sm:block`}
+          className={`max-w-[200px] truncate rounded bg-ink-900/80 px-1.5 py-0.5 text-[11px] font-medium leading-tight backdrop-blur-sm ${inJourney ? 'text-fg' : 'text-fg-2'} hidden sm:block`}
         >
           {label}
         </span>

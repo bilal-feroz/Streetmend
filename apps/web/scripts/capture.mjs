@@ -1,3 +1,5 @@
+// Visual QA helper: drive the app headlessly and capture screenshots.
+// Usage: node scripts/capture.mjs <url> <width> <height> "click=<sel>;wait=<ms>;shot=<file>;text=<sel>;fill=<sel>|<value>;press=<key>"
 import { chromium } from '@playwright/test'
 const [,, url, w, h, script] = process.argv
 const browser = await chromium.launch()

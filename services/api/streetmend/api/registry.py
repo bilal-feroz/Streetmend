@@ -32,8 +32,9 @@ class Registry:
             try:
                 from streetmend.municipal.scenario import load_municipal_scenario
 
-                sc = load_municipal_scenario()
-                self.scenarios[sc.id] = sc
+                for policy in ("moderate", "strict", "lenient"):
+                    sc = load_municipal_scenario(policy)
+                    self.scenarios[sc.id] = sc
             except FileNotFoundError as exc:
                 self.unavailable["charlotte-elizabeth"] = Unavailable(
                     "charlotte-elizabeth", "Charlotte Data Explorer - Elizabeth", "municipal",

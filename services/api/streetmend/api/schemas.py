@@ -228,6 +228,7 @@ class SensitivityOut(BaseModel):
     score_with_selected: float
     optimal_selected: list[str]
     optimal_score: float
+    optimal_method: str = "exact_enumeration"
     recommendation_changes: bool
     unknown_edge_count: int
 

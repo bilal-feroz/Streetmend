@@ -65,12 +65,14 @@ def exact_enumeration(ev: Evaluator, candidates: list[str], budget: int, keep_to
     scored: list[tuple[float, tuple[str, ...]]] = []
     best: tuple[float, tuple[str, ...]] | None = None
     for k in range(0, min(budget, len(considered)) + 1):
-        for combo in combinations(considered, k):
-            s = ev.score(frozenset(combo))
-            item = (s, combo)
-            scored.append(item)
-            if _better(item, best):
-                best = item
+        combos = list(combinations(considered, k))
+        for start in range(0, len(combos), 4096):
+            part = combos[start : start + 4096]
+            for combo, s in zip(part, ev.score_many(part)):
+                item = (s, combo)
+                scored.append(item)
+                if _better(item, best):
+                    best = item
     assert best is not None
     # Alternatives: best set per distinct score among sets of the maximal size
     # that do not merely pad the optimum with zero-value repairs.
@@ -112,10 +114,9 @@ def greedy(ev: Evaluator, candidates: list[str], budget: int) -> SolverResult:
     notes = []
     for _ in range(max(0, budget)):
         best_gain, best_c = 0.0, None
-        for c in cands:
-            if c in chosen:
-                continue
-            g = ev.score(frozenset(chosen + [c])) - current
+        rest = [c for c in cands if c not in chosen]
+        for c, sc in zip(rest, ev.score_many([tuple(chosen + [c]) for c in rest])):
+            g = sc - current
             if g > best_gain + EPS:
                 best_gain, best_c = g, c
         if best_c is None:
@@ -141,7 +142,7 @@ def independent_ranking(ev: Evaluator, candidates: list[str], budget: int) -> So
     start_evals = ev.evaluations
     cands = sorted(candidates)
     base = ev.score(frozenset())
-    gains = sorted(((ev.score(frozenset([c])) - base, c) for c in cands), key=lambda t: (-t[0], t[1]))
+    gains = sorted(((v - base, c) for c, v in zip(cands, ev.score_many([(c,) for c in cands]))), key=lambda t: (-t[0], t[1]))
     chosen = [c for g, c in gains if g > EPS][: max(0, budget)]
     notes = []
     if len(chosen) < budget:
@@ -160,9 +161,12 @@ def independent_ranking(ev: Evaluator, candidates: list[str], budget: int) -> So
     )
 
 
-def beam_search(ev: Evaluator, candidates: list[str], budget: int, width: int = 40) -> SolverResult:
+def beam_search(ev: Evaluator, candidates: list[str], budget: int, width: int = 40,
+                seed_sets: list[tuple[str, ...]] | None = None) -> SolverResult:
     """Approximate search. Seeds include high-potential pairs so that synergistic
-    pairs with zero stand-alone value are not discarded at the first level."""
+    pairs with zero stand-alone value are not discarded at the first level, and
+    optionally exact optima for smaller budgets (so the result is never worse
+    than the exact optimum of any smaller budget that was solved)."""
 
     t0 = time.perf_counter()
     start_evals = ev.evaluations
@@ -175,20 +179,20 @@ def beam_search(ev: Evaluator, candidates: list[str], budget: int, width: int = 
     ordered = sorted(considered, key=lambda c: (-potential[c], c))
     beam: list[tuple[float, tuple[str, ...]]] = [(ev.score(frozenset()), ())]
     best = beam[0]
-    top = ordered[: min(len(ordered), 25)]
-    seeds = [(ev.score(frozenset(p)), tuple(sorted(p))) for p in combinations(top, 2)] if budget >= 2 else []
+    top = ordered[: min(len(ordered), 40)]
+    pairs = [tuple(sorted(p)) for p in combinations(top, 2)] if budget >= 2 else []
+    seeds = list(zip(ev.score_many(pairs), pairs))
     for level in range(1, max(0, budget) + 1):
         nxt: dict[tuple[str, ...], float] = {}
-        for _, s in beam:
-            for c in considered:
-                if c in s:
-                    continue
-                t = tuple(sorted(s + (c,)))
-                if t not in nxt:
-                    nxt[t] = ev.score(frozenset(t))
+        states = sorted({tuple(sorted(s + (c,))) for _, s in beam for c in considered if c not in s})
+        for t, v in zip(states, ev.score_many(states)):
+            nxt[t] = v
         if level == 2:
             for sc, t in seeds:
                 nxt[t] = sc
+        for t in seed_sets or []:
+            if len(t) == level:
+                nxt[tuple(sorted(t))] = ev.score(frozenset(t))
         if not nxt:
             break
         beam = sorted(((v, k) for k, v in nxt.items()), key=lambda t: (-t[0], t[1]))[:width]
@@ -208,10 +212,25 @@ def beam_search(ev: Evaluator, candidates: list[str], budget: int, width: int = 
     )
 
 
-def solve(ev: Evaluator, candidates: list[str], budget: int, max_exact_evaluations: int = 20_000) -> SolverResult:
+def solve(ev: Evaluator, candidates: list[str], budget: int, max_exact_evaluations: int = 150_000) -> SolverResult:
     """Exact when the (pruned) combination count is tractable, otherwise beam search."""
 
     considered = ev.relevant_interventions(sorted(candidates))
     if combination_count(len(considered), budget) <= max_exact_evaluations:
         return exact_enumeration(ev, candidates, budget)
-    return beam_search(ev, candidates, budget)
+    # Solve the largest tractable smaller budget exactly and extend it by beam search.
+    k = budget - 1
+    while k > 0 and combination_count(len(considered), k) > max_exact_evaluations:
+        k -= 1
+    seeds: list[tuple[str, ...]] = []
+    notes: list[str] = []
+    evals0, t0 = ev.evaluations, time.perf_counter()
+    if k > 0:
+        sub = exact_enumeration(ev, candidates, k)
+        seeds = [tuple(s) for s, _ in sub.ranked_sets if s]
+        notes.append(f"Beam search seeded with the exact optimum for budget {k} ({', '.join(sub.selected) or 'none'}).")
+    r = beam_search(ev, candidates, budget, width=60, seed_sets=seeds)
+    r.notes = notes + r.notes
+    r.evaluations = ev.evaluations - evals0
+    r.runtime_ms = (time.perf_counter() - t0) * 1000
+    return r

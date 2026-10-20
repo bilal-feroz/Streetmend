@@ -300,3 +300,52 @@ def test_scenario_validation_rejects_bad_interventions(demo):
     sc.interventions["BAD"] = Intervention("BAD", "bad", "x", [traversable], 0, 0)
     with pytest.raises(ValueError):
         sc.validate()
+
+
+# Fast (key-node) evaluator --------------------------------------------------------
+def _assert_same_reach(a: Evaluator, b: Evaluator, s):
+    ra, rb = a.reachable(frozenset(s)), b.reachable(frozenset(s))
+    assert (ra == rb).all(), s
+    da, db = a.distances(frozenset(s)), b.distances(frozenset(s))
+    assert np.allclose(np.where(ra, da, 0), np.where(rb, db, 0)), s
+
+
+def test_fast_evaluator_matches_full_dijkstra_on_demo(demo):
+    fast, full = Evaluator(demo, HEALTH, fast=True), Evaluator(demo, HEALTH, fast=False)
+    ids = sorted(demo.interventions)
+    for k in range(4):
+        for s in combinations(ids, k):
+            _assert_same_reach(fast, full, s)
+
+
+@pytest.mark.parametrize("seed", range(15))
+def test_fast_evaluator_matches_full_dijkstra_on_random(seed):
+    sc = random_scenario(seed, n=7, n_cand=8, cutoff=None if seed % 3 == 0 else 700.0)
+    fast, full = Evaluator(sc, fast=True), Evaluator(sc, fast=False)
+    ids = sorted(sc.interventions)
+    for k in range(4):
+        for s in combinations(ids, k):
+            _assert_same_reach(fast, full, s)
+
+
+def test_fast_evaluator_handles_multi_edge_interventions():
+    from streetmend.scenario.model import Intervention
+
+    sc = random_scenario(5, n=6, n_cand=6)
+    blocked = sorted(e.id for e in sc.graph.edges.values() if e.state == Passability.BLOCKED and e.id not in sc.enabled_edges(list(sc.interventions)))
+    if len(blocked) >= 2:
+        e = sc.graph.edges[blocked[0]]
+        sc.interventions["multi"] = Intervention("multi", "two edges", "x", blocked[:2], e.geometry[0][0], e.geometry[0][1])
+        sc.validate()
+    fast, full = Evaluator(sc, fast=True), Evaluator(sc, fast=False)
+    for k in range(3):
+        for s in combinations(sorted(sc.interventions), k):
+            _assert_same_reach(fast, full, s)
+
+
+@pytest.mark.parametrize("seed", range(8))
+def test_score_many_matches_score(seed):
+    sc = random_scenario(seed, n=7, n_cand=8)
+    ev_batch, ev_one = Evaluator(sc), Evaluator(sc, fast=False)
+    sets = [s for k in range(4) for s in combinations(sorted(sc.interventions), k)]
+    assert ev_batch.score_many(sets) == pytest.approx([ev_one.score(frozenset(s)) for s in sets])

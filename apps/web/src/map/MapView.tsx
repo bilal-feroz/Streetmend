@@ -282,7 +282,7 @@ export function MapView() {
     const cum = cumulative(coords)
     const waveVals = Object.values(journey?.reach_wave ?? {})
     const maxD = waveVals.length ? Math.max(...waveVals) : 0
-    const waveOpacity = (d: number): ExpressionSpecification => ['case', ['<=', ['get', 'wave'], d], route ? 0.28 : 0.55, 0]
+    const waveOpacity = (d: number): ExpressionSpecification => ['case', ['<=', ['get', 'wave'], d], route ? 0.2 : 0.34, 0]
     const setRoute = (frac: number) =>
       trace.setData(
         (coords.length > 1
@@ -409,7 +409,7 @@ export function MapView() {
 function padding(map: MLMap) {
   const w = map.getContainer().clientWidth
   const small = w < 640
-  return { top: small ? 120 : 96, bottom: small ? 120 : 110, left: small ? 24 : 56, right: small ? 24 : 72 }
+  return { top: small ? 150 : 170, bottom: small ? 130 : 100, left: small ? 20 : 40, right: small ? 20 : 60 }
 }
 
 export type { ScenarioOut }

@@ -199,72 +199,67 @@ export function BottomStrip() {
   const init = useApp((s) => s.initialEval)
   const { setCompare, undo, replay } = useApp.getState()
   if (!sc) return null
-  const steps = [
-    { label: 'Graph', value: `${fmtNum(sc.node_count)} nodes · ${fmtNum(sc.edge_count)} edges`, done: true },
-    { label: 'Candidates', value: `${sc.candidate_count}`, done: true },
-    {
-      label: 'Search',
-      value: analyzing ? 'running…' : analysis ? `${fmtNum(analysis.recommendation.evaluations)} combos · ${analysis.recommendation.exact ? 'exact' : 'approx.'}` : 'not run',
-      done: !!analysis,
-    },
-    { label: 'Runtime', value: analysis ? `${analysis.recommendation.runtime_ms.toFixed(1)} ms` : '—', done: !!analysis },
-  ]
+  const search = analyzing
+    ? 'searching…'
+    : analysis
+      ? `${fmtNum(analysis.recommendation.evaluations)} combos ${analysis.recommendation.exact ? 'exact' : 'approx.'} · ${analysis.recommendation.runtime_ms.toFixed(1)} ms`
+      : 'search not run'
+  const improved = ev && init && ev.metrics.score > init.metrics.score
   return (
-    <div className="pointer-events-auto flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-ink-600 bg-ink-850/95 px-3 py-2 shadow-2xl backdrop-blur" data-testid="bottom-strip">
-      <ol className="hidden items-center gap-2.5 xl:flex" aria-label="Processing pipeline">
-        {steps.map((s, i) => (
-          <li key={s.label} className="flex items-center gap-2.5">
-            {i > 0 && <span className="h-px w-3 bg-ink-500" aria-hidden />}
-            <span className="flex flex-col">
-              <span className="label-xs !text-[9.5px]">{s.label}</span>
-              <span className={`font-mono text-[11.5px] tnum ${s.done ? 'text-fg-2' : 'text-fg-4'}`}>{s.value}</span>
-            </span>
-          </li>
-        ))}
-      </ol>
-      <div className="hidden h-7 w-px bg-ink-600 xl:block" />
-      <div className="flex min-w-0 items-center gap-1.5">
-        <span className="label-xs !text-[9.5px]">Applied</span>
-        {applied.length ? (
-          applied.map((id) => (
-            <span key={id} className="rounded-full bg-ok px-1.5 font-mono text-[11px] font-bold text-ink-900">
-              {id}
-            </span>
-          ))
-        ) : (
-          <span className="text-[11.5px] text-fg-4">none</span>
-        )}
-        {evaluating && <span className="ml-1 h-1.5 w-1.5 animate-pulse rounded-full bg-sel" aria-label="Recomputing" />}
+    <div className="pointer-events-auto flex items-center gap-3 rounded-lg border border-ink-600 bg-ink-850/95 px-3 py-2 shadow-2xl backdrop-blur" data-testid="bottom-strip">
+      <div className="hidden min-w-0 flex-col 2xl:flex" aria-label="Processing state">
+        <span className="label-xs !text-[9.5px]">Graph · search</span>
+        <span className="truncate font-mono text-[11.5px] tnum text-fg-2">
+          {fmtNum(sc.node_count)}n · {fmtNum(sc.edge_count)}e · {sc.candidate_count} candidates · <span className={analysis ? 'text-fg-2' : 'text-fg-4'}>{search}</span>
+        </span>
       </div>
-      <div className="flex items-baseline gap-1.5">
+      <div className="flex min-w-0 flex-col max-sm:hidden 2xl:hidden" aria-label="Search state">
+        <span className="label-xs !text-[9.5px]">Search</span>
+        <span className={`truncate font-mono text-[11.5px] tnum ${analysis ? 'text-fg-2' : 'text-fg-4'}`}>{search}</span>
+      </div>
+      <div className="h-7 w-px bg-ink-600 max-sm:hidden" />
+      <div className="flex min-w-0 flex-col">
+        <span className="label-xs !text-[9.5px]">Applied</span>
+        <span className="flex items-center gap-1">
+          {applied.length ? (
+            applied.map((id) => (
+              <span key={id} className="rounded-full bg-ok px-1.5 font-mono text-[11px] font-bold leading-[16px] text-ink-900">
+                {id}
+              </span>
+            ))
+          ) : (
+            <span className="text-[11.5px] leading-[16px] text-fg-4">none</span>
+          )}
+          {evaluating && <span className="ml-1 h-1.5 w-1.5 animate-pulse rounded-full bg-sel" aria-label="Recomputing" />}
+        </span>
+      </div>
+      <div className="flex flex-col">
         <span className="label-xs !text-[9.5px]">Objective</span>
-        <span className="font-mono text-[13px] font-semibold tnum text-fg" data-testid="objective-now">
-          {fmtNum(init?.metrics.score, 1)} → <span className={ev && init && ev.metrics.score > init.metrics.score ? 'text-ok' : ''}>{fmtNum(ev?.metrics.score, 1)}</span>
+        <span className="font-mono text-[12.5px] font-semibold leading-[16px] tnum text-fg" data-testid="objective-now">
+          {fmtNum(init?.metrics.score, 1)} → <span className={improved ? 'text-ok' : ''}>{fmtNum(ev?.metrics.score, 1)}</span>
         </span>
       </div>
       <div className="flex-1" />
-      <div className="flex items-center gap-1.5">
-        <div role="radiogroup" aria-label="Before or after repairs" className="flex rounded-md border border-ink-600 bg-ink-900 p-0.5">
-          {(['before', 'current'] as const).map((c) => (
-            <button
-              key={c}
-              role="radio"
-              aria-checked={compare === c}
-              onClick={() => setCompare(c)}
-              className={`rounded px-2 py-0.5 text-[11.5px] font-medium ${compare === c ? 'bg-ink-600 text-fg' : 'text-fg-3 hover:text-fg'}`}
-              data-testid={`compare-${c}`}
-            >
-              {c === 'before' ? 'Before' : 'After'}
-            </button>
-          ))}
-        </div>
-        <button className="btn-ghost px-2 py-1 text-[12px]" onClick={() => void undo()} disabled={!applied.length} data-testid="undo">
-          Undo
-        </button>
-        <button className="btn-ghost px-2 py-1 text-[12px]" onClick={() => replay()}>
-          Replay
-        </button>
+      <div role="radiogroup" aria-label="Before or after repairs" className="flex shrink-0 rounded-md border border-ink-600 bg-ink-900 p-0.5">
+        {(['before', 'current'] as const).map((c) => (
+          <button
+            key={c}
+            role="radio"
+            aria-checked={compare === c}
+            onClick={() => setCompare(c)}
+            className={`rounded px-2 py-0.5 text-[11.5px] font-medium ${compare === c ? 'bg-ink-600 text-fg' : 'text-fg-3 hover:text-fg'}`}
+            data-testid={`compare-${c}`}
+          >
+            {c === 'before' ? 'Before' : 'After'}
+          </button>
+        ))}
       </div>
+      <button className="btn-ghost shrink-0 px-2 py-1 text-[12px]" onClick={() => void undo()} disabled={!applied.length} data-testid="undo">
+        Undo
+      </button>
+      <button className="btn-ghost shrink-0 px-2 py-1 text-[12px] max-sm:hidden" onClick={() => replay()}>
+        Replay
+      </button>
     </div>
   )
 }

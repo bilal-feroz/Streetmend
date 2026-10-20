@@ -135,7 +135,7 @@ export function CombinedEffect() {
     <div data-testid="combined-effect">
       <div className="space-y-1.5" role="img" aria-label={rows.map((r) => `${r.label}: ${fmtNum(r.v, 1)}`).join('; ')}>
         {rows.map((r, i) => (
-          <div key={r.key} className="grid grid-cols-[92px_1fr_44px] items-center gap-2">
+          <div key={r.key} className="grid grid-cols-[112px_1fr_44px] items-center gap-2">
             <span className="truncate font-mono text-[11.5px] text-fg-2">{r.label}</span>
             <div className="h-2.5 overflow-hidden rounded-sm bg-ink-700">
               <motion.div

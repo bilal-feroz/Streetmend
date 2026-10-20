@@ -15,7 +15,7 @@ from streetmend.graph import haversine_m
 from streetmend.scenario.model import Scenario
 
 from .objective import CategoryWeights, Evaluator
-from .solvers import EPS, SolverResult, greedy, independent_ranking, solve
+from .solvers import EPS, SolverResult, combination_count, exact_enumeration, greedy, independent_ranking, solve
 
 
 @dataclass
@@ -24,7 +24,7 @@ class AnalysisParams:
     weights: CategoryWeights = field(default_factory=CategoryWeights)
     cutoff_m: float | None = None
     candidate_ids: list[str] | None = None
-    max_exact_evaluations: int = 20_000
+    max_exact_evaluations: int = 150_000
 
 
 def nearest_to_destination(ev: Evaluator, candidates: list[str], budget: int) -> SolverResult:
@@ -125,13 +125,16 @@ def analyze(sc: Scenario, p: AnalysisParams) -> dict[str, Any]:
 
     # ---- sensitivity: treat unknown edges as traversable ---------------
     ev_opt = Evaluator(sc, p.weights, include_unknown=True, cutoff_m=p.cutoff_m)
-    sens = solve(ev_opt, cands, p.budget, p.max_exact_evaluations)
+    rel_opt = ev_opt.relevant_interventions(cands)
+    sens_exact = combination_count(len(rel_opt), p.budget) <= min(p.max_exact_evaluations, 25_000)
+    sens = exact_enumeration(ev_opt, cands, p.budget) if sens_exact else greedy(ev_opt, cands, p.budget)
     sensitivity = {
         "assumption": "Unknown-condition edges treated as traversable (optimistic bound; not a verified state).",
         "baseline_score": _fmt(ev_opt.score()),
         "score_with_selected": _fmt(ev_opt.score(S)),
         "optimal_selected": sens.selected,
         "optimal_score": _fmt(sens.score),
+        "optimal_method": "exact_enumeration" if sens_exact else "greedy (too many combinations for an exact optimistic re-run)",
         "recommendation_changes": sorted(sens.selected) != sorted(opt.selected),
         "unknown_edge_count": sum(1 for e in sc.graph.edges.values() if e.state.value == "unknown"),
     }
