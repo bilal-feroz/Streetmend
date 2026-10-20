@@ -191,9 +191,24 @@ export const useApp = create<AppState>((set, get) => {
           ),
         )
         if (checks.every((found) => !found)) {
+          // "crossing" only when both repaired ramps are the two ends of one crossing on the route.
+          const edges = new Map(s.scenario!.edges.map((e) => [e.id, e]))
+          const curbNodes = (aid: string) =>
+            new Set((s.scenario!.interventions.find((i) => i.id === aid)?.edge_ids ?? []).flatMap((eid) => {
+              const e = edges.get(eid)
+              return e ? [e.u, e.v] : []
+            }))
+          const sameCrossing =
+            onRoute.length === 2 &&
+            after.journey.route.edge_ids.some((eid) => {
+              const e = edges.get(eid)
+              if (!e || e.kind !== 'crossing') return false
+              const [a, b] = onRoute.map(curbNodes)
+              return (a.has(e.u) && b.has(e.v)) || (a.has(e.v) && b.has(e.u))
+            })
           body =
             onRoute.length === 2
-              ? 'Neither intervention completes this crossing alone. Together, they unlock a continuous modeled route.'
+              ? `Neither intervention completes this ${sameCrossing ? 'crossing' : 'journey'} alone. Together, they unlock a continuous modeled route.`
               : `Every one of these ${onRoute.length} repairs is required: removing any one breaks the modeled route.`
         }
       }
@@ -210,17 +225,15 @@ export const useApp = create<AppState>((set, get) => {
         setTimeout(() => get().focusOn({ kind: 'route' }), 1500)
       }
     } else if (!nowFound) {
-      const owners = new Map<string, string>()
-      s.scenario.interventions.forEach((i) => i.edge_ids.forEach((e) => owners.set(e, i.id)))
-      const remaining = after.journey.frontier_barriers.map((e) => owners.get(e)).filter((x): x is string => !!x)
+      // Remaining barriers on the best repairable route, as computed by the engine.
+      const next = [...new Set(after.journey.potential_blockers)].filter((r) => !s.applied.includes(r))
       const recommended = s.analysis?.recommendation.selected ?? []
-      const next = remaining.filter((r) => recommended.includes(r) && !s.applied.includes(r))
       const appliedRec = s.applied.filter((a) => recommended.includes(a)).length
       banner({
         kind: 'partial',
-        title: `Repair ${id} completed${appliedRec ? ` (${appliedRec} of ${recommended.length} recommended)` : ''}.`,
+        title: `Repair ${id} completed${appliedRec && recommended.includes(id) ? ` (${appliedRec} of ${recommended.length} recommended)` : ''}.`,
         body: next.length
-          ? `The journey is still unavailable. The route now reaches barrier ${next.join(', ')}, which still blocks the crossing.`
+          ? `The journey is still unavailable. ${next.length === 1 ? 'Barrier' : 'Barriers'} ${next.join(', ')} still ${next.length === 1 ? 'blocks' : 'block'} the best repairable route.`
           : 'The journey is still unavailable in the modeled network.',
       })
       if (iv) set({ focus: { kind: 'intervention', id, nonce: ++focusSeq } })
@@ -270,7 +283,7 @@ export const useApp = create<AppState>((set, get) => {
     },
 
     loadScenario: async (id) => {
-      set({ loading: true, error: null, scenarioId: id, analysis: null, analysisKey: null, applied: [], banner: null, selected: null, highlight: [], evaluation: null, initialEval: null })
+      set({ loading: true, error: null, scenarioId: id, analysis: null, analysisKey: null, applied: [], banner: null, selected: null, highlight: [], evaluation: null, initialEval: null, assistantLast: null, assistantError: null })
       try {
         const sc = await api.scenario(id)
         if (sc.mode === 'municipal' && !get().records) {

@@ -119,7 +119,14 @@ function InspectorBody() {
               <Undo2 size={14} /> Remove repair
             </button>
           ) : (
-            <button className="btn-primary flex-1" onClick={() => void apply(iv.id)} data-testid="inspector-apply">
+            <button
+              className="btn-primary flex-1"
+              onClick={() => {
+                select(null) // reveal the map while the repair is evaluated
+                void apply(iv.id)
+              }}
+              data-testid="inspector-apply"
+            >
               <Wrench size={14} /> Apply repair
             </button>
           )}

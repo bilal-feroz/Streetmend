@@ -287,7 +287,7 @@ export function CandidateList() {
           const rec = analysis?.recommendation.selected.includes(iv.id)
           return (
             <li key={iv.id} className="flex items-center gap-2 px-2.5 py-1.5">
-              <span className={`w-7 shrink-0 font-mono text-[12px] font-bold ${rec ? 'text-sel-2' : 'text-fg-2'}`}>{iv.id}</span>
+              <span className={`min-w-7 shrink-0 font-mono text-[12px] font-bold ${rec ? 'text-sel-2' : 'text-fg-2'}`}>{iv.id}</span>
               <span className="min-w-0 flex-1 truncate text-[12px] text-fg-2" title={iv.label}>
                 {iv.label}
               </span>

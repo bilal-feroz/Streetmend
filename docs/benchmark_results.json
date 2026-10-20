@@ -1,0 +1,5244 @@
+{
+ "generated_at": "2026-10-20 18:12 UTC",
+ "machine": {
+  "python": "3.12.13",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "processor": "AMD64 Family 25 Model 68 Stepping 1, AuthenticAMD"
+ },
+ "guided": [
+  {
+   "base": 7.0,
+   "candidates": 9,
+   "budget": 1,
+   "solver": "exact_enumeration",
+   "exact": true,
+   "evaluations": 9,
+   "runtime_ms": 2.52,
+   "opt_gain": 5.0,
+   "opt_selected": [
+    "E"
+   ],
+   "greedy_gain": 5.0,
+   "greedy_selected": [
+    "E"
+   ],
+   "independent_gain": 5.0,
+   "independent_selected": [
+    "E"
+   ],
+   "nearest_gain": 0.0,
+   "nearest_selected": [
+    "B"
+   ],
+   "priority": "balanced"
+  },
+  {
+   "base": 7.0,
+   "candidates": 9,
+   "budget": 2,
+   "solver": "exact_enumeration",
+   "exact": true,
+   "evaluations": 45,
+   "runtime_ms": 3.06,
+   "opt_gain": 12.0,
+   "opt_selected": [
+    "A",
+    "B"
+   ],
+   "greedy_gain": 9.0,
+   "greedy_selected": [
+    "E",
+    "C"
+   ],
+   "independent_gain": 5.0,
+   "independent_selected": [
+    "E",
+    "F"
+   ],
+   "nearest_gain": 12.0,
+   "nearest_selected": [
+    "B",
+    "A"
+   ],
+   "priority": "balanced"
+  },
+  {
+   "base": 7.0,
+   "candidates": 9,
+   "budget": 3,
+   "solver": "exact_enumeration",
+   "exact": true,
+   "evaluations": 129,
+   "runtime_ms": 4.1,
+   "opt_gain": 17.0,
+   "opt_selected": [
+    "A",
+    "B",
+    "E"
+   ],
+   "greedy_gain": 10.0,
+   "greedy_selected": [
+    "E",
+    "C",
+    "K"
+   ],
+   "independent_gain": 5.0,
+   "independent_selected": [
+    "E",
+    "F",
+    "G"
+   ],
+   "nearest_gain": 12.0,
+   "nearest_selected": [
+    "B",
+    "A",
+    "C"
+   ],
+   "priority": "balanced"
+  },
+  {
+   "base": 7.0,
+   "candidates": 9,
+   "budget": 4,
+   "solver": "exact_enumeration",
+   "exact": true,
+   "evaluations": 255,
+   "runtime_ms": 7.12,
+   "opt_gain": 18.0,
+   "opt_selected": [
+    "A",
+    "B",
+    "E",
+    "K"
+   ],
+   "greedy_gain": 10.0,
+   "greedy_selected": [
+    "E",
+    "C",
+    "K"
+   ],
+   "independent_gain": 6.0,
+   "independent_selected": [
+    "E",
+    "F",
+    "G",
+    "K"
+   ],
+   "nearest_gain": 12.0,
+   "nearest_selected": [
+    "B",
+    "A",
+    "C",
+    "J"
+   ],
+   "priority": "balanced"
+  },
+  {
+   "base": 11.0,
+   "candidates": 9,
+   "budget": 1,
+   "solver": "exact_enumeration",
+   "exact": true,
+   "evaluations": 9,
+   "runtime_ms": 1.96,
+   "opt_gain": 8.0,
+   "opt_selected": [
+    "C"
+   ],
+   "greedy_gain": 8.0,
+   "greedy_selected": [
+    "C"
+   ],
+   "independent_gain": 8.0,
+   "independent_selected": [
+    "C"
+   ],
+   "nearest_gain": 0.0,
+   "nearest_selected": [
+    "H"
+   ],
+   "priority": "healthcare"
+  },
+  {
+   "base": 11.0,
+   "candidates": 9,
+   "budget": 2,
+   "solver": "exact_enumeration",
+   "exact": true,
+   "evaluations": 45,
+   "runtime_ms": 2.43,
+   "opt_gain": 28.0,
+   "opt_selected": [
+    "A",
+    "B"
+   ],
+   "greedy_gain": 13.0,
+   "greedy_selected": [
+    "C",
+    "E"
+   ],
+   "independent_gain": 13.0,
+   "independent_selected": [
+    "C",
+    "E"
+   ],
+   "nearest_gain": 0.0,
+   "nearest_selected": [
+    "H",
+    "B"
+   ],
+   "priority": "healthcare"
+  },
+  {
+   "base": 11.0,
+   "candidates": 9,
+   "budget": 3,
+   "solver": "exact_enumeration",
+   "exact": true,
+   "evaluations": 129,
+   "runtime_ms": 4.04,
+   "opt_gain": 33.0,
+   "opt_selected": [
+    "A",
+    "B",
+    "E"
+   ],
+   "greedy_gain": 14.0,
+   "greedy_selected": [
+    "C",
+    "E",
+    "K"
+   ],
+   "independent_gain": 13.0,
+   "independent_selected": [
+    "C",
+    "E",
+    "F"
+   ],
+   "nearest_gain": 28.0,
+   "nearest_selected": [
+    "H",
+    "B",
+    "A"
+   ],
+   "priority": "healthcare"
+  },
+  {
+   "base": 11.0,
+   "candidates": 9,
+   "budget": 4,
+   "solver": "exact_enumeration",
+   "exact": true,
+   "evaluations": 255,
+   "runtime_ms": 9.63,
+   "opt_gain": 34.0,
+   "opt_selected": [
+    "A",
+    "B",
+    "E",
+    "K"
+   ],
+   "greedy_gain": 14.0,
+   "greedy_selected": [
+    "C",
+    "E",
+    "K"
+   ],
+   "independent_gain": 13.0,
+   "independent_selected": [
+    "C",
+    "E",
+    "F",
+    "G"
+   ],
+   "nearest_gain": 28.0,
+   "nearest_selected": [
+    "H",
+    "B",
+    "A",
+    "J"
+   ],
+   "priority": "healthcare"
+  },
+  {
+   "base": 17.0,
+   "candidates": 9,
+   "budget": 1,
+   "solver": "exact_enumeration",
+   "exact": true,
+   "evaluations": 9,
+   "runtime_ms": 2.72,
+   "opt_gain": 8.0,
+   "opt_selected": [
+    "C"
+   ],
+   "greedy_gain": 8.0,
+   "greedy_selected": [
+    "C"
+   ],
+   "independent_gain": 8.0,
+   "independent_selected": [
+    "C"
+   ],
+   "nearest_gain": 0.0,
+   "nearest_selected": [
+    "B"
+   ],
+   "priority": "transit"
+  },
+  {
+   "base": 17.0,
+   "candidates": 9,
+   "budget": 2,
+   "solver": "exact_enumeration",
+   "exact": true,
+   "evaluations": 45,
+   "runtime_ms": 3.8,
+   "opt_gain": 20.0,
+   "opt_selected": [
+    "A",
+    "B"
+   ],
+   "greedy_gain": 13.0,
+   "greedy_selected": [
+    "C",
+    "E"
+   ],
+   "independent_gain": 13.0,
+   "independent_selected": [
+    "C",
+    "E"
+   ],
+   "nearest_gain": 20.0,
+   "nearest_selected": [
+    "B",
+    "A"
+   ],
+   "priority": "transit"
+  },
+  {
+   "base": 17.0,
+   "candidates": 9,
+   "budget": 3,
+   "solver": "exact_enumeration",
+   "exact": true,
+   "evaluations": 129,
+   "runtime_ms": 4.12,
+   "opt_gain": 25.0,
+   "opt_selected": [
+    "A",
+    "B",
+    "E"
+   ],
+   "greedy_gain": 14.0,
+   "greedy_selected": [
+    "C",
+    "E",
+    "K"
+   ],
+   "independent_gain": 13.0,
+   "independent_selected": [
+    "C",
+    "E",
+    "F"
+   ],
+   "nearest_gain": 20.0,
+   "nearest_selected": [
+    "B",
+    "A",
+    "C"
+   ],
+   "priority": "transit"
+  },
+  {
+   "base": 17.0,
+   "candidates": 9,
+   "budget": 4,
+   "solver": "exact_enumeration",
+   "exact": true,
+   "evaluations": 255,
+   "runtime_ms": 6.86,
+   "opt_gain": 26.0,
+   "opt_selected": [
+    "A",
+    "B",
+    "E",
+    "K"
+   ],
+   "greedy_gain": 14.0,
+   "greedy_selected": [
+    "C",
+    "E",
+    "K"
+   ],
+   "independent_gain": 13.0,
+   "independent_selected": [
+    "C",
+    "E",
+    "F",
+    "G"
+   ],
+   "nearest_gain": 20.0,
+   "nearest_selected": [
+    "B",
+    "A",
+    "C",
+    "J"
+   ],
+   "priority": "transit"
+  },
+  {
+   "base": 7.0,
+   "candidates": 9,
+   "budget": 1,
+   "solver": "exact_enumeration",
+   "exact": true,
+   "evaluations": 9,
+   "runtime_ms": 2.14,
+   "opt_gain": 15.0,
+   "opt_selected": [
+    "E"
+   ],
+   "greedy_gain": 15.0,
+   "greedy_selected": [
+    "E"
+   ],
+   "independent_gain": 15.0,
+   "independent_selected": [
+    "E"
+   ],
+   "nearest_gain": 15.0,
+   "nearest_selected": [
+    "G"
+   ],
+   "priority": "education"
+  },
+  {
+   "base": 7.0,
+   "candidates": 9,
+   "budget": 2,
+   "solver": "exact_enumeration",
+   "exact": true,
+   "evaluations": 45,
+   "runtime_ms": 2.5,
+   "opt_gain": 19.0,
+   "opt_selected": [
+    "C",
+    "E"
+   ],
+   "greedy_gain": 19.0,
+   "greedy_selected": [
+    "E",
+    "C"
+   ],
+   "independent_gain": 15.0,
+   "independent_selected": [
+    "E",
+    "F"
+   ],
+   "nearest_gain": 18.0,
+   "nearest_selected": [
+    "G",
+    "K"
+   ],
+   "priority": "education"
+  },
+  {
+   "base": 7.0,
+   "candidates": 9,
+   "budget": 3,
+   "solver": "exact_enumeration",
+   "exact": true,
+   "evaluations": 129,
+   "runtime_ms": 4.13,
+   "opt_gain": 27.0,
+   "opt_selected": [
+    "A",
+    "B",
+    "E"
+   ],
+   "greedy_gain": 22.0,
+   "greedy_selected": [
+    "E",
+    "C",
+    "K"
+   ],
+   "independent_gain": 15.0,
+   "independent_selected": [
+    "E",
+    "F",
+    "G"
+   ],
+   "nearest_gain": 18.0,
+   "nearest_selected": [
+    "G",
+    "K",
+    "E"
+   ],
+   "priority": "education"
+  },
+  {
+   "base": 7.0,
+   "candidates": 9,
+   "budget": 4,
+   "solver": "exact_enumeration",
+   "exact": true,
+   "evaluations": 255,
+   "runtime_ms": 7.52,
+   "opt_gain": 30.0,
+   "opt_selected": [
+    "A",
+    "B",
+    "E",
+    "K"
+   ],
+   "greedy_gain": 22.0,
+   "greedy_selected": [
+    "E",
+    "C",
+    "K"
+   ],
+   "independent_gain": 18.0,
+   "independent_selected": [
+    "E",
+    "F",
+    "G",
+    "K"
+   ],
+   "nearest_gain": 18.0,
+   "nearest_selected": [
+    "G",
+    "K",
+    "E",
+    "F"
+   ],
+   "priority": "education"
+  }
+ ],
+ "districts": {
+  "2": {
+   "summary": {
+    "instances": 40,
+    "instances_with_positive_gain": 23,
+    "greedy": {
+     "share_below_optimum": 0.043,
+     "mean_ratio_to_optimum": 0.97,
+     "min_ratio_to_optimum": 0.32
+    },
+    "independent": {
+     "share_below_optimum": 0.261,
+     "mean_ratio_to_optimum": 0.901,
+     "min_ratio_to_optimum": 0.2
+    },
+    "nearest": {
+     "share_below_optimum": 0.739,
+     "mean_ratio_to_optimum": 0.411,
+     "min_ratio_to_optimum": 0.0
+    },
+    "mean_runtime_ms": 3.14,
+    "max_runtime_ms": 5.26,
+    "all_exact": true
+   },
+   "rows": [
+    {
+     "seed": 0,
+     "base": 45.0,
+     "candidates": 6,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 21,
+     "runtime_ms": 2.35,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F3",
+      "F5"
+     ]
+    },
+    {
+     "seed": 1,
+     "base": 45.0,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 55,
+     "runtime_ms": 3.29,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F9",
+      "F8"
+     ]
+    },
+    {
+     "seed": 2,
+     "base": 45.0,
+     "candidates": 5,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 15,
+     "runtime_ms": 2.93,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F4",
+      "F3"
+     ]
+    },
+    {
+     "seed": 3,
+     "base": 45.0,
+     "candidates": 9,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 45,
+     "runtime_ms": 2.6,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F6",
+      "F7"
+     ]
+    },
+    {
+     "seed": 4,
+     "base": 39.0,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 55,
+     "runtime_ms": 2.81,
+     "opt_gain": 6.0,
+     "opt_selected": [
+      "F5"
+     ],
+     "greedy_gain": 6.0,
+     "greedy_selected": [
+      "F5"
+     ],
+     "independent_gain": 6.0,
+     "independent_selected": [
+      "F5",
+      "F6"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F8",
+      "F9"
+     ]
+    },
+    {
+     "seed": 5,
+     "base": 45.0,
+     "candidates": 12,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 78,
+     "runtime_ms": 3.33,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F10",
+      "F9"
+     ]
+    },
+    {
+     "seed": 6,
+     "base": 45.0,
+     "candidates": 9,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 45,
+     "runtime_ms": 2.6,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F8",
+      "F5"
+     ]
+    },
+    {
+     "seed": 7,
+     "base": 25.0,
+     "candidates": 13,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 91,
+     "runtime_ms": 5.26,
+     "opt_gain": 20.0,
+     "opt_selected": [
+      "F9"
+     ],
+     "greedy_gain": 20.0,
+     "greedy_selected": [
+      "F9"
+     ],
+     "independent_gain": 20.0,
+     "independent_selected": [
+      "F9"
+     ],
+     "nearest_gain": 20.0,
+     "nearest_selected": [
+      "F11",
+      "F9"
+     ]
+    },
+    {
+     "seed": 8,
+     "base": 37.0,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 55,
+     "runtime_ms": 3.76,
+     "opt_gain": 8.0,
+     "opt_selected": [
+      "F1"
+     ],
+     "greedy_gain": 8.0,
+     "greedy_selected": [
+      "F1"
+     ],
+     "independent_gain": 8.0,
+     "independent_selected": [
+      "F1",
+      "F3"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F6",
+      "F8"
+     ]
+    },
+    {
+     "seed": 9,
+     "base": 16.0,
+     "candidates": 16,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 136,
+     "runtime_ms": 4.29,
+     "opt_gain": 29.0,
+     "opt_selected": [
+      "F11",
+      "F6"
+     ],
+     "greedy_gain": 29.0,
+     "greedy_selected": [
+      "F11",
+      "F6"
+     ],
+     "independent_gain": 13.0,
+     "independent_selected": [
+      "F11",
+      "F9"
+     ],
+     "nearest_gain": 13.0,
+     "nearest_selected": [
+      "F11",
+      "F12"
+     ]
+    },
+    {
+     "seed": 10,
+     "base": 42.0,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 55,
+     "runtime_ms": 2.81,
+     "opt_gain": 3.0,
+     "opt_selected": [
+      "F5"
+     ],
+     "greedy_gain": 3.0,
+     "greedy_selected": [
+      "F5"
+     ],
+     "independent_gain": 3.0,
+     "independent_selected": [
+      "F5"
+     ],
+     "nearest_gain": 3.0,
+     "nearest_selected": [
+      "F5",
+      "F6"
+     ]
+    },
+    {
+     "seed": 11,
+     "base": 23.0,
+     "candidates": 14,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 105,
+     "runtime_ms": 3.6,
+     "opt_gain": 22.0,
+     "opt_selected": [
+      "F4",
+      "F7"
+     ],
+     "greedy_gain": 22.0,
+     "greedy_selected": [
+      "F7",
+      "F4"
+     ],
+     "independent_gain": 22.0,
+     "independent_selected": [
+      "F7",
+      "F4"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F12",
+      "F11"
+     ]
+    },
+    {
+     "seed": 12,
+     "base": 37.0,
+     "candidates": 14,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 105,
+     "runtime_ms": 4.35,
+     "opt_gain": 7.0,
+     "opt_selected": [
+      "F1",
+      "F9"
+     ],
+     "greedy_gain": 7.0,
+     "greedy_selected": [
+      "F1",
+      "F9"
+     ],
+     "independent_gain": 4.0,
+     "independent_selected": [
+      "F1",
+      "F2"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F12",
+      "F9"
+     ]
+    },
+    {
+     "seed": 13,
+     "base": 45.0,
+     "candidates": 4,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 10,
+     "runtime_ms": 2.47,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F3",
+      "F2"
+     ]
+    },
+    {
+     "seed": 14,
+     "base": 18.0,
+     "candidates": 13,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 91,
+     "runtime_ms": 3.15,
+     "opt_gain": 21.0,
+     "opt_selected": [
+      "F5",
+      "F7"
+     ],
+     "greedy_gain": 21.0,
+     "greedy_selected": [
+      "F7",
+      "F5"
+     ],
+     "independent_gain": 21.0,
+     "independent_selected": [
+      "F7",
+      "F5"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F8",
+      "F12"
+     ]
+    },
+    {
+     "seed": 15,
+     "base": 38.0,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 55,
+     "runtime_ms": 2.74,
+     "opt_gain": 7.0,
+     "opt_selected": [
+      "F4"
+     ],
+     "greedy_gain": 7.0,
+     "greedy_selected": [
+      "F4"
+     ],
+     "independent_gain": 7.0,
+     "independent_selected": [
+      "F4"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F8",
+      "F9"
+     ]
+    },
+    {
+     "seed": 16,
+     "base": 33.0,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 55,
+     "runtime_ms": 2.89,
+     "opt_gain": 12.0,
+     "opt_selected": [
+      "F5"
+     ],
+     "greedy_gain": 12.0,
+     "greedy_selected": [
+      "F5"
+     ],
+     "independent_gain": 12.0,
+     "independent_selected": [
+      "F5",
+      "F7"
+     ],
+     "nearest_gain": 12.0,
+     "nearest_selected": [
+      "F7",
+      "F5"
+     ]
+    },
+    {
+     "seed": 17,
+     "base": 45.0,
+     "candidates": 9,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 45,
+     "runtime_ms": 2.64,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F6",
+      "F7"
+     ]
+    },
+    {
+     "seed": 18,
+     "base": 45.0,
+     "candidates": 5,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 15,
+     "runtime_ms": 2.07,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F2",
+      "F4"
+     ]
+    },
+    {
+     "seed": 19,
+     "base": 30.0,
+     "candidates": 13,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 91,
+     "runtime_ms": 3.87,
+     "opt_gain": 15.0,
+     "opt_selected": [
+      "F6"
+     ],
+     "greedy_gain": 15.0,
+     "greedy_selected": [
+      "F6"
+     ],
+     "independent_gain": 15.0,
+     "independent_selected": [
+      "F6",
+      "F8"
+     ],
+     "nearest_gain": 9.0,
+     "nearest_selected": [
+      "F9",
+      "F8"
+     ]
+    },
+    {
+     "seed": 20,
+     "base": 45.0,
+     "candidates": 14,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 105,
+     "runtime_ms": 3.63,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F10",
+      "F11"
+     ]
+    },
+    {
+     "seed": 21,
+     "base": 44.0,
+     "candidates": 9,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 45,
+     "runtime_ms": 2.59,
+     "opt_gain": 1.0,
+     "opt_selected": [
+      "F3"
+     ],
+     "greedy_gain": 1.0,
+     "greedy_selected": [
+      "F3"
+     ],
+     "independent_gain": 1.0,
+     "independent_selected": [
+      "F3"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F7",
+      "F6"
+     ]
+    },
+    {
+     "seed": 22,
+     "base": 45.0,
+     "candidates": 7,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 28,
+     "runtime_ms": 2.48,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F5",
+      "F6"
+     ]
+    },
+    {
+     "seed": 23,
+     "base": 42.0,
+     "candidates": 11,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 66,
+     "runtime_ms": 2.85,
+     "opt_gain": 3.0,
+     "opt_selected": [
+      "F8"
+     ],
+     "greedy_gain": 3.0,
+     "greedy_selected": [
+      "F8"
+     ],
+     "independent_gain": 3.0,
+     "independent_selected": [
+      "F8"
+     ],
+     "nearest_gain": 3.0,
+     "nearest_selected": [
+      "F9",
+      "F8"
+     ]
+    },
+    {
+     "seed": 24,
+     "base": 44.0,
+     "candidates": 8,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 36,
+     "runtime_ms": 2.71,
+     "opt_gain": 1.0,
+     "opt_selected": [
+      "F2"
+     ],
+     "greedy_gain": 1.0,
+     "greedy_selected": [
+      "F2"
+     ],
+     "independent_gain": 1.0,
+     "independent_selected": [
+      "F2"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F6",
+      "F7"
+     ]
+    },
+    {
+     "seed": 25,
+     "base": 38.0,
+     "candidates": 9,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 45,
+     "runtime_ms": 3.27,
+     "opt_gain": 7.0,
+     "opt_selected": [
+      "F1",
+      "F5"
+     ],
+     "greedy_gain": 7.0,
+     "greedy_selected": [
+      "F5",
+      "F1"
+     ],
+     "independent_gain": 6.0,
+     "independent_selected": [
+      "F5",
+      "F6"
+     ],
+     "nearest_gain": 6.0,
+     "nearest_selected": [
+      "F7",
+      "F6"
+     ]
+    },
+    {
+     "seed": 26,
+     "base": 24.0,
+     "candidates": 16,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 136,
+     "runtime_ms": 4.06,
+     "opt_gain": 21.0,
+     "opt_selected": [
+      "F8",
+      "F9"
+     ],
+     "greedy_gain": 21.0,
+     "greedy_selected": [
+      "F9",
+      "F8"
+     ],
+     "independent_gain": 18.0,
+     "independent_selected": [
+      "F9"
+     ],
+     "nearest_gain": 21.0,
+     "nearest_selected": [
+      "F8",
+      "F9"
+     ]
+    },
+    {
+     "seed": 27,
+     "base": 45.0,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 55,
+     "runtime_ms": 2.85,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F8",
+      "F7"
+     ]
+    },
+    {
+     "seed": 28,
+     "base": 45.0,
+     "candidates": 7,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 28,
+     "runtime_ms": 2.22,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F6",
+      "F5"
+     ]
+    },
+    {
+     "seed": 29,
+     "base": 45.0,
+     "candidates": 6,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 21,
+     "runtime_ms": 2.45,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F4",
+      "F3"
+     ]
+    },
+    {
+     "seed": 30,
+     "base": 24.0,
+     "candidates": 7,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 28,
+     "runtime_ms": 2.41,
+     "opt_gain": 21.0,
+     "opt_selected": [
+      "F3",
+      "F6"
+     ],
+     "greedy_gain": 21.0,
+     "greedy_selected": [
+      "F6",
+      "F3"
+     ],
+     "independent_gain": 21.0,
+     "independent_selected": [
+      "F6",
+      "F3"
+     ],
+     "nearest_gain": 20.0,
+     "nearest_selected": [
+      "F6",
+      "F5"
+     ]
+    },
+    {
+     "seed": 31,
+     "base": 45.0,
+     "candidates": 12,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 78,
+     "runtime_ms": 4.28,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F9",
+      "F7"
+     ]
+    },
+    {
+     "seed": 32,
+     "base": 39.0,
+     "candidates": 15,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 120,
+     "runtime_ms": 3.69,
+     "opt_gain": 5.0,
+     "opt_selected": [
+      "F11",
+      "F5"
+     ],
+     "greedy_gain": 5.0,
+     "greedy_selected": [
+      "F11",
+      "F5"
+     ],
+     "independent_gain": 5.0,
+     "independent_selected": [
+      "F11",
+      "F5"
+     ],
+     "nearest_gain": 3.0,
+     "nearest_selected": [
+      "F11",
+      "F12"
+     ]
+    },
+    {
+     "seed": 33,
+     "base": 17.0,
+     "candidates": 13,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 91,
+     "runtime_ms": 3.62,
+     "opt_gain": 28.0,
+     "opt_selected": [
+      "F7"
+     ],
+     "greedy_gain": 28.0,
+     "greedy_selected": [
+      "F7"
+     ],
+     "independent_gain": 28.0,
+     "independent_selected": [
+      "F7",
+      "F5"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F9",
+      "F10"
+     ]
+    },
+    {
+     "seed": 34,
+     "base": 45.0,
+     "candidates": 8,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 36,
+     "runtime_ms": 2.95,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F7",
+      "F6"
+     ]
+    },
+    {
+     "seed": 35,
+     "base": 44.0,
+     "candidates": 11,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 66,
+     "runtime_ms": 3.31,
+     "opt_gain": 1.0,
+     "opt_selected": [
+      "F2"
+     ],
+     "greedy_gain": 1.0,
+     "greedy_selected": [
+      "F2"
+     ],
+     "independent_gain": 1.0,
+     "independent_selected": [
+      "F2"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F9",
+      "F10"
+     ]
+    },
+    {
+     "seed": 36,
+     "base": 24.0,
+     "candidates": 6,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 21,
+     "runtime_ms": 2.46,
+     "opt_gain": 21.0,
+     "opt_selected": [
+      "F2"
+     ],
+     "greedy_gain": 21.0,
+     "greedy_selected": [
+      "F2"
+     ],
+     "independent_gain": 21.0,
+     "independent_selected": [
+      "F2",
+      "F1"
+     ],
+     "nearest_gain": 21.0,
+     "nearest_selected": [
+      "F4",
+      "F2"
+     ]
+    },
+    {
+     "seed": 37,
+     "base": 30.0,
+     "candidates": 14,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 105,
+     "runtime_ms": 4.62,
+     "opt_gain": 15.0,
+     "opt_selected": [
+      "F6",
+      "F8"
+     ],
+     "greedy_gain": 15.0,
+     "greedy_selected": [
+      "F6",
+      "F8"
+     ],
+     "independent_gain": 12.0,
+     "independent_selected": [
+      "F6",
+      "F7"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F8",
+      "F12"
+     ]
+    },
+    {
+     "seed": 38,
+     "base": 45.0,
+     "candidates": 8,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 36,
+     "runtime_ms": 2.52,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F5",
+      "F4"
+     ]
+    },
+    {
+     "seed": 39,
+     "base": 17.0,
+     "candidates": 9,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 45,
+     "runtime_ms": 2.63,
+     "opt_gain": 25.0,
+     "opt_selected": [
+      "F6",
+      "F7"
+     ],
+     "greedy_gain": 8.0,
+     "greedy_selected": [
+      "F4",
+      "F5"
+     ],
+     "independent_gain": 5.0,
+     "independent_selected": [
+      "F4"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F8",
+      "F6"
+     ]
+    }
+   ]
+  },
+  "3": {
+   "summary": {
+    "instances": 40,
+    "instances_with_positive_gain": 23,
+    "greedy": {
+     "share_below_optimum": 0.043,
+     "mean_ratio_to_optimum": 0.969,
+     "min_ratio_to_optimum": 0.286
+    },
+    "independent": {
+     "share_below_optimum": 0.261,
+     "mean_ratio_to_optimum": 0.916,
+     "min_ratio_to_optimum": 0.179
+    },
+    "nearest": {
+     "share_below_optimum": 0.652,
+     "mean_ratio_to_optimum": 0.598,
+     "min_ratio_to_optimum": 0.0
+    },
+    "mean_runtime_ms": 6.49,
+    "max_runtime_ms": 17.23,
+    "all_exact": true
+   },
+   "rows": [
+    {
+     "seed": 0,
+     "base": 45.0,
+     "candidates": 6,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 41,
+     "runtime_ms": 2.65,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F3",
+      "F5",
+      "F4"
+     ]
+    },
+    {
+     "seed": 1,
+     "base": 45.0,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 175,
+     "runtime_ms": 4.74,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F9",
+      "F8",
+      "F7"
+     ]
+    },
+    {
+     "seed": 2,
+     "base": 45.0,
+     "candidates": 5,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 25,
+     "runtime_ms": 2.91,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F4",
+      "F3",
+      "F2"
+     ]
+    },
+    {
+     "seed": 3,
+     "base": 45.0,
+     "candidates": 9,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 129,
+     "runtime_ms": 4.22,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F6",
+      "F7",
+      "F5"
+     ]
+    },
+    {
+     "seed": 4,
+     "base": 39.0,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 175,
+     "runtime_ms": 4.87,
+     "opt_gain": 6.0,
+     "opt_selected": [
+      "F5"
+     ],
+     "greedy_gain": 6.0,
+     "greedy_selected": [
+      "F5"
+     ],
+     "independent_gain": 6.0,
+     "independent_selected": [
+      "F5",
+      "F6"
+     ],
+     "nearest_gain": 6.0,
+     "nearest_selected": [
+      "F8",
+      "F9",
+      "F5"
+     ]
+    },
+    {
+     "seed": 5,
+     "base": 45.0,
+     "candidates": 12,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 298,
+     "runtime_ms": 6.69,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F10",
+      "F9",
+      "F5"
+     ]
+    },
+    {
+     "seed": 6,
+     "base": 45.0,
+     "candidates": 9,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 129,
+     "runtime_ms": 3.93,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F8",
+      "F5",
+      "F4"
+     ]
+    },
+    {
+     "seed": 7,
+     "base": 25.0,
+     "candidates": 13,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 377,
+     "runtime_ms": 8.65,
+     "opt_gain": 20.0,
+     "opt_selected": [
+      "F9"
+     ],
+     "greedy_gain": 20.0,
+     "greedy_selected": [
+      "F9"
+     ],
+     "independent_gain": 20.0,
+     "independent_selected": [
+      "F9"
+     ],
+     "nearest_gain": 20.0,
+     "nearest_selected": [
+      "F11",
+      "F9",
+      "F12"
+     ]
+    },
+    {
+     "seed": 8,
+     "base": 37.0,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 175,
+     "runtime_ms": 7.65,
+     "opt_gain": 8.0,
+     "opt_selected": [
+      "F1"
+     ],
+     "greedy_gain": 8.0,
+     "greedy_selected": [
+      "F1"
+     ],
+     "independent_gain": 8.0,
+     "independent_selected": [
+      "F1",
+      "F3"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F6",
+      "F8",
+      "F7"
+     ]
+    },
+    {
+     "seed": 9,
+     "base": 16.0,
+     "candidates": 16,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 696,
+     "runtime_ms": 13.36,
+     "opt_gain": 29.0,
+     "opt_selected": [
+      "F11",
+      "F6"
+     ],
+     "greedy_gain": 29.0,
+     "greedy_selected": [
+      "F11",
+      "F6"
+     ],
+     "independent_gain": 29.0,
+     "independent_selected": [
+      "F11",
+      "F9",
+      "F6"
+     ],
+     "nearest_gain": 28.0,
+     "nearest_selected": [
+      "F11",
+      "F12",
+      "F10"
+     ]
+    },
+    {
+     "seed": 10,
+     "base": 42.0,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 175,
+     "runtime_ms": 5.66,
+     "opt_gain": 3.0,
+     "opt_selected": [
+      "F5"
+     ],
+     "greedy_gain": 3.0,
+     "greedy_selected": [
+      "F5"
+     ],
+     "independent_gain": 3.0,
+     "independent_selected": [
+      "F5"
+     ],
+     "nearest_gain": 3.0,
+     "nearest_selected": [
+      "F5",
+      "F6",
+      "F8"
+     ]
+    },
+    {
+     "seed": 11,
+     "base": 23.0,
+     "candidates": 14,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 469,
+     "runtime_ms": 11.08,
+     "opt_gain": 22.0,
+     "opt_selected": [
+      "F4",
+      "F7"
+     ],
+     "greedy_gain": 22.0,
+     "greedy_selected": [
+      "F7",
+      "F4"
+     ],
+     "independent_gain": 22.0,
+     "independent_selected": [
+      "F7",
+      "F4",
+      "F2"
+     ],
+     "nearest_gain": 20.0,
+     "nearest_selected": [
+      "F12",
+      "F11",
+      "F7"
+     ]
+    },
+    {
+     "seed": 12,
+     "base": 37.0,
+     "candidates": 14,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 469,
+     "runtime_ms": 10.89,
+     "opt_gain": 8.0,
+     "opt_selected": [
+      "F1",
+      "F3",
+      "F9"
+     ],
+     "greedy_gain": 8.0,
+     "greedy_selected": [
+      "F1",
+      "F9",
+      "F3"
+     ],
+     "independent_gain": 5.0,
+     "independent_selected": [
+      "F1",
+      "F2",
+      "F3"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F12",
+      "F9",
+      "F11"
+     ]
+    },
+    {
+     "seed": 13,
+     "base": 45.0,
+     "candidates": 4,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 14,
+     "runtime_ms": 2.16,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F3",
+      "F2",
+      "F1"
+     ]
+    },
+    {
+     "seed": 14,
+     "base": 18.0,
+     "candidates": 13,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 377,
+     "runtime_ms": 8.34,
+     "opt_gain": 27.0,
+     "opt_selected": [
+      "F5",
+      "F7",
+      "F8"
+     ],
+     "greedy_gain": 27.0,
+     "greedy_selected": [
+      "F7",
+      "F5",
+      "F8"
+     ],
+     "independent_gain": 21.0,
+     "independent_selected": [
+      "F7",
+      "F5"
+     ],
+     "nearest_gain": 21.0,
+     "nearest_selected": [
+      "F8",
+      "F12",
+      "F7"
+     ]
+    },
+    {
+     "seed": 15,
+     "base": 38.0,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 175,
+     "runtime_ms": 5.72,
+     "opt_gain": 7.0,
+     "opt_selected": [
+      "F4"
+     ],
+     "greedy_gain": 7.0,
+     "greedy_selected": [
+      "F4"
+     ],
+     "independent_gain": 7.0,
+     "independent_selected": [
+      "F4"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F8",
+      "F9",
+      "F7"
+     ]
+    },
+    {
+     "seed": 16,
+     "base": 33.0,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 175,
+     "runtime_ms": 6.03,
+     "opt_gain": 12.0,
+     "opt_selected": [
+      "F5"
+     ],
+     "greedy_gain": 12.0,
+     "greedy_selected": [
+      "F5"
+     ],
+     "independent_gain": 12.0,
+     "independent_selected": [
+      "F5",
+      "F7"
+     ],
+     "nearest_gain": 12.0,
+     "nearest_selected": [
+      "F7",
+      "F5",
+      "F6"
+     ]
+    },
+    {
+     "seed": 17,
+     "base": 45.0,
+     "candidates": 9,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 129,
+     "runtime_ms": 8.05,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F6",
+      "F7",
+      "F4"
+     ]
+    },
+    {
+     "seed": 18,
+     "base": 45.0,
+     "candidates": 5,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 25,
+     "runtime_ms": 3.75,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F2",
+      "F4",
+      "F3"
+     ]
+    },
+    {
+     "seed": 19,
+     "base": 30.0,
+     "candidates": 13,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 377,
+     "runtime_ms": 8.5,
+     "opt_gain": 15.0,
+     "opt_selected": [
+      "F6"
+     ],
+     "greedy_gain": 15.0,
+     "greedy_selected": [
+      "F6"
+     ],
+     "independent_gain": 15.0,
+     "independent_selected": [
+      "F6",
+      "F8",
+      "F11"
+     ],
+     "nearest_gain": 12.0,
+     "nearest_selected": [
+      "F9",
+      "F8",
+      "F10"
+     ]
+    },
+    {
+     "seed": 20,
+     "base": 45.0,
+     "candidates": 14,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 469,
+     "runtime_ms": 10.29,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F10",
+      "F11",
+      "F9"
+     ]
+    },
+    {
+     "seed": 21,
+     "base": 44.0,
+     "candidates": 9,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 129,
+     "runtime_ms": 4.0,
+     "opt_gain": 1.0,
+     "opt_selected": [
+      "F3"
+     ],
+     "greedy_gain": 1.0,
+     "greedy_selected": [
+      "F3"
+     ],
+     "independent_gain": 1.0,
+     "independent_selected": [
+      "F3"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F7",
+      "F6",
+      "F8"
+     ]
+    },
+    {
+     "seed": 22,
+     "base": 45.0,
+     "candidates": 7,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 63,
+     "runtime_ms": 2.94,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F5",
+      "F6",
+      "F4"
+     ]
+    },
+    {
+     "seed": 23,
+     "base": 42.0,
+     "candidates": 11,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 231,
+     "runtime_ms": 6.13,
+     "opt_gain": 3.0,
+     "opt_selected": [
+      "F8"
+     ],
+     "greedy_gain": 3.0,
+     "greedy_selected": [
+      "F8"
+     ],
+     "independent_gain": 3.0,
+     "independent_selected": [
+      "F8"
+     ],
+     "nearest_gain": 3.0,
+     "nearest_selected": [
+      "F9",
+      "F8",
+      "F10"
+     ]
+    },
+    {
+     "seed": 24,
+     "base": 44.0,
+     "candidates": 8,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 92,
+     "runtime_ms": 3.55,
+     "opt_gain": 1.0,
+     "opt_selected": [
+      "F2"
+     ],
+     "greedy_gain": 1.0,
+     "greedy_selected": [
+      "F2"
+     ],
+     "independent_gain": 1.0,
+     "independent_selected": [
+      "F2"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F6",
+      "F7",
+      "F5"
+     ]
+    },
+    {
+     "seed": 25,
+     "base": 38.0,
+     "candidates": 9,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 129,
+     "runtime_ms": 4.47,
+     "opt_gain": 7.0,
+     "opt_selected": [
+      "F1",
+      "F5"
+     ],
+     "greedy_gain": 7.0,
+     "greedy_selected": [
+      "F5",
+      "F1"
+     ],
+     "independent_gain": 7.0,
+     "independent_selected": [
+      "F5",
+      "F6",
+      "F1"
+     ],
+     "nearest_gain": 6.0,
+     "nearest_selected": [
+      "F7",
+      "F6",
+      "F8"
+     ]
+    },
+    {
+     "seed": 26,
+     "base": 24.0,
+     "candidates": 16,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 696,
+     "runtime_ms": 17.23,
+     "opt_gain": 21.0,
+     "opt_selected": [
+      "F8",
+      "F9"
+     ],
+     "greedy_gain": 21.0,
+     "greedy_selected": [
+      "F9",
+      "F8"
+     ],
+     "independent_gain": 18.0,
+     "independent_selected": [
+      "F9"
+     ],
+     "nearest_gain": 21.0,
+     "nearest_selected": [
+      "F8",
+      "F9",
+      "F11"
+     ]
+    },
+    {
+     "seed": 27,
+     "base": 45.0,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 175,
+     "runtime_ms": 5.66,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F8",
+      "F7",
+      "F6"
+     ]
+    },
+    {
+     "seed": 28,
+     "base": 45.0,
+     "candidates": 7,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 63,
+     "runtime_ms": 2.9,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F6",
+      "F5",
+      "F3"
+     ]
+    },
+    {
+     "seed": 29,
+     "base": 45.0,
+     "candidates": 6,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 41,
+     "runtime_ms": 3.32,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F4",
+      "F3",
+      "F2"
+     ]
+    },
+    {
+     "seed": 30,
+     "base": 24.0,
+     "candidates": 7,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 63,
+     "runtime_ms": 3.98,
+     "opt_gain": 21.0,
+     "opt_selected": [
+      "F3",
+      "F6"
+     ],
+     "greedy_gain": 21.0,
+     "greedy_selected": [
+      "F6",
+      "F3"
+     ],
+     "independent_gain": 21.0,
+     "independent_selected": [
+      "F6",
+      "F3"
+     ],
+     "nearest_gain": 20.0,
+     "nearest_selected": [
+      "F6",
+      "F5",
+      "F4"
+     ]
+    },
+    {
+     "seed": 31,
+     "base": 45.0,
+     "candidates": 12,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 298,
+     "runtime_ms": 8.9,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F9",
+      "F7",
+      "F8"
+     ]
+    },
+    {
+     "seed": 32,
+     "base": 39.0,
+     "candidates": 15,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 575,
+     "runtime_ms": 12.2,
+     "opt_gain": 6.0,
+     "opt_selected": [
+      "F11",
+      "F4",
+      "F5"
+     ],
+     "greedy_gain": 6.0,
+     "greedy_selected": [
+      "F11",
+      "F5",
+      "F4"
+     ],
+     "independent_gain": 5.0,
+     "independent_selected": [
+      "F11",
+      "F5",
+      "F6"
+     ],
+     "nearest_gain": 3.0,
+     "nearest_selected": [
+      "F11",
+      "F12",
+      "F10"
+     ]
+    },
+    {
+     "seed": 33,
+     "base": 17.0,
+     "candidates": 13,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 377,
+     "runtime_ms": 9.31,
+     "opt_gain": 28.0,
+     "opt_selected": [
+      "F7"
+     ],
+     "greedy_gain": 28.0,
+     "greedy_selected": [
+      "F7"
+     ],
+     "independent_gain": 28.0,
+     "independent_selected": [
+      "F7",
+      "F5"
+     ],
+     "nearest_gain": 28.0,
+     "nearest_selected": [
+      "F9",
+      "F10",
+      "F7"
+     ]
+    },
+    {
+     "seed": 34,
+     "base": 45.0,
+     "candidates": 8,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 92,
+     "runtime_ms": 5.16,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F7",
+      "F6",
+      "F4"
+     ]
+    },
+    {
+     "seed": 35,
+     "base": 44.0,
+     "candidates": 11,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 231,
+     "runtime_ms": 8.09,
+     "opt_gain": 1.0,
+     "opt_selected": [
+      "F2"
+     ],
+     "greedy_gain": 1.0,
+     "greedy_selected": [
+      "F2"
+     ],
+     "independent_gain": 1.0,
+     "independent_selected": [
+      "F2"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F9",
+      "F10",
+      "F6"
+     ]
+    },
+    {
+     "seed": 36,
+     "base": 24.0,
+     "candidates": 6,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 41,
+     "runtime_ms": 3.03,
+     "opt_gain": 21.0,
+     "opt_selected": [
+      "F2"
+     ],
+     "greedy_gain": 21.0,
+     "greedy_selected": [
+      "F2"
+     ],
+     "independent_gain": 21.0,
+     "independent_selected": [
+      "F2",
+      "F1"
+     ],
+     "nearest_gain": 21.0,
+     "nearest_selected": [
+      "F4",
+      "F2",
+      "F5"
+     ]
+    },
+    {
+     "seed": 37,
+     "base": 30.0,
+     "candidates": 14,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 469,
+     "runtime_ms": 11.15,
+     "opt_gain": 15.0,
+     "opt_selected": [
+      "F6",
+      "F8"
+     ],
+     "greedy_gain": 15.0,
+     "greedy_selected": [
+      "F6",
+      "F8"
+     ],
+     "independent_gain": 12.0,
+     "independent_selected": [
+      "F6",
+      "F7"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F8",
+      "F12",
+      "F10"
+     ]
+    },
+    {
+     "seed": 38,
+     "base": 45.0,
+     "candidates": 8,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 92,
+     "runtime_ms": 3.57,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F5",
+      "F4",
+      "F7"
+     ]
+    },
+    {
+     "seed": 39,
+     "base": 17.0,
+     "candidates": 9,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 129,
+     "runtime_ms": 3.98,
+     "opt_gain": 28.0,
+     "opt_selected": [
+      "F5",
+      "F6",
+      "F7"
+     ],
+     "greedy_gain": 8.0,
+     "greedy_selected": [
+      "F4",
+      "F5"
+     ],
+     "independent_gain": 5.0,
+     "independent_selected": [
+      "F4"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "F8",
+      "F6",
+      "F5"
+     ]
+    }
+   ]
+  }
+ },
+ "grids": {
+  "2": {
+   "summary": {
+    "instances": 40,
+    "instances_with_positive_gain": 35,
+    "greedy": {
+     "share_below_optimum": 0.2,
+     "mean_ratio_to_optimum": 0.83,
+     "min_ratio_to_optimum": 0.0
+    },
+    "independent": {
+     "share_below_optimum": 0.343,
+     "mean_ratio_to_optimum": 0.77,
+     "min_ratio_to_optimum": 0.0
+    },
+    "nearest": {
+     "share_below_optimum": 0.857,
+     "mean_ratio_to_optimum": 0.267,
+     "min_ratio_to_optimum": 0.0
+    },
+    "mean_runtime_ms": 2.05,
+    "max_runtime_ms": 3.51,
+    "all_exact": true
+   },
+   "rows": [
+    {
+     "seed": 0,
+     "base": 21.5,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 15,
+     "runtime_ms": 1.96,
+     "opt_gain": 3.0,
+     "opt_selected": [
+      "c2"
+     ],
+     "greedy_gain": 3.0,
+     "greedy_selected": [
+      "c2"
+     ],
+     "independent_gain": 3.0,
+     "independent_selected": [
+      "c2",
+      "c7"
+     ],
+     "nearest_gain": 3.0,
+     "nearest_selected": [
+      "c4",
+      "c7"
+     ]
+    },
+    {
+     "seed": 1,
+     "base": 16.5,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 45,
+     "runtime_ms": 2.35,
+     "opt_gain": 7.0,
+     "opt_selected": [
+      "c0",
+      "c6"
+     ],
+     "greedy_gain": 7.0,
+     "greedy_selected": [
+      "c6",
+      "c0"
+     ],
+     "independent_gain": 7.0,
+     "independent_selected": [
+      "c6",
+      "c0"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c8",
+      "c4"
+     ]
+    },
+    {
+     "seed": 2,
+     "base": 11.0,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 21,
+     "runtime_ms": 1.95,
+     "opt_gain": 11.0,
+     "opt_selected": [
+      "c1",
+      "c3"
+     ],
+     "greedy_gain": 11.0,
+     "greedy_selected": [
+      "c1",
+      "c3"
+     ],
+     "independent_gain": 11.0,
+     "independent_selected": [
+      "c1",
+      "c3"
+     ],
+     "nearest_gain": 9.5,
+     "nearest_selected": [
+      "c8",
+      "c1"
+     ]
+    },
+    {
+     "seed": 3,
+     "base": 6.0,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 21,
+     "runtime_ms": 1.81,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c0",
+      "c1"
+     ]
+    },
+    {
+     "seed": 4,
+     "base": 18.0,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 28,
+     "runtime_ms": 2.19,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c1",
+      "c6"
+     ]
+    },
+    {
+     "seed": 5,
+     "base": 34.5,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 36,
+     "runtime_ms": 2.02,
+     "opt_gain": 3.0,
+     "opt_selected": [
+      "c2"
+     ],
+     "greedy_gain": 3.0,
+     "greedy_selected": [
+      "c2"
+     ],
+     "independent_gain": 3.0,
+     "independent_selected": [
+      "c2"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c6",
+      "c4"
+     ]
+    },
+    {
+     "seed": 6,
+     "base": 4.0,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 3,
+     "runtime_ms": 1.55,
+     "opt_gain": 9.0,
+     "opt_selected": [
+      "c5"
+     ],
+     "greedy_gain": 9.0,
+     "greedy_selected": [
+      "c5"
+     ],
+     "independent_gain": 9.0,
+     "independent_selected": [
+      "c5"
+     ],
+     "nearest_gain": 9.0,
+     "nearest_selected": [
+      "c5",
+      "c1"
+     ]
+    },
+    {
+     "seed": 7,
+     "base": 25.5,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 45,
+     "runtime_ms": 2.08,
+     "opt_gain": 4.5,
+     "opt_selected": [
+      "c2",
+      "c3"
+     ],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c4",
+      "c6"
+     ]
+    },
+    {
+     "seed": 8,
+     "base": 9.0,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 10,
+     "runtime_ms": 1.69,
+     "opt_gain": 3.0,
+     "opt_selected": [
+      "c2"
+     ],
+     "greedy_gain": 3.0,
+     "greedy_selected": [
+      "c2"
+     ],
+     "independent_gain": 3.0,
+     "independent_selected": [
+      "c2",
+      "c4"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c3",
+      "c7"
+     ]
+    },
+    {
+     "seed": 9,
+     "base": 0.0,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 10,
+     "runtime_ms": 2.15,
+     "opt_gain": 3.0,
+     "opt_selected": [
+      "c6"
+     ],
+     "greedy_gain": 3.0,
+     "greedy_selected": [
+      "c6"
+     ],
+     "independent_gain": 3.0,
+     "independent_selected": [
+      "c6"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c1",
+      "c5"
+     ]
+    },
+    {
+     "seed": 10,
+     "base": 25.5,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 10,
+     "runtime_ms": 1.67,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c3",
+      "c5"
+     ]
+    },
+    {
+     "seed": 11,
+     "base": 12.0,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 15,
+     "runtime_ms": 1.67,
+     "opt_gain": 1.0,
+     "opt_selected": [
+      "c5",
+      "c9"
+     ],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c2",
+      "c1"
+     ]
+    },
+    {
+     "seed": 12,
+     "base": 13.5,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 21,
+     "runtime_ms": 2.29,
+     "opt_gain": 3.0,
+     "opt_selected": [
+      "c3",
+      "c8"
+     ],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c0",
+      "c4"
+     ]
+    },
+    {
+     "seed": 13,
+     "base": 4.0,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 15,
+     "runtime_ms": 2.43,
+     "opt_gain": 10.5,
+     "opt_selected": [
+      "c0",
+      "c8"
+     ],
+     "greedy_gain": 10.5,
+     "greedy_selected": [
+      "c0",
+      "c8"
+     ],
+     "independent_gain": 10.5,
+     "independent_selected": [
+      "c0",
+      "c8"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c5",
+      "c4"
+     ]
+    },
+    {
+     "seed": 14,
+     "base": 4.5,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 28,
+     "runtime_ms": 1.93,
+     "opt_gain": 22.5,
+     "opt_selected": [
+      "c3",
+      "c7"
+     ],
+     "greedy_gain": 22.5,
+     "greedy_selected": [
+      "c7",
+      "c3"
+     ],
+     "independent_gain": 18.0,
+     "independent_selected": [
+      "c7",
+      "c6"
+     ],
+     "nearest_gain": 18.0,
+     "nearest_selected": [
+      "c6",
+      "c7"
+     ]
+    },
+    {
+     "seed": 15,
+     "base": 33.0,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 28,
+     "runtime_ms": 2.06,
+     "opt_gain": 4.5,
+     "opt_selected": [
+      "c4",
+      "c8"
+     ],
+     "greedy_gain": 1.5,
+     "greedy_selected": [
+      "c5"
+     ],
+     "independent_gain": 1.5,
+     "independent_selected": [
+      "c5",
+      "c8"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c9",
+      "c6"
+     ]
+    },
+    {
+     "seed": 16,
+     "base": 18.0,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 15,
+     "runtime_ms": 1.77,
+     "opt_gain": 3.0,
+     "opt_selected": [
+      "c0"
+     ],
+     "greedy_gain": 3.0,
+     "greedy_selected": [
+      "c0"
+     ],
+     "independent_gain": 3.0,
+     "independent_selected": [
+      "c0",
+      "c1"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c8",
+      "c4"
+     ]
+    },
+    {
+     "seed": 17,
+     "base": 16.5,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 36,
+     "runtime_ms": 2.11,
+     "opt_gain": 7.5,
+     "opt_selected": [
+      "c2",
+      "c7"
+     ],
+     "greedy_gain": 7.5,
+     "greedy_selected": [
+      "c7",
+      "c2"
+     ],
+     "independent_gain": 7.5,
+     "independent_selected": [
+      "c7",
+      "c2"
+     ],
+     "nearest_gain": 2.0,
+     "nearest_selected": [
+      "c4",
+      "c1"
+     ]
+    },
+    {
+     "seed": 18,
+     "base": 20.0,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 10,
+     "runtime_ms": 1.74,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c0",
+      "c3"
+     ]
+    },
+    {
+     "seed": 19,
+     "base": 6.5,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 21,
+     "runtime_ms": 1.89,
+     "opt_gain": 16.5,
+     "opt_selected": [
+      "c0",
+      "c2"
+     ],
+     "greedy_gain": 16.5,
+     "greedy_selected": [
+      "c0",
+      "c2"
+     ],
+     "independent_gain": 5.5,
+     "independent_selected": [
+      "c0"
+     ],
+     "nearest_gain": 16.5,
+     "nearest_selected": [
+      "c0",
+      "c2"
+     ]
+    },
+    {
+     "seed": 20,
+     "base": 7.5,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 15,
+     "runtime_ms": 1.77,
+     "opt_gain": 6.0,
+     "opt_selected": [
+      "c2"
+     ],
+     "greedy_gain": 6.0,
+     "greedy_selected": [
+      "c2"
+     ],
+     "independent_gain": 6.0,
+     "independent_selected": [
+      "c2",
+      "c6"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c3",
+      "c4"
+     ]
+    },
+    {
+     "seed": 21,
+     "base": 10.5,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 6,
+     "runtime_ms": 1.89,
+     "opt_gain": 4.5,
+     "opt_selected": [
+      "c2",
+      "c4"
+     ],
+     "greedy_gain": 4.5,
+     "greedy_selected": [
+      "c4",
+      "c2"
+     ],
+     "independent_gain": 4.5,
+     "independent_selected": [
+      "c4",
+      "c2"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c8",
+      "c6"
+     ]
+    },
+    {
+     "seed": 22,
+     "base": 9.0,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 6,
+     "runtime_ms": 2.06,
+     "opt_gain": 13.5,
+     "opt_selected": [
+      "c0",
+      "c6"
+     ],
+     "greedy_gain": 13.5,
+     "greedy_selected": [
+      "c6",
+      "c0"
+     ],
+     "independent_gain": 4.5,
+     "independent_selected": [
+      "c6"
+     ],
+     "nearest_gain": 4.5,
+     "nearest_selected": [
+      "c9",
+      "c6"
+     ]
+    },
+    {
+     "seed": 23,
+     "base": 5.5,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 45,
+     "runtime_ms": 2.35,
+     "opt_gain": 16.0,
+     "opt_selected": [
+      "c6"
+     ],
+     "greedy_gain": 16.0,
+     "greedy_selected": [
+      "c6"
+     ],
+     "independent_gain": 16.0,
+     "independent_selected": [
+      "c6"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c1",
+      "c2"
+     ]
+    },
+    {
+     "seed": 24,
+     "base": 28.0,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 10,
+     "runtime_ms": 1.77,
+     "opt_gain": 3.0,
+     "opt_selected": [
+      "c3"
+     ],
+     "greedy_gain": 3.0,
+     "greedy_selected": [
+      "c3"
+     ],
+     "independent_gain": 3.0,
+     "independent_selected": [
+      "c3"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c6",
+      "c4"
+     ]
+    },
+    {
+     "seed": 25,
+     "base": 9.0,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 36,
+     "runtime_ms": 2.24,
+     "opt_gain": 2.0,
+     "opt_selected": [
+      "c0"
+     ],
+     "greedy_gain": 2.0,
+     "greedy_selected": [
+      "c0"
+     ],
+     "independent_gain": 2.0,
+     "independent_selected": [
+      "c0"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c9",
+      "c6"
+     ]
+    },
+    {
+     "seed": 26,
+     "base": 12.0,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 15,
+     "runtime_ms": 2.35,
+     "opt_gain": 4.5,
+     "opt_selected": [
+      "c5",
+      "c8"
+     ],
+     "greedy_gain": 1.0,
+     "greedy_selected": [
+      "c9"
+     ],
+     "independent_gain": 1.0,
+     "independent_selected": [
+      "c9"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c2",
+      "c6"
+     ]
+    },
+    {
+     "seed": 27,
+     "base": 16.5,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 21,
+     "runtime_ms": 2.14,
+     "opt_gain": 5.0,
+     "opt_selected": [
+      "c7"
+     ],
+     "greedy_gain": 5.0,
+     "greedy_selected": [
+      "c7"
+     ],
+     "independent_gain": 5.0,
+     "independent_selected": [
+      "c7"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c1",
+      "c0"
+     ]
+    },
+    {
+     "seed": 28,
+     "base": 6.0,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 10,
+     "runtime_ms": 1.7,
+     "opt_gain": 4.5,
+     "opt_selected": [
+      "c6"
+     ],
+     "greedy_gain": 4.5,
+     "greedy_selected": [
+      "c6"
+     ],
+     "independent_gain": 4.5,
+     "independent_selected": [
+      "c6"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c4",
+      "c0"
+     ]
+    },
+    {
+     "seed": 29,
+     "base": 3.0,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 45,
+     "runtime_ms": 2.81,
+     "opt_gain": 12.0,
+     "opt_selected": [
+      "c0",
+      "c8"
+     ],
+     "greedy_gain": 12.0,
+     "greedy_selected": [
+      "c0",
+      "c8"
+     ],
+     "independent_gain": 9.0,
+     "independent_selected": [
+      "c0",
+      "c1"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c4",
+      "c9"
+     ]
+    },
+    {
+     "seed": 30,
+     "base": 18.0,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 28,
+     "runtime_ms": 2.57,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c1",
+      "c4"
+     ]
+    },
+    {
+     "seed": 31,
+     "base": 5.5,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 15,
+     "runtime_ms": 1.71,
+     "opt_gain": 10.5,
+     "opt_selected": [
+      "c3",
+      "c8"
+     ],
+     "greedy_gain": 10.5,
+     "greedy_selected": [
+      "c8",
+      "c3"
+     ],
+     "independent_gain": 10.5,
+     "independent_selected": [
+      "c8",
+      "c3"
+     ],
+     "nearest_gain": 9.0,
+     "nearest_selected": [
+      "c4",
+      "c8"
+     ]
+    },
+    {
+     "seed": 32,
+     "base": 5.5,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 10,
+     "runtime_ms": 1.94,
+     "opt_gain": 3.0,
+     "opt_selected": [
+      "c7"
+     ],
+     "greedy_gain": 3.0,
+     "greedy_selected": [
+      "c7"
+     ],
+     "independent_gain": 3.0,
+     "independent_selected": [
+      "c7"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c8",
+      "c5"
+     ]
+    },
+    {
+     "seed": 33,
+     "base": 18.0,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 21,
+     "runtime_ms": 1.78,
+     "opt_gain": 6.0,
+     "opt_selected": [
+      "c2",
+      "c3"
+     ],
+     "greedy_gain": 3.0,
+     "greedy_selected": [
+      "c1"
+     ],
+     "independent_gain": 3.0,
+     "independent_selected": [
+      "c1",
+      "c2"
+     ],
+     "nearest_gain": 6.0,
+     "nearest_selected": [
+      "c3",
+      "c2"
+     ]
+    },
+    {
+     "seed": 34,
+     "base": 10.5,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 21,
+     "runtime_ms": 2.23,
+     "opt_gain": 10.5,
+     "opt_selected": [
+      "c0",
+      "c3"
+     ],
+     "greedy_gain": 10.5,
+     "greedy_selected": [
+      "c0",
+      "c3"
+     ],
+     "independent_gain": 10.5,
+     "independent_selected": [
+      "c0",
+      "c3"
+     ],
+     "nearest_gain": 4.5,
+     "nearest_selected": [
+      "c0",
+      "c1"
+     ]
+    },
+    {
+     "seed": 35,
+     "base": 2.0,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 21,
+     "runtime_ms": 1.75,
+     "opt_gain": 14.0,
+     "opt_selected": [
+      "c0",
+      "c9"
+     ],
+     "greedy_gain": 14.0,
+     "greedy_selected": [
+      "c9",
+      "c0"
+     ],
+     "independent_gain": 14.0,
+     "independent_selected": [
+      "c9",
+      "c0"
+     ],
+     "nearest_gain": 14.0,
+     "nearest_selected": [
+      "c9",
+      "c0"
+     ]
+    },
+    {
+     "seed": 36,
+     "base": 21.5,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 28,
+     "runtime_ms": 2.27,
+     "opt_gain": 9.0,
+     "opt_selected": [
+      "c2"
+     ],
+     "greedy_gain": 9.0,
+     "greedy_selected": [
+      "c2"
+     ],
+     "independent_gain": 9.0,
+     "independent_selected": [
+      "c2"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c1",
+      "c3"
+     ]
+    },
+    {
+     "seed": 37,
+     "base": 6.0,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 36,
+     "runtime_ms": 2.07,
+     "opt_gain": 4.5,
+     "opt_selected": [
+      "c4",
+      "c6"
+     ],
+     "greedy_gain": 4.5,
+     "greedy_selected": [
+      "c6",
+      "c4"
+     ],
+     "independent_gain": 3.0,
+     "independent_selected": [
+      "c6",
+      "c9"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c2",
+      "c3"
+     ]
+    },
+    {
+     "seed": 38,
+     "base": 8.5,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 36,
+     "runtime_ms": 3.51,
+     "opt_gain": 7.0,
+     "opt_selected": [
+      "c5",
+      "c6"
+     ],
+     "greedy_gain": 7.0,
+     "greedy_selected": [
+      "c6",
+      "c5"
+     ],
+     "independent_gain": 7.0,
+     "independent_selected": [
+      "c6",
+      "c5"
+     ],
+     "nearest_gain": 5.5,
+     "nearest_selected": [
+      "c7",
+      "c6"
+     ]
+    },
+    {
+     "seed": 39,
+     "base": 4.0,
+     "candidates": 10,
+     "budget": 2,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 10,
+     "runtime_ms": 1.92,
+     "opt_gain": 1.0,
+     "opt_selected": [
+      "c0",
+      "c1"
+     ],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c8",
+      "c1"
+     ]
+    }
+   ]
+  },
+  "3": {
+   "summary": {
+    "instances": 40,
+    "instances_with_positive_gain": 35,
+    "greedy": {
+     "share_below_optimum": 0.257,
+     "mean_ratio_to_optimum": 0.805,
+     "min_ratio_to_optimum": 0.0
+    },
+    "independent": {
+     "share_below_optimum": 0.429,
+     "mean_ratio_to_optimum": 0.738,
+     "min_ratio_to_optimum": 0.0
+    },
+    "nearest": {
+     "share_below_optimum": 0.857,
+     "mean_ratio_to_optimum": 0.305,
+     "min_ratio_to_optimum": 0.0
+    },
+    "mean_runtime_ms": 2.84,
+    "max_runtime_ms": 5.01,
+    "all_exact": true
+   },
+   "rows": [
+    {
+     "seed": 0,
+     "base": 21.5,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 25,
+     "runtime_ms": 2.03,
+     "opt_gain": 3.0,
+     "opt_selected": [
+      "c2"
+     ],
+     "greedy_gain": 3.0,
+     "greedy_selected": [
+      "c2"
+     ],
+     "independent_gain": 3.0,
+     "independent_selected": [
+      "c2",
+      "c7"
+     ],
+     "nearest_gain": 3.0,
+     "nearest_selected": [
+      "c4",
+      "c7",
+      "c3"
+     ]
+    },
+    {
+     "seed": 1,
+     "base": 16.5,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 129,
+     "runtime_ms": 3.62,
+     "opt_gain": 7.0,
+     "opt_selected": [
+      "c0",
+      "c6"
+     ],
+     "greedy_gain": 7.0,
+     "greedy_selected": [
+      "c6",
+      "c0"
+     ],
+     "independent_gain": 7.0,
+     "independent_selected": [
+      "c6",
+      "c0",
+      "c2"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c8",
+      "c4",
+      "c7"
+     ]
+    },
+    {
+     "seed": 2,
+     "base": 11.0,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 41,
+     "runtime_ms": 2.29,
+     "opt_gain": 11.0,
+     "opt_selected": [
+      "c1",
+      "c3"
+     ],
+     "greedy_gain": 11.0,
+     "greedy_selected": [
+      "c1",
+      "c3"
+     ],
+     "independent_gain": 11.0,
+     "independent_selected": [
+      "c1",
+      "c3"
+     ],
+     "nearest_gain": 9.5,
+     "nearest_selected": [
+      "c8",
+      "c1",
+      "c5"
+     ]
+    },
+    {
+     "seed": 3,
+     "base": 6.0,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 41,
+     "runtime_ms": 2.23,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c0",
+      "c1",
+      "c2"
+     ]
+    },
+    {
+     "seed": 4,
+     "base": 18.0,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 63,
+     "runtime_ms": 2.54,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c1",
+      "c6",
+      "c9"
+     ]
+    },
+    {
+     "seed": 5,
+     "base": 34.5,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 92,
+     "runtime_ms": 3.58,
+     "opt_gain": 3.0,
+     "opt_selected": [
+      "c2"
+     ],
+     "greedy_gain": 3.0,
+     "greedy_selected": [
+      "c2"
+     ],
+     "independent_gain": 3.0,
+     "independent_selected": [
+      "c2"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c6",
+      "c4",
+      "c7"
+     ]
+    },
+    {
+     "seed": 6,
+     "base": 4.0,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 3,
+     "runtime_ms": 1.65,
+     "opt_gain": 9.0,
+     "opt_selected": [
+      "c5"
+     ],
+     "greedy_gain": 9.0,
+     "greedy_selected": [
+      "c5"
+     ],
+     "independent_gain": 9.0,
+     "independent_selected": [
+      "c5"
+     ],
+     "nearest_gain": 9.0,
+     "nearest_selected": [
+      "c5",
+      "c1",
+      "c0"
+     ]
+    },
+    {
+     "seed": 7,
+     "base": 25.5,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 129,
+     "runtime_ms": 3.71,
+     "opt_gain": 4.5,
+     "opt_selected": [
+      "c2",
+      "c3"
+     ],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c4",
+      "c6",
+      "c1"
+     ]
+    },
+    {
+     "seed": 8,
+     "base": 9.0,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 14,
+     "runtime_ms": 2.33,
+     "opt_gain": 3.0,
+     "opt_selected": [
+      "c2"
+     ],
+     "greedy_gain": 3.0,
+     "greedy_selected": [
+      "c2"
+     ],
+     "independent_gain": 3.0,
+     "independent_selected": [
+      "c2",
+      "c4"
+     ],
+     "nearest_gain": 3.0,
+     "nearest_selected": [
+      "c3",
+      "c7",
+      "c4"
+     ]
+    },
+    {
+     "seed": 9,
+     "base": 0.0,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 14,
+     "runtime_ms": 1.8,
+     "opt_gain": 9.0,
+     "opt_selected": [
+      "c2",
+      "c3",
+      "c5"
+     ],
+     "greedy_gain": 3.0,
+     "greedy_selected": [
+      "c6"
+     ],
+     "independent_gain": 3.0,
+     "independent_selected": [
+      "c6"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c1",
+      "c5",
+      "c0"
+     ]
+    },
+    {
+     "seed": 10,
+     "base": 25.5,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 14,
+     "runtime_ms": 1.85,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c3",
+      "c5",
+      "c6"
+     ]
+    },
+    {
+     "seed": 11,
+     "base": 12.0,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 25,
+     "runtime_ms": 1.96,
+     "opt_gain": 1.0,
+     "opt_selected": [
+      "c5",
+      "c9"
+     ],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c2",
+      "c1",
+      "c4"
+     ]
+    },
+    {
+     "seed": 12,
+     "base": 13.5,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 41,
+     "runtime_ms": 2.82,
+     "opt_gain": 3.0,
+     "opt_selected": [
+      "c3",
+      "c8"
+     ],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c0",
+      "c4",
+      "c1"
+     ]
+    },
+    {
+     "seed": 13,
+     "base": 4.0,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 25,
+     "runtime_ms": 2.98,
+     "opt_gain": 11.5,
+     "opt_selected": [
+      "c0",
+      "c8",
+      "c9"
+     ],
+     "greedy_gain": 11.5,
+     "greedy_selected": [
+      "c0",
+      "c8",
+      "c9"
+     ],
+     "independent_gain": 11.5,
+     "independent_selected": [
+      "c0",
+      "c8",
+      "c9"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c5",
+      "c4",
+      "c2"
+     ]
+    },
+    {
+     "seed": 14,
+     "base": 4.5,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 63,
+     "runtime_ms": 2.61,
+     "opt_gain": 22.5,
+     "opt_selected": [
+      "c3",
+      "c7"
+     ],
+     "greedy_gain": 22.5,
+     "greedy_selected": [
+      "c7",
+      "c3"
+     ],
+     "independent_gain": 18.0,
+     "independent_selected": [
+      "c7",
+      "c6"
+     ],
+     "nearest_gain": 18.0,
+     "nearest_selected": [
+      "c6",
+      "c7",
+      "c4"
+     ]
+    },
+    {
+     "seed": 15,
+     "base": 33.0,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 63,
+     "runtime_ms": 2.59,
+     "opt_gain": 4.5,
+     "opt_selected": [
+      "c4",
+      "c8"
+     ],
+     "greedy_gain": 1.5,
+     "greedy_selected": [
+      "c5"
+     ],
+     "independent_gain": 1.5,
+     "independent_selected": [
+      "c5",
+      "c8"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c9",
+      "c6",
+      "c7"
+     ]
+    },
+    {
+     "seed": 16,
+     "base": 18.0,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 25,
+     "runtime_ms": 3.11,
+     "opt_gain": 3.0,
+     "opt_selected": [
+      "c0"
+     ],
+     "greedy_gain": 3.0,
+     "greedy_selected": [
+      "c0"
+     ],
+     "independent_gain": 3.0,
+     "independent_selected": [
+      "c0",
+      "c1"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c8",
+      "c4",
+      "c7"
+     ]
+    },
+    {
+     "seed": 17,
+     "base": 16.5,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 92,
+     "runtime_ms": 3.21,
+     "opt_gain": 8.5,
+     "opt_selected": [
+      "c2",
+      "c3",
+      "c7"
+     ],
+     "greedy_gain": 8.5,
+     "greedy_selected": [
+      "c7",
+      "c2",
+      "c3"
+     ],
+     "independent_gain": 7.5,
+     "independent_selected": [
+      "c7",
+      "c2",
+      "c6"
+     ],
+     "nearest_gain": 3.0,
+     "nearest_selected": [
+      "c4",
+      "c1",
+      "c2"
+     ]
+    },
+    {
+     "seed": 18,
+     "base": 20.0,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 14,
+     "runtime_ms": 1.86,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c0",
+      "c3",
+      "c2"
+     ]
+    },
+    {
+     "seed": 19,
+     "base": 6.5,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 41,
+     "runtime_ms": 2.21,
+     "opt_gain": 16.5,
+     "opt_selected": [
+      "c0",
+      "c2"
+     ],
+     "greedy_gain": 16.5,
+     "greedy_selected": [
+      "c0",
+      "c2"
+     ],
+     "independent_gain": 5.5,
+     "independent_selected": [
+      "c0"
+     ],
+     "nearest_gain": 16.5,
+     "nearest_selected": [
+      "c0",
+      "c2",
+      "c1"
+     ]
+    },
+    {
+     "seed": 20,
+     "base": 7.5,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 25,
+     "runtime_ms": 2.14,
+     "opt_gain": 6.0,
+     "opt_selected": [
+      "c2"
+     ],
+     "greedy_gain": 6.0,
+     "greedy_selected": [
+      "c2"
+     ],
+     "independent_gain": 6.0,
+     "independent_selected": [
+      "c2",
+      "c6"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c3",
+      "c4",
+      "c7"
+     ]
+    },
+    {
+     "seed": 21,
+     "base": 10.5,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 7,
+     "runtime_ms": 2.22,
+     "opt_gain": 4.5,
+     "opt_selected": [
+      "c2",
+      "c4"
+     ],
+     "greedy_gain": 4.5,
+     "greedy_selected": [
+      "c4",
+      "c2"
+     ],
+     "independent_gain": 4.5,
+     "independent_selected": [
+      "c4",
+      "c2"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c8",
+      "c6",
+      "c5"
+     ]
+    },
+    {
+     "seed": 22,
+     "base": 9.0,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 7,
+     "runtime_ms": 1.75,
+     "opt_gain": 13.5,
+     "opt_selected": [
+      "c0",
+      "c6"
+     ],
+     "greedy_gain": 13.5,
+     "greedy_selected": [
+      "c6",
+      "c0"
+     ],
+     "independent_gain": 4.5,
+     "independent_selected": [
+      "c6"
+     ],
+     "nearest_gain": 4.5,
+     "nearest_selected": [
+      "c9",
+      "c6",
+      "c2"
+     ]
+    },
+    {
+     "seed": 23,
+     "base": 5.5,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 129,
+     "runtime_ms": 5.01,
+     "opt_gain": 16.0,
+     "opt_selected": [
+      "c6"
+     ],
+     "greedy_gain": 16.0,
+     "greedy_selected": [
+      "c6"
+     ],
+     "independent_gain": 16.0,
+     "independent_selected": [
+      "c6"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c1",
+      "c2",
+      "c5"
+     ]
+    },
+    {
+     "seed": 24,
+     "base": 28.0,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 14,
+     "runtime_ms": 2.94,
+     "opt_gain": 3.0,
+     "opt_selected": [
+      "c3"
+     ],
+     "greedy_gain": 3.0,
+     "greedy_selected": [
+      "c3"
+     ],
+     "independent_gain": 3.0,
+     "independent_selected": [
+      "c3"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c6",
+      "c4",
+      "c1"
+     ]
+    },
+    {
+     "seed": 25,
+     "base": 9.0,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 92,
+     "runtime_ms": 3.68,
+     "opt_gain": 2.0,
+     "opt_selected": [
+      "c0"
+     ],
+     "greedy_gain": 2.0,
+     "greedy_selected": [
+      "c0"
+     ],
+     "independent_gain": 2.0,
+     "independent_selected": [
+      "c0"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c9",
+      "c6",
+      "c4"
+     ]
+    },
+    {
+     "seed": 26,
+     "base": 12.0,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 25,
+     "runtime_ms": 2.38,
+     "opt_gain": 5.5,
+     "opt_selected": [
+      "c5",
+      "c8",
+      "c9"
+     ],
+     "greedy_gain": 1.0,
+     "greedy_selected": [
+      "c9"
+     ],
+     "independent_gain": 1.0,
+     "independent_selected": [
+      "c9"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c2",
+      "c6",
+      "c0"
+     ]
+    },
+    {
+     "seed": 27,
+     "base": 16.5,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 41,
+     "runtime_ms": 3.2,
+     "opt_gain": 5.0,
+     "opt_selected": [
+      "c7"
+     ],
+     "greedy_gain": 5.0,
+     "greedy_selected": [
+      "c7"
+     ],
+     "independent_gain": 5.0,
+     "independent_selected": [
+      "c7"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c1",
+      "c0",
+      "c5"
+     ]
+    },
+    {
+     "seed": 28,
+     "base": 6.0,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 14,
+     "runtime_ms": 1.85,
+     "opt_gain": 4.5,
+     "opt_selected": [
+      "c6"
+     ],
+     "greedy_gain": 4.5,
+     "greedy_selected": [
+      "c6"
+     ],
+     "independent_gain": 4.5,
+     "independent_selected": [
+      "c6"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c4",
+      "c0",
+      "c5"
+     ]
+    },
+    {
+     "seed": 29,
+     "base": 3.0,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 129,
+     "runtime_ms": 4.25,
+     "opt_gain": 21.0,
+     "opt_selected": [
+      "c0",
+      "c3",
+      "c8"
+     ],
+     "greedy_gain": 21.0,
+     "greedy_selected": [
+      "c0",
+      "c8",
+      "c3"
+     ],
+     "independent_gain": 12.0,
+     "independent_selected": [
+      "c0",
+      "c1",
+      "c8"
+     ],
+     "nearest_gain": 3.0,
+     "nearest_selected": [
+      "c4",
+      "c9",
+      "c8"
+     ]
+    },
+    {
+     "seed": 30,
+     "base": 18.0,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 63,
+     "runtime_ms": 2.56,
+     "opt_gain": 0.0,
+     "opt_selected": [],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c1",
+      "c4",
+      "c2"
+     ]
+    },
+    {
+     "seed": 31,
+     "base": 5.5,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 25,
+     "runtime_ms": 2.17,
+     "opt_gain": 10.5,
+     "opt_selected": [
+      "c3",
+      "c8"
+     ],
+     "greedy_gain": 10.5,
+     "greedy_selected": [
+      "c8",
+      "c3"
+     ],
+     "independent_gain": 10.5,
+     "independent_selected": [
+      "c8",
+      "c3"
+     ],
+     "nearest_gain": 9.0,
+     "nearest_selected": [
+      "c4",
+      "c8",
+      "c2"
+     ]
+    },
+    {
+     "seed": 32,
+     "base": 5.5,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 14,
+     "runtime_ms": 2.88,
+     "opt_gain": 3.0,
+     "opt_selected": [
+      "c7"
+     ],
+     "greedy_gain": 3.0,
+     "greedy_selected": [
+      "c7"
+     ],
+     "independent_gain": 3.0,
+     "independent_selected": [
+      "c7"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c8",
+      "c5",
+      "c3"
+     ]
+    },
+    {
+     "seed": 33,
+     "base": 18.0,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 41,
+     "runtime_ms": 4.59,
+     "opt_gain": 6.0,
+     "opt_selected": [
+      "c2",
+      "c3"
+     ],
+     "greedy_gain": 3.0,
+     "greedy_selected": [
+      "c1"
+     ],
+     "independent_gain": 3.0,
+     "independent_selected": [
+      "c1",
+      "c2"
+     ],
+     "nearest_gain": 6.0,
+     "nearest_selected": [
+      "c3",
+      "c2",
+      "c5"
+     ]
+    },
+    {
+     "seed": 34,
+     "base": 10.5,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 41,
+     "runtime_ms": 2.47,
+     "opt_gain": 10.5,
+     "opt_selected": [
+      "c0",
+      "c3"
+     ],
+     "greedy_gain": 10.5,
+     "greedy_selected": [
+      "c0",
+      "c3"
+     ],
+     "independent_gain": 10.5,
+     "independent_selected": [
+      "c0",
+      "c3"
+     ],
+     "nearest_gain": 4.5,
+     "nearest_selected": [
+      "c0",
+      "c1",
+      "c2"
+     ]
+    },
+    {
+     "seed": 35,
+     "base": 2.0,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 41,
+     "runtime_ms": 3.97,
+     "opt_gain": 15.0,
+     "opt_selected": [
+      "c0",
+      "c2",
+      "c9"
+     ],
+     "greedy_gain": 15.0,
+     "greedy_selected": [
+      "c9",
+      "c0",
+      "c2"
+     ],
+     "independent_gain": 15.0,
+     "independent_selected": [
+      "c9",
+      "c0",
+      "c2"
+     ],
+     "nearest_gain": 14.0,
+     "nearest_selected": [
+      "c9",
+      "c0",
+      "c1"
+     ]
+    },
+    {
+     "seed": 36,
+     "base": 21.5,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 63,
+     "runtime_ms": 2.99,
+     "opt_gain": 11.0,
+     "opt_selected": [
+      "c1",
+      "c2",
+      "c5"
+     ],
+     "greedy_gain": 9.0,
+     "greedy_selected": [
+      "c2"
+     ],
+     "independent_gain": 9.0,
+     "independent_selected": [
+      "c2"
+     ],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c1",
+      "c3",
+      "c5"
+     ]
+    },
+    {
+     "seed": 37,
+     "base": 6.0,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 92,
+     "runtime_ms": 4.51,
+     "opt_gain": 5.5,
+     "opt_selected": [
+      "c4",
+      "c5",
+      "c6"
+     ],
+     "greedy_gain": 5.5,
+     "greedy_selected": [
+      "c6",
+      "c4",
+      "c5"
+     ],
+     "independent_gain": 4.0,
+     "independent_selected": [
+      "c6",
+      "c9",
+      "c5"
+     ],
+     "nearest_gain": 1.0,
+     "nearest_selected": [
+      "c2",
+      "c3",
+      "c5"
+     ]
+    },
+    {
+     "seed": 38,
+     "base": 8.5,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 92,
+     "runtime_ms": 4.01,
+     "opt_gain": 7.0,
+     "opt_selected": [
+      "c5",
+      "c6"
+     ],
+     "greedy_gain": 7.0,
+     "greedy_selected": [
+      "c6",
+      "c5"
+     ],
+     "independent_gain": 7.0,
+     "independent_selected": [
+      "c6",
+      "c5"
+     ],
+     "nearest_gain": 5.5,
+     "nearest_selected": [
+      "c7",
+      "c6",
+      "c4"
+     ]
+    },
+    {
+     "seed": 39,
+     "base": 4.0,
+     "candidates": 10,
+     "budget": 3,
+     "solver": "exact_enumeration",
+     "exact": true,
+     "evaluations": 14,
+     "runtime_ms": 2.91,
+     "opt_gain": 1.0,
+     "opt_selected": [
+      "c0",
+      "c1"
+     ],
+     "greedy_gain": 0.0,
+     "greedy_selected": [],
+     "independent_gain": 0.0,
+     "independent_selected": [],
+     "nearest_gain": 0.0,
+     "nearest_selected": [
+      "c8",
+      "c1",
+      "c2"
+     ]
+    }
+   ]
+  }
+ },
+ "charlotte": [
+  {
+   "base": 169.0,
+   "candidates": 232,
+   "budget": 1,
+   "solver": "exact_enumeration",
+   "exact": true,
+   "evaluations": 206,
+   "runtime_ms": 36.54,
+   "opt_gain": 39.0,
+   "opt_selected": [
+    "R20691"
+   ],
+   "greedy_gain": 39.0,
+   "greedy_selected": [
+    "R20691"
+   ],
+   "independent_gain": 39.0,
+   "independent_selected": [
+    "R20691"
+   ],
+   "nearest_gain": 0.0,
+   "nearest_selected": [
+    "R23798"
+   ],
+   "policy": "strict",
+   "nodes": 2022,
+   "edges": 2584,
+   "origins": 99,
+   "destinations": 39
+  },
+  {
+   "base": 169.0,
+   "candidates": 232,
+   "budget": 2,
+   "solver": "exact_enumeration",
+   "exact": true,
+   "evaluations": 21321,
+   "runtime_ms": 2868.12,
+   "opt_gain": 186.0,
+   "opt_selected": [
+    "R20740",
+    "R20741"
+   ],
+   "greedy_gain": 53.0,
+   "greedy_selected": [
+    "R20691",
+    "R108250"
+   ],
+   "independent_gain": 53.0,
+   "independent_selected": [
+    "R20691",
+    "R108250"
+   ],
+   "nearest_gain": 0.0,
+   "nearest_selected": [
+    "R23798",
+    "R12170"
+   ],
+   "policy": "strict",
+   "nodes": 2022,
+   "edges": 2584,
+   "origins": 99,
+   "destinations": 39
+  },
+  {
+   "base": 169.0,
+   "candidates": 232,
+   "budget": 3,
+   "solver": "beam_search",
+   "exact": false,
+   "evaluations": 32335,
+   "runtime_ms": 6115.94,
+   "opt_gain": 415.0,
+   "opt_selected": [
+    "R20718",
+    "R20742",
+    "R21684"
+   ],
+   "greedy_gain": 53.0,
+   "greedy_selected": [
+    "R20691",
+    "R108250"
+   ],
+   "independent_gain": 53.0,
+   "independent_selected": [
+    "R20691",
+    "R108250"
+   ],
+   "nearest_gain": 0.0,
+   "nearest_selected": [
+    "R23798",
+    "R12170",
+    "R12169"
+   ],
+   "policy": "strict",
+   "nodes": 2022,
+   "edges": 2584,
+   "origins": 99,
+   "destinations": 39
+  },
+  {
+   "base": 1716.0,
+   "candidates": 58,
+   "budget": 1,
+   "solver": "exact_enumeration",
+   "exact": true,
+   "evaluations": 56,
+   "runtime_ms": 17.58,
+   "opt_gain": 304.0,
+   "opt_selected": [
+    "R21683"
+   ],
+   "greedy_gain": 304.0,
+   "greedy_selected": [
+    "R21683"
+   ],
+   "independent_gain": 304.0,
+   "independent_selected": [
+    "R21683"
+   ],
+   "nearest_gain": 0.0,
+   "nearest_selected": [
+    "R12169"
+   ],
+   "policy": "moderate",
+   "nodes": 2022,
+   "edges": 2584,
+   "origins": 99,
+   "destinations": 39
+  },
+  {
+   "base": 1716.0,
+   "candidates": 58,
+   "budget": 2,
+   "solver": "exact_enumeration",
+   "exact": true,
+   "evaluations": 1596,
+   "runtime_ms": 207.79,
+   "opt_gain": 915.0,
+   "opt_selected": [
+    "R20741",
+    "R21683"
+   ],
+   "greedy_gain": 915.0,
+   "greedy_selected": [
+    "R21683",
+    "R20741"
+   ],
+   "independent_gain": 915.0,
+   "independent_selected": [
+    "R21683",
+    "R20741"
+   ],
+   "nearest_gain": 108.0,
+   "nearest_selected": [
+    "R12169",
+    "R20718"
+   ],
+   "policy": "moderate",
+   "nodes": 2022,
+   "edges": 2584,
+   "origins": 99,
+   "destinations": 39
+  },
+  {
+   "base": 1716.0,
+   "candidates": 58,
+   "budget": 3,
+   "solver": "exact_enumeration",
+   "exact": true,
+   "evaluations": 29316,
+   "runtime_ms": 5426.7,
+   "opt_gain": 1212.0,
+   "opt_selected": [
+    "R20737",
+    "R20741",
+    "R21683"
+   ],
+   "greedy_gain": 1212.0,
+   "greedy_selected": [
+    "R21683",
+    "R20741",
+    "R20737"
+   ],
+   "independent_gain": 1143.0,
+   "independent_selected": [
+    "R21683",
+    "R20741",
+    "R12178"
+   ],
+   "nearest_gain": 108.0,
+   "nearest_selected": [
+    "R12169",
+    "R20718",
+    "R21331"
+   ],
+   "policy": "moderate",
+   "nodes": 2022,
+   "edges": 2584,
+   "origins": 99,
+   "destinations": 39
+  },
+  {
+   "base": 4224.0,
+   "candidates": 14,
+   "budget": 1,
+   "solver": "exact_enumeration",
+   "exact": true,
+   "evaluations": 14,
+   "runtime_ms": 11.37,
+   "opt_gain": 240.0,
+   "opt_selected": [
+    "R12178"
+   ],
+   "greedy_gain": 240.0,
+   "greedy_selected": [
+    "R12178"
+   ],
+   "independent_gain": 240.0,
+   "independent_selected": [
+    "R12178"
+   ],
+   "nearest_gain": 0.0,
+   "nearest_selected": [
+    "R112391"
+   ],
+   "policy": "lenient",
+   "nodes": 2022,
+   "edges": 2584,
+   "origins": 99,
+   "destinations": 39
+  },
+  {
+   "base": 4224.0,
+   "candidates": 14,
+   "budget": 2,
+   "solver": "exact_enumeration",
+   "exact": true,
+   "evaluations": 105,
+   "runtime_ms": 20.87,
+   "opt_gain": 296.0,
+   "opt_selected": [
+    "R105438",
+    "R12178"
+   ],
+   "greedy_gain": 296.0,
+   "greedy_selected": [
+    "R12178",
+    "R105438"
+   ],
+   "independent_gain": 296.0,
+   "independent_selected": [
+    "R12178",
+    "R105438"
+   ],
+   "nearest_gain": 0.0,
+   "nearest_selected": [
+    "R112391",
+    "R10700"
+   ],
+   "policy": "lenient",
+   "nodes": 2022,
+   "edges": 2584,
+   "origins": 99,
+   "destinations": 39
+  },
+  {
+   "base": 4224.0,
+   "candidates": 14,
+   "budget": 3,
+   "solver": "exact_enumeration",
+   "exact": true,
+   "evaluations": 469,
+   "runtime_ms": 84.69,
+   "opt_gain": 348.0,
+   "opt_selected": [
+    "R105438",
+    "R10701",
+    "R12178"
+   ],
+   "greedy_gain": 348.0,
+   "greedy_selected": [
+    "R12178",
+    "R105438",
+    "R10701"
+   ],
+   "independent_gain": 338.0,
+   "independent_selected": [
+    "R12178",
+    "R105438",
+    "R112233"
+   ],
+   "nearest_gain": 13.0,
+   "nearest_selected": [
+    "R112391",
+    "R10700",
+    "R10701"
+   ],
+   "policy": "lenient",
+   "nodes": 2022,
+   "edges": 2584,
+   "origins": 99,
+   "destinations": 39
+  }
+ ]
+}

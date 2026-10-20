@@ -16,6 +16,7 @@ for (const a of script.split(';').filter(Boolean)) {
   if (kind === 'fill') { const [sel, val] = arg.split('|'); await page.locator(sel).fill(val) }
   if (kind === 'press') await page.keyboard.press(arg)
   if (kind === 'wait') await page.waitForTimeout(+arg)
+  if (kind === 'scroll') await page.locator(arg).first().scrollIntoViewIfNeeded()
   if (kind === 'shot') await page.screenshot({ path: arg })
   if (kind === 'text') console.log(arg, '=>', (await page.locator(arg).first().innerText()).replace(/\n/g, ' | ').slice(0, 300))
 }
