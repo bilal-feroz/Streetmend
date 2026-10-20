@@ -1,46 +1,7 @@
-import { CircleCheck, CircleDashed, CircleHelp, CircleX, Wrench } from 'lucide-react'
+import { CircleCheck, CircleDashed, CircleHelp, CircleSlash, Wrench } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useId, useState } from 'react'
 import type { EffectiveState } from '../api/types'
-import { STATE_LABEL } from '../lib/format'
-
-const STATE_STYLE: Record<EffectiveState, { cls: string; Icon: typeof CircleCheck }> = {
-  traversable: { cls: 'text-fg-2 border-ink-500 bg-ink-750', Icon: CircleCheck },
-  repaired: { cls: 'text-ok border-ok/40 bg-ok-dim', Icon: CircleCheck },
-  blocked: { cls: 'text-bad border-bad/40 bg-bad-dim', Icon: CircleX },
-  repairable: { cls: 'text-bad border-bad/40 bg-bad-dim', Icon: Wrench },
-  unknown: { cls: 'text-unk border-unk/40 bg-unk-dim', Icon: CircleHelp },
-}
-
-export function StateBadge({ state, short }: { state: EffectiveState; short?: boolean }) {
-  const s = STATE_STYLE[state] ?? { cls: 'text-fg-2 border-ink-500', Icon: CircleDashed }
-  const label = short ? { traversable: 'Traversable', repaired: 'Repaired', blocked: 'Blocked', repairable: 'Blocked', unknown: 'Unknown' }[state] : STATE_LABEL[state]
-  return (
-    <span className={`inline-flex items-center gap-1 rounded border px-1.5 py-px text-[11px] font-medium ${s.cls}`}>
-      <s.Icon size={11} strokeWidth={2.4} aria-hidden />
-      {label}
-    </span>
-  )
-}
-
-export function Section({ title, step, right, children, id }: { title: string; step?: number; right?: ReactNode; children: ReactNode; id?: string }) {
-  return (
-    <section className="border-b border-ink-600/80 px-4 py-3.5" aria-labelledby={id}>
-      <div className="mb-2.5 flex items-center justify-between gap-2">
-        <h2 id={id} className="flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.08em] text-fg-2">
-          {step !== undefined && (
-            <span className="grid h-[18px] w-[18px] place-items-center rounded bg-ink-700 font-mono text-[10px] text-fg-3" aria-hidden>
-              {step}
-            </span>
-          )}
-          {title}
-        </h2>
-        {right}
-      </div>
-      {children}
-    </section>
-  )
-}
 
 export function Segmented<T extends string | number>({
   value,
@@ -48,15 +9,17 @@ export function Segmented<T extends string | number>({
   onChange,
   label,
   testId,
+  size = 'md',
 }: {
   value: T
   options: { value: T; label: ReactNode; title?: string }[]
   onChange: (v: T) => void
   label: string
   testId?: string
+  size?: 'sm' | 'md'
 }) {
   return (
-    <div role="radiogroup" aria-label={label} className="flex rounded-md border border-ink-600 bg-ink-850 p-0.5" data-testid={testId}>
+    <div role="radiogroup" aria-label={label} className="flex rounded-lg bg-wash p-0.5" data-testid={testId}>
       {options.map((o) => {
         const on = o.value === value
         return (
@@ -67,7 +30,9 @@ export function Segmented<T extends string | number>({
             aria-checked={on}
             title={o.title}
             onClick={() => onChange(o.value)}
-            className={`flex-1 rounded-[5px] px-2 py-1 text-[12.5px] font-medium transition-colors ${on ? 'bg-ink-600 text-fg shadow-sm' : 'text-fg-3 hover:text-fg'}`}
+            className={`flex-1 rounded-md font-medium transition-colors ${size === 'sm' ? 'px-2 py-1 text-[12px]' : 'px-2.5 py-1.5 text-[13px]'} ${
+              on ? 'bg-paper text-ink shadow-[0_1px_2px_rgba(30,50,40,0.14)]' : 'text-ink-2 hover:text-ink'
+            }`}
           >
             {o.label}
           </button>
@@ -77,18 +42,37 @@ export function Segmented<T extends string | number>({
   )
 }
 
-export function Tip({ text, children }: { text: string; children: ReactNode }) {
+const STATE: Record<EffectiveState, { label: string; cls: string; Icon: typeof CircleCheck }> = {
+  traversable: { label: 'Traversable', cls: 'bg-wash text-ink-2', Icon: CircleCheck },
+  repaired: { label: 'Repaired', cls: 'bg-ok-bg text-ok-ink', Icon: CircleCheck },
+  blocked: { label: 'Blocked', cls: 'bg-bad-bg text-bad-ink', Icon: CircleSlash },
+  repairable: { label: 'Blocked', cls: 'bg-bad-bg text-bad-ink', Icon: Wrench },
+  unknown: { label: 'Unknown', cls: 'bg-unk-bg text-unk-ink', Icon: CircleHelp },
+}
+
+export function StateBadge({ state, label }: { state: EffectiveState; label?: string }) {
+  const s = STATE[state] ?? { label: state, cls: 'bg-wash text-ink-2', Icon: CircleDashed }
+  return (
+    <span className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[11.5px] font-medium ${s.cls}`}>
+      <s.Icon size={12} strokeWidth={2.3} aria-hidden />
+      {label ?? s.label}
+    </span>
+  )
+}
+
+export function Tip({ text, children, side = 'top' }: { text: string; children: ReactNode; side?: 'top' | 'bottom' | 'left' }) {
   const id = useId()
   const [open, setOpen] = useState(false)
+  const pos = side === 'bottom' ? 'top-full mt-1.5 left-1/2 -translate-x-1/2' : side === 'left' ? 'right-full mr-2 top-1/2 -translate-y-1/2' : 'bottom-full mb-1.5 left-1/2 -translate-x-1/2'
   return (
     <span className="relative inline-flex" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)} onFocus={() => setOpen(true)} onBlur={() => setOpen(false)}>
-      <span aria-describedby={id} tabIndex={0} className="inline-flex cursor-help">
+      <span aria-describedby={id} className="inline-flex">
         {children}
       </span>
       <span
         id={id}
         role="tooltip"
-        className={`pointer-events-none absolute bottom-full left-1/2 z-50 mb-1.5 w-56 -translate-x-1/2 rounded-md border border-ink-500 bg-ink-750 px-2.5 py-1.5 text-[11.5px] font-normal normal-case leading-snug tracking-normal text-fg-2 shadow-xl transition-opacity ${open ? 'opacity-100' : 'opacity-0'}`}
+        className={`pointer-events-none absolute z-50 w-max max-w-[240px] rounded-md bg-ink px-2 py-1 text-[11.5px] leading-snug font-normal tracking-normal text-white normal-case shadow-lg transition-opacity ${pos} ${open ? 'opacity-100' : 'opacity-0'}`}
       >
         {text}
       </span>
@@ -96,17 +80,40 @@ export function Tip({ text, children }: { text: string; children: ReactNode }) {
   )
 }
 
-export function Metric({ label, value, sub, tone = 'fg', srLabel }: { label: string; value: ReactNode; sub?: ReactNode; tone?: 'fg' | 'ok' | 'bad' | 'unk' | 'sel'; srLabel?: string }) {
-  const color = { fg: 'text-fg', ok: 'text-ok', bad: 'text-bad', unk: 'text-unk', sel: 'text-sel-2' }[tone]
+export function Disclosure({ title, children, testId, defaultOpen = false, right }: { title: ReactNode; children: ReactNode; testId?: string; defaultOpen?: boolean; right?: ReactNode }) {
+  const [open, setOpen] = useState(defaultOpen)
   return (
-    <div className="min-w-0" aria-label={srLabel}>
-      <div className="label-xs truncate">{label}</div>
-      <div className={`mt-0.5 font-mono text-[17px] font-semibold tnum leading-tight ${color}`}>{value}</div>
-      {sub && <div className="mt-0.5 truncate text-[11px] text-fg-3">{sub}</div>}
+    <div className="border-t border-line">
+      <button type="button" aria-expanded={open} onClick={() => setOpen(!open)} className="flex w-full items-center justify-between gap-2 py-2.5 text-left text-[13px] font-medium text-ink-2 hover:text-ink" data-testid={testId}>
+        <span className="flex items-center gap-2">
+          <svg width="10" height="10" viewBox="0 0 10 10" className={`transition-transform ${open ? 'rotate-90' : ''}`} aria-hidden>
+            <path d="M3 1.5 L7 5 L3 8.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          {title}
+        </span>
+        {right}
+      </button>
+      {open && <div className="pb-3">{children}</div>}
     </div>
   )
 }
 
-export function Kbd({ children }: { children: ReactNode }) {
-  return <kbd className="rounded border border-ink-500 bg-ink-750 px-1 font-mono text-[10px] text-fg-3">{children}</kbd>
+export function Stat({ label, before, after, unit, testId }: { label: string; before?: ReactNode; after: ReactNode; unit?: string; testId?: string }) {
+  return (
+    <div className="min-w-0" data-testid={testId}>
+      <div className="truncate text-[11.5px] text-ink-2">{label}</div>
+      <div className="mt-0.5 flex items-baseline gap-1 font-semibold tnum text-ink">
+        {before !== undefined && (
+          <>
+            <span className="text-[15px] text-ink-3">{before}</span>
+            <span className="text-[12px] text-ink-3" aria-hidden>
+              →
+            </span>
+          </>
+        )}
+        <span className="text-[17px]">{after}</span>
+        {unit && <span className="text-[11.5px] font-medium text-ink-2">{unit}</span>}
+      </div>
+    </div>
+  )
 }

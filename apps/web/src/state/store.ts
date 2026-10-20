@@ -17,28 +17,30 @@ export const PRESETS: Record<Priority, Weights> = {
   education: { healthcare: 1, transit: 1, education: 3 },
 }
 
-export type Selection = { type: 'intervention' | 'edge' | 'place' | 'record'; id: string } | null
+export const GUIDED_ID = 'guided'
+export const EXPLORER_ID = 'charlotte-elizabeth'
+
+export type Selection = { type: 'intervention' | 'edge' | 'place' | 'record' | 'building'; id: string } | null
+export type CameraPreset = 'overview' | 'street' | 'network' | 'top' | 'route' | 'point' | 'intervention'
 
 export interface Banner {
-  kind: 'reconnected' | 'partial' | 'info' | 'error'
+  kind: 'reconnected' | 'partial' | 'info'
   title: string
   body?: string
   nonce: number
 }
 
 export interface Layers {
-  records: boolean
-  inventory: boolean
+  buildings: boolean
   network: boolean
-  wave: boolean
   candidates: boolean
   places: boolean
-  context: boolean
-  labels: boolean
+  records: boolean
+  inventory: boolean
 }
 
-export interface Focus {
-  kind: 'intervention' | 'route' | 'bounds' | 'point'
+export interface CameraRequest {
+  preset: CameraPreset
   id?: string
   lonlat?: [number, number]
   nonce: number
@@ -52,7 +54,7 @@ interface AppState {
   error: string | null
 
   applied: string[]
-  history: string[][] // previous applied sets, for exact undo
+  history: string[][]
   journey: { origin: string; destination: string } | null
   budget: number
   weights: Weights
@@ -62,29 +64,36 @@ interface AppState {
   evaluation: EvaluateResponse | null
   initialEval: EvaluateResponse | null
   evaluating: boolean
-  traceNonce: number // bump to (re)play the route/reach animation
+  traceNonce: number
 
   analysis: OptimizeResponse | null
   analysisKey: string | null
   analyzing: boolean
   analysisError: string | null
-  lastAnalysisMs: number | null
+  panelView: 'plan' | 'results'
 
-  compare: 'current' | 'before'
+  mapMode: '2d' | '3d'
+  compare: 'off' | 'split' | 'before'
+  split: number
+  camera: CameraRequest | null
   selected: Selection
-  highlight: string[] // intervention ids highlighted by the assistant
+  hovered: string | null
+  highlight: string[]
   layers: Layers
   banner: Banner | null
-  focus: Focus | null
+
+  presenting: boolean
+  scene: number
+  sceneBusy: boolean
 
   assistantPending: boolean
   assistantLast: AssistantResponse | null
   assistantError: string | null
   useLLM: boolean
 
-  methodologyOpen: boolean
+  dialog: 'methods' | 'help' | 'settings' | null
   panelOpen: boolean
-  panelTab: 'plan' | 'records' | 'quality'
+  explorerTab: 'plan' | 'records' | 'quality'
   records: MunicipalRecords | null
   recordsError: string | null
 
@@ -95,33 +104,50 @@ interface AppState {
   setPriority: (p: Priority) => void
   setCutoff: (c: number | null) => void
   setJourney: (origin: string, destination: string) => void
-  apply: (id: string) => Promise<void>
+  apply: (id: string, opts?: { narrate?: boolean; camera?: boolean }) => Promise<void>
   remove: (id: string) => Promise<void>
   undo: () => Promise<void>
   reset: () => Promise<void>
   analyze: () => Promise<void>
   ask: (text: string) => Promise<void>
   select: (s: Selection) => void
+  setHovered: (k: string | null) => void
   toggleLayer: (k: keyof Layers) => void
-  setCompare: (c: 'current' | 'before') => void
-  focusOn: (f: Omit<Focus, 'nonce'>) => void
+  setMapMode: (m: '2d' | '3d') => void
+  setCompare: (c: 'off' | 'split' | 'before') => void
+  setSplit: (x: number) => void
+  cameraTo: (c: Omit<CameraRequest, 'nonce'>) => void
   replay: () => void
   dismissBanner: () => void
-  setMethodology: (open: boolean) => void
+  setPanelView: (v: 'plan' | 'results') => void
+  setDialog: (d: AppState['dialog']) => void
   setPanelOpen: (open: boolean) => void
   setUseLLM: (v: boolean) => void
-  setPanelTab: (t: 'plan' | 'records' | 'quality') => void
+  setExplorerTab: (t: AppState['explorerTab']) => void
+  startPresentation: () => void
+  stopPresentation: () => void
+  goToScene: (n: number) => Promise<void>
 }
 
 let evalSeq = 0
 let analysisSeq = 0
 let bannerSeq = 0
-let focusSeq = 0
+let camSeq = 0
 let reanalyzeTimer: ReturnType<typeof setTimeout> | undefined
 
 const errMsg = (e: unknown) => (e instanceof ApiError ? e.message : (e as Error).message)
-
 const NUMBER_WORDS = ['ZERO', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT']
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+
+export const SCENES = [
+  { title: 'Real city context', caption: 'Real Charlotte streets and building footprints. The barriers in this scenario are hypothetical.' },
+  { title: 'Inspect the problem', caption: 'The modeled journey stops at one crossing of East 7th Street: both curb ramps are blocked.' },
+  { title: 'Find repairs', caption: 'Budget of two. The engine evaluates every combination of candidate repairs.' },
+  { title: 'Apply the first repair', caption: 'One ramp repaired. The engine recomputes: the crossing is still incomplete.' },
+  { title: 'Apply the second repair', caption: 'The second ramp completes the crossing. The engine recomputes a continuous route.' },
+  { title: 'Prove the value', caption: 'Computed before/after evidence and the baseline comparison.' },
+  { title: 'Test it yourself', caption: 'Remove a repair or change the budget. Every result is recomputed live.' },
+] as const
 
 export const useApp = create<AppState>((set, get) => {
   const key = () => {
@@ -152,6 +178,16 @@ export const useApp = create<AppState>((set, get) => {
     }
   }
 
+  async function refreshInitial() {
+    const s = get()
+    try {
+      const r = await api.evaluate(s.scenarioId, { applied: [], origin: s.journey?.origin, destination: s.journey?.destination, weights: s.weights, cutoff_m: s.cutoff })
+      if (get().scenarioId === s.scenarioId) set({ initialEval: r })
+    } catch {
+      /* the current evaluation carries the error */
+    }
+  }
+
   function scheduleReanalysis() {
     if (!get().analysis) return
     clearTimeout(reanalyzeTimer)
@@ -162,8 +198,12 @@ export const useApp = create<AppState>((set, get) => {
     set({ banner: { ...b, nonce: ++bannerSeq } })
   }
 
-  /** Narrate the effect of the latest repair using only computed state. */
-  async function narrateRepair(id: string, before: EvaluateResponse | null, after: EvaluateResponse | null) {
+  function crossingOf(iid: string): string | null {
+    return (get().scenario?.interventions.find((i) => i.id === iid)?.attrs?.crossing as string | undefined) ?? null
+  }
+
+  /** Narrate the latest repair using only engine-computed state. */
+  async function narrateRepair(id: string, before: EvaluateResponse | null, after: EvaluateResponse | null, camera: boolean) {
     const s = get()
     if (!after?.journey || !before?.journey || !s.scenario) return
     const wasFound = before.journey.route.found
@@ -176,74 +216,48 @@ export const useApp = create<AppState>((set, get) => {
       })
       let body = 'The modeled journey is now continuous.'
       if (onRoute.length >= 2) {
-        // Verify the "neither alone" claim against the engine before stating it.
+        // Verify "neither alone" with the engine before stating it.
         const checks = await Promise.all(
           onRoute.map((aid) =>
             api
-              .evaluate(s.scenarioId, {
-                applied: s.applied.filter((x) => x !== aid),
-                origin: s.journey?.origin,
-                destination: s.journey?.destination,
-                weights: s.weights,
-                cutoff_m: s.cutoff,
-              })
+              .evaluate(s.scenarioId, { applied: s.applied.filter((x) => x !== aid), origin: s.journey?.origin, destination: s.journey?.destination, weights: s.weights, cutoff_m: s.cutoff })
               .then((r) => r.journey?.route.found ?? true)
               .catch(() => true),
           ),
         )
         if (checks.every((found) => !found)) {
-          // "crossing" only when both repaired ramps are the two ends of one crossing on the route.
-          const edges = new Map(s.scenario!.edges.map((e) => [e.id, e]))
-          const curbNodes = (aid: string) =>
-            new Set((s.scenario!.interventions.find((i) => i.id === aid)?.edge_ids ?? []).flatMap((eid) => {
-              const e = edges.get(eid)
-              return e ? [e.u, e.v] : []
-            }))
-          const sameCrossing =
-            onRoute.length === 2 &&
-            after.journey.route.edge_ids.some((eid) => {
-              const e = edges.get(eid)
-              if (!e || e.kind !== 'crossing') return false
-              const [a, b] = onRoute.map(curbNodes)
-              return (a.has(e.u) && b.has(e.v)) || (a.has(e.v) && b.has(e.u))
-            })
+          const sameCrossing = onRoute.length === 2 && crossingOf(onRoute[0]) !== null && crossingOf(onRoute[0]) === crossingOf(onRoute[1])
           body =
             onRoute.length === 2
-              ? `Neither intervention completes this ${sameCrossing ? 'crossing' : 'journey'} alone. Together, they unlock a continuous modeled route.`
+              ? `Neither repair completes this ${sameCrossing ? 'crossing' : 'journey'} alone. Together, they unlock a continuous modeled route.`
               : `Every one of these ${onRoute.length} repairs is required: removing any one breaks the modeled route.`
         }
       }
       const n = Math.max(onRoute.length, 1)
-      banner({
-        kind: 'reconnected',
-        title: `${NUMBER_WORDS[n] ?? n} REPAIR${n === 1 ? '' : 'S'}. ONE RECONNECTED JOURNEY.`,
-        body,
-      })
-      const r = after.journey.route
-      if (r.geometry.length) {
-        const mid = r.geometry[Math.floor(r.geometry.length / 2)]
-        set({ focus: { kind: 'point', lonlat: iv ? [iv.lon, iv.lat] : mid, nonce: ++focusSeq } })
-        setTimeout(() => get().focusOn({ kind: 'route' }), 1500)
+      banner({ kind: 'reconnected', title: `${NUMBER_WORDS[n] ?? n} REPAIR${n === 1 ? '' : 'S'}. ONE RECONNECTED JOURNEY.`, body })
+      if (camera) {
+        if (iv) get().cameraTo({ preset: 'point', lonlat: [iv.lon, iv.lat] })
+        setTimeout(() => get().cameraTo({ preset: 'route' }), 1700)
       }
     } else if (!nowFound) {
-      // Remaining barriers on the best repairable route, as computed by the engine.
       const next = [...new Set(after.journey.potential_blockers)].filter((r) => !s.applied.includes(r))
-      const recommended = s.analysis?.recommendation.selected ?? []
-      const appliedRec = s.applied.filter((a) => recommended.includes(a)).length
+      const sameCrossing = next.length === 1 && crossingOf(next[0]) !== null && crossingOf(next[0]) === crossingOf(id)
       banner({
         kind: 'partial',
-        title: `Repair ${id} completed${appliedRec && recommended.includes(id) ? ` (${appliedRec} of ${recommended.length} recommended)` : ''}.`,
+        title: sameCrossing ? 'One connection repaired. The crossing remains incomplete.' : `Repair ${id} applied. The journey is still unavailable.`,
         body: next.length
-          ? `The journey is still unavailable. ${next.length === 1 ? 'Barrier' : 'Barriers'} ${next.join(', ')} still ${next.length === 1 ? 'blocks' : 'block'} the best repairable route.`
-          : 'The journey is still unavailable in the modeled network.',
+          ? sameCrossing
+            ? `Repair ${next[0]} at the other end of the same crossing is still blocked, so the engine finds no continuous route.`
+            : `${next.length === 1 ? 'Barrier' : 'Barriers'} ${next.join(', ')} still ${next.length === 1 ? 'blocks' : 'block'} the best repairable route.`
+          : 'No continuous route exists in the modeled network yet.',
       })
-      if (iv) set({ focus: { kind: 'intervention', id, nonce: ++focusSeq } })
+      if (camera && iv) get().cameraTo({ preset: 'intervention', id })
     }
   }
 
   return {
     health: null,
-    scenarioId: 'demo',
+    scenarioId: GUIDED_ID,
     scenario: null,
     loading: true,
     error: null,
@@ -262,20 +276,26 @@ export const useApp = create<AppState>((set, get) => {
     analysisKey: null,
     analyzing: false,
     analysisError: null,
-    lastAnalysisMs: null,
-    compare: 'current',
+    panelView: 'plan',
+    mapMode: '3d',
+    compare: 'off',
+    split: 0.5,
+    camera: null,
     selected: null,
+    hovered: null,
     highlight: [],
-    layers: { records: false, inventory: false, network: true, wave: true, candidates: true, places: true, context: true, labels: true },
+    layers: { buildings: true, network: true, candidates: true, places: true, records: false, inventory: false },
     banner: null,
-    focus: null,
+    presenting: false,
+    scene: 0,
+    sceneBusy: false,
     assistantPending: false,
     assistantLast: null,
     assistantError: null,
     useLLM: true,
-    methodologyOpen: false,
+    dialog: null,
     panelOpen: false,
-    panelTab: 'plan',
+    explorerTab: 'plan',
     records: null,
     recordsError: null,
 
@@ -285,11 +305,14 @@ export const useApp = create<AppState>((set, get) => {
     },
 
     loadScenario: async (id) => {
-      // Invalidate in-flight work from the previous scenario.
       analysisSeq++
       evalSeq++
       clearTimeout(reanalyzeTimer)
-      set({ loading: true, analyzing: false, error: null, scenarioId: id, analysis: null, analysisKey: null, applied: [], history: [], banner: null, selected: null, highlight: [], evaluation: null, initialEval: null, assistantLast: null, assistantError: null })
+      set({
+        loading: true, analyzing: false, error: null, scenarioId: id, analysis: null, analysisKey: null, applied: [], history: [],
+        banner: null, selected: null, highlight: [], evaluation: null, initialEval: null, assistantLast: null, assistantError: null,
+        panelView: 'plan', compare: 'off', presenting: false, scene: 0,
+      })
       try {
         const sc = await api.scenario(id)
         if (sc.mode === 'municipal' && !get().records) {
@@ -298,7 +321,7 @@ export const useApp = create<AppState>((set, get) => {
         const dj = sc.default_journey
         set({ scenario: sc, journey: dj ? { origin: dj[0], destination: dj[1] } : null, cutoff: sc.max_distance_m, loading: false })
         const ev = await evaluate()
-        set({ initialEval: ev, focus: { kind: 'bounds', nonce: ++focusSeq } })
+        set({ initialEval: ev, camera: { preset: 'overview', nonce: ++camSeq } })
       } catch (e) {
         set({ loading: false, error: errMsg(e) })
       }
@@ -310,39 +333,30 @@ export const useApp = create<AppState>((set, get) => {
     },
     setWeights: (w) => {
       set({ weights: w, priority: 'custom' })
-      void evaluate()
+      void evaluate().then(() => refreshInitial())
       scheduleReanalysis()
     },
     setPriority: (p) => {
       set({ weights: PRESETS[p], priority: p })
-      void evaluate()
+      void evaluate().then(() => refreshInitial())
       scheduleReanalysis()
     },
     setCutoff: (c) => {
       set({ cutoff: c })
-      void evaluate({ animate: true }).then((ev) => {
-        // The initial (no-repair) reference must use the same threshold.
-        if (ev && get().applied.length === 0) set({ initialEval: ev })
-      })
-      if (get().applied.length) {
-        const s = get()
-        api.evaluate(s.scenarioId, { applied: [], origin: s.journey?.origin, destination: s.journey?.destination, weights: s.weights, cutoff_m: c })
-          .then((r) => set({ initialEval: r }))
-          .catch(() => {})
-      }
+      void evaluate({ animate: true }).then(() => refreshInitial())
       scheduleReanalysis()
     },
     setJourney: (origin, destination) => {
       set({ journey: { origin, destination }, banner: null })
-      void evaluate({ animate: true })
+      void evaluate({ animate: true }).then(() => refreshInitial())
     },
 
-    apply: async (id) => {
+    apply: async (id, opts = {}) => {
       if (get().applied.includes(id)) return
       const before = get().evaluation
-      set((s) => ({ history: [...s.history, s.applied], applied: [...s.applied, id], compare: 'current' }))
+      set((s) => ({ history: [...s.history, s.applied], applied: [...s.applied, id], compare: s.compare === 'before' ? 'off' : s.compare }))
       const after = await evaluate({ animate: true })
-      await narrateRepair(id, before, after)
+      if (opts.narrate !== false) await narrateRepair(id, before, after, opts.camera !== false)
     },
     remove: async (id) => {
       if (!get().applied.includes(id)) return
@@ -356,9 +370,8 @@ export const useApp = create<AppState>((set, get) => {
       await evaluate({ animate: true })
     },
     reset: async () => {
-      set((s) => ({ history: s.applied.length ? [...s.history, s.applied] : s.history, applied: [], banner: null, compare: 'current', selected: null, highlight: [] }))
+      set((s) => ({ history: s.applied.length ? [...s.history, s.applied] : s.history, applied: [], banner: null, selected: null, highlight: s.analysis?.recommendation.selected ?? [], compare: 'off' }))
       await evaluate({ animate: true })
-      set({ focus: { kind: 'bounds', nonce: ++focusSeq } })
     },
 
     analyze: async () => {
@@ -367,11 +380,10 @@ export const useApp = create<AppState>((set, get) => {
       const seq = ++analysisSeq
       const k = key()
       set({ analyzing: true, analysisError: null })
-      const t0 = performance.now()
       try {
         const res = await api.optimize(s.scenarioId, { budget: s.budget, weights: s.weights, cutoff_m: s.cutoff })
         if (seq !== analysisSeq) return
-        set({ analysis: res, analysisKey: k, analyzing: false, lastAnalysisMs: performance.now() - t0, highlight: res.recommendation.selected })
+        set({ analysis: res, analysisKey: k, analyzing: false, highlight: res.recommendation.selected, panelView: 'results' })
       } catch (e) {
         if (seq === analysisSeq) set({ analyzing: false, analysisError: errMsg(e) })
       }
@@ -382,15 +394,8 @@ export const useApp = create<AppState>((set, get) => {
       set({ assistantPending: true, assistantError: null })
       try {
         const res = await api.assistant({
-          text,
-          scenario_id: s.scenarioId,
-          applied: s.applied,
-          budget: s.budget,
-          weights: s.weights,
-          use_llm: s.useLLM,
-          cutoff_m: s.cutoff,
-          origin: s.journey?.origin,
-          destination: s.journey?.destination,
+          text, scenario_id: s.scenarioId, applied: s.applied, budget: s.budget, weights: s.weights, use_llm: s.useLLM,
+          cutoff_m: s.cutoff, origin: s.journey?.origin, destination: s.journey?.destination,
         })
         set({ assistantLast: res, assistantPending: false })
         const a = res.client_action
@@ -414,7 +419,7 @@ export const useApp = create<AppState>((set, get) => {
             break
           case 'show_route':
             get().replay()
-            get().focusOn({ kind: 'route' })
+            get().cameraTo({ preset: 'route' })
             break
           case 'highlight_candidates':
             set({ highlight: a.ids })
@@ -428,15 +433,77 @@ export const useApp = create<AppState>((set, get) => {
     },
 
     select: (sel) => set({ selected: sel }),
+    setHovered: (k) => set({ hovered: k }),
     toggleLayer: (k) => set((s) => ({ layers: { ...s.layers, [k]: !s.layers[k] } })),
+    setMapMode: (m) => set({ mapMode: m }),
     setCompare: (c) => set((s) => ({ compare: c, traceNonce: s.traceNonce + 1 })),
-    focusOn: (f) => set({ focus: { ...f, nonce: ++focusSeq } }),
+    setSplit: (x) => set({ split: Math.min(0.95, Math.max(0.05, x)) }),
+    cameraTo: (c) => set({ camera: { ...c, nonce: ++camSeq } }),
     replay: () => set((s) => ({ traceNonce: s.traceNonce + 1 })),
     dismissBanner: () => set({ banner: null }),
-    setMethodology: (open) => set({ methodologyOpen: open }),
+    setPanelView: (v) => set({ panelView: v }),
+    setDialog: (d) => set({ dialog: d }),
     setPanelOpen: (open) => set({ panelOpen: open }),
     setUseLLM: (v) => set({ useLLM: v }),
-    setPanelTab: (t) => set({ panelTab: t }),
+    setExplorerTab: (t) => set({ explorerTab: t }),
+
+    startPresentation: () => {
+      set({ presenting: true })
+      void get().goToScene(0)
+    },
+    stopPresentation: () => set({ presenting: false }),
+
+    /** Each scene sets up its state from scratch through the real engine. */
+    goToScene: async (n) => {
+      const s = get()
+      if (s.sceneBusy || !s.scenario) return
+      set({ scene: n, sceneBusy: true, banner: null })
+      const sc = s.scenario
+      const dj = sc.default_journey
+      try {
+        if (dj && (s.journey?.origin !== dj[0] || s.journey?.destination !== dj[1])) {
+          set({ journey: { origin: dj[0], destination: dj[1] } })
+        }
+        const needApplied = n <= 2 ? [] : n === 3 ? ['A'] : ['A', 'B']
+        const hasAB = sc.interventions.some((i) => i.id === 'A') && sc.interventions.some((i) => i.id === 'B')
+        if (n >= 2 && (s.budget !== 2 || s.priority !== 'healthcare')) set({ budget: 2, weights: PRESETS.healthcare, priority: 'healthcare' })
+        if (n === 0) {
+          set({ applied: [], history: [], selected: null, compare: 'off', mapMode: '3d' })
+          await evaluate({ animate: true })
+          get().cameraTo({ preset: 'overview' })
+        } else if (n === 1) {
+          set({ applied: [], compare: 'off', mapMode: '3d', selected: hasAB ? { type: 'intervention', id: 'A' } : null })
+          await evaluate({ animate: true })
+          get().cameraTo(hasAB ? { preset: 'street' } : { preset: 'route' })
+        } else if (n === 2) {
+          set({ applied: [], selected: null, compare: 'off' })
+          await evaluate()
+          await get().analyze()
+          get().cameraTo({ preset: 'network' })
+        } else if (n === 3 || n === 4) {
+          if (!get().analysis) await get().analyze()
+          const target = needApplied[needApplied.length - 1]
+          const prior = needApplied.slice(0, -1)
+          set({ applied: prior, compare: 'off', selected: null })
+          await evaluate()
+          get().cameraTo({ preset: 'intervention', id: target })
+          await sleep(900)
+          await get().apply(target, { narrate: true, camera: n === 4 })
+        } else if (n === 5) {
+          if (get().applied.join() !== 'A,B') {
+            set({ applied: ['A', 'B'] })
+            await evaluate()
+          }
+          if (!get().analysis) await get().analyze()
+          set({ panelView: 'results', compare: 'split', split: 0.5 })
+          get().cameraTo({ preset: 'route' })
+        } else if (n === 6) {
+          set({ compare: 'off' })
+        }
+      } finally {
+        set({ sceneBusy: false })
+      }
+    },
   }
 })
 

@@ -14,7 +14,7 @@ export interface Weights {
 export interface ScenarioSummary {
   id: string
   name: string
-  mode: 'synthetic' | 'municipal'
+  mode: 'synthetic' | 'municipal' | 'hypothetical'
   description: string
   node_count: number
   edge_count: number
