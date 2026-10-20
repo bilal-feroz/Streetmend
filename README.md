@@ -78,6 +78,8 @@ npm install
 npm run dev
 ```
 
+On Windows you can start both at once with `powershell -ExecutionPolicy Bypass -File scripts/dev.ps1`.
+
 Open http://localhost:5173. The Charlotte data for the study area is committed under `data/samples/`, so no network access is needed for either mode (basemap tiles in the Charlotte view load from OpenFreeMap when online; the network layers still render offline).
 
 Without Ollama, the assistant runs on the rule parser only. To use a different model or endpoint, see [.env.example](.env.example).
