@@ -82,8 +82,20 @@ def evaluate_state(
         reached = set(wave_d)
         barriers = frontier_barriers(sc.graph, reached, enabled)
         alts = [route_dict(a) for a in alternative_routes(sc.graph, g, o, d, alternatives, cutoff)[1:]] if alternatives and r.found else []
+        potential, blockers = None, []
+        if not r.found:
+            # The route that would exist if every candidate repair were made.
+            # Drawn as an interrupted route; unknown edges stay excluded.
+            g_all = sc.graph.to_networkx(sc.enabled_edges(list(sc.interventions)))
+            pr = shortest_route(sc.graph, g_all, o, d, cutoff)
+            if pr.found:
+                potential = route_dict(pr)
+                owner = sc.intervention_for_edge()
+                blockers = sorted({owner[e] for e in pr.edge_ids if e in owner and e not in enabled})
         journey = {
             "route": route_dict(r),
+            "potential_route": potential,
+            "potential_blockers": blockers,
             "reach_wave": {k: round(v, 2) for k, v in sorted(wave.items(), key=lambda kv: (kv[1], kv[0]))},
             "reached_destinations": [x.id for x in sc.destinations if x.id in reached],
             "frontier_barriers": barriers,

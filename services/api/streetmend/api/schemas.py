@@ -133,6 +133,8 @@ class RouteOut(BaseModel):
 
 class JourneyOut(BaseModel):
     route: RouteOut
+    potential_route: RouteOut | None = None
+    potential_blockers: list[str] = []
     reach_wave: dict[str, float]
     reached_destinations: list[str]
     frontier_barriers: list[str]

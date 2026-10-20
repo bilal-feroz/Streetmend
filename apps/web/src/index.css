@@ -1,0 +1,213 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/jetbrains-mono';
+@import 'maplibre-gl/dist/maplibre-gl.css';
+
+@theme {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+
+  --color-ink-950: #060a13;
+  --color-ink-900: #080c16;
+  --color-ink-850: #0b111e;
+  --color-ink-800: #0e1424;
+  --color-ink-750: #121a2d;
+  --color-ink-700: #172036;
+  --color-ink-600: #1f2a44;
+  --color-ink-500: #2b3858;
+  --color-ink-400: #3c4a6c;
+
+  --color-fg: #e8ecf4;
+  --color-fg-2: #a6b0c6;
+  --color-fg-3: #7581a0;
+  --color-fg-4: #566282;
+
+  --color-ok: #34d399;
+  --color-ok-2: #10b981;
+  --color-ok-dim: #0f3b31;
+  --color-bad: #ff6b6b;
+  --color-bad-dim: #3d1a22;
+  --color-unk: #fbbf24;
+  --color-unk-dim: #3b2f12;
+  --color-sel: #5b8cff;
+  --color-sel-2: #7aa2ff;
+  --color-sel-dim: #18264a;
+
+  --radius-card: 8px;
+}
+
+:root {
+  color-scheme: dark;
+  font-family: var(--font-sans);
+  font-feature-settings: 'cv11', 'ss01', 'ss03';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--color-ink-900);
+  color: var(--color-fg);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow: hidden;
+}
+
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Focus visibility for keyboard users */
+:focus-visible {
+  outline: 2px solid var(--color-sel-2);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Scrollbars */
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-ink-500) transparent;
+}
+
+/* Range inputs */
+input[type='range'].sm-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 22px;
+  background: transparent;
+  cursor: pointer;
+}
+input[type='range'].sm-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 4px;
+  background: linear-gradient(to right, var(--color-sel) var(--fill, 50%), var(--color-ink-600) var(--fill, 50%));
+}
+input[type='range'].sm-range::-moz-range-track {
+  height: 4px;
+  border-radius: 4px;
+  background: var(--color-ink-600);
+}
+input[type='range'].sm-range::-moz-range-progress {
+  height: 4px;
+  border-radius: 4px;
+  background: var(--color-sel);
+}
+input[type='range'].sm-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  margin-top: -6px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-fg);
+  border: 3px solid var(--color-sel);
+  box-shadow: 0 0 0 3px rgba(8, 12, 22, 0.8);
+}
+input[type='range'].sm-range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-fg);
+  border: 3px solid var(--color-sel);
+}
+
+/* MapLibre chrome */
+.maplibregl-ctrl-attrib {
+  background: rgba(8, 12, 22, 0.72) !important;
+  color: var(--color-fg-3) !important;
+  font-size: 10px !important;
+}
+.maplibregl-ctrl-attrib a {
+  color: var(--color-fg-2) !important;
+}
+.maplibregl-ctrl-attrib-button {
+  filter: invert(0.85);
+}
+.maplibregl-ctrl-scale {
+  background: rgba(8, 12, 22, 0.6) !important;
+  border-color: var(--color-fg-3) !important;
+  color: var(--color-fg-2) !important;
+  font-size: 10px !important;
+}
+.maplibregl-canvas:focus-visible {
+  outline: 2px solid var(--color-sel-2);
+  outline-offset: -2px;
+}
+
+/* Map markers */
+.sm-marker {
+  cursor: pointer;
+}
+.sm-street-label {
+  pointer-events: none;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(166, 176, 198, 0.55);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+@keyframes sm-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.55);
+  }
+  70% {
+    box-shadow: 0 0 0 12px rgba(255, 107, 107, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 107, 107, 0);
+  }
+}
+@keyframes sm-pulse-blue {
+  0% {
+    box-shadow: 0 0 0 0 rgba(91, 140, 255, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 14px rgba(91, 140, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(91, 140, 255, 0);
+  }
+}
+.sm-pulse {
+  animation: sm-pulse 1.8s ease-out infinite;
+}
+.sm-pulse-blue {
+  animation: sm-pulse-blue 1.6s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sm-pulse,
+  .sm-pulse-blue {
+    animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-md bg-sel px-3 py-1.5 text-[13px] font-semibold text-white shadow-sm shadow-sel/20 transition-colors hover:bg-sel-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-md border border-ink-500 bg-ink-750 px-3 py-1.5 text-[13px] font-medium text-fg transition-colors hover:border-ink-400 hover:bg-ink-700 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[13px] font-medium text-fg-2 transition-colors hover:bg-ink-700 hover:text-fg disabled:opacity-40;
+  }
+  .card {
+    @apply rounded-lg border border-ink-600 bg-ink-800;
+  }
+  .label-xs {
+    @apply text-[10.5px] font-semibold uppercase tracking-[0.09em] text-fg-3;
+  }
+}

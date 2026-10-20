@@ -120,3 +120,13 @@ def test_municipal_unavailable_is_explicit(client):
     r = client.get("/api/scenarios")
     m = [s for s in r.json() if s["mode"] == "municipal"]
     assert m and (m[0]["available"] or m[0]["unavailable_reason"])
+
+
+def test_potential_route_names_remaining_blockers(client):
+    s0 = client.post("/api/scenarios/demo/evaluate", json={"applied": [], "origin": "O2", "destination": "D_CLINIC"}).json()
+    assert s0["journey"]["potential_route"]["found"]
+    assert s0["journey"]["potential_blockers"] == ["A", "B"]
+    s1 = client.post("/api/scenarios/demo/evaluate", json={"applied": ["A"], "origin": "O2", "destination": "D_CLINIC"}).json()
+    assert s1["journey"]["potential_blockers"] == ["B"]
+    s2 = client.post("/api/scenarios/demo/evaluate", json={"applied": ["A", "B"], "origin": "O2", "destination": "D_CLINIC"}).json()
+    assert s2["journey"]["potential_route"] is None and s2["journey"]["potential_blockers"] == []
