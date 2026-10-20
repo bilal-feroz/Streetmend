@@ -28,7 +28,7 @@ export function JourneyCard() {
           </button>
         </div>
       </div>
-      <div className="mt-1.5 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+      <div className="mt-1.5 grid grid-cols-1 items-center gap-1.5 sm:grid-cols-[1fr_auto_1fr] sm:gap-2">
         <select
           aria-label="Journey origin"
           value={journey.origin}
@@ -42,7 +42,7 @@ export function JourneyCard() {
             </option>
           ))}
         </select>
-        <ArrowRight size={14} className="text-fg-3" aria-hidden />
+        <ArrowRight size={14} className="hidden text-fg-3 sm:block" aria-hidden />
         <select
           aria-label="Journey destination"
           value={journey.destination}
@@ -131,7 +131,7 @@ const LEGEND = [
 ]
 
 export function Legend() {
-  const [open, setOpen] = useState(true)
+  const [open, setOpen] = useState(() => typeof window === 'undefined' || (window.innerWidth >= 1500 && window.innerHeight >= 950))
   const municipal = useApp((s) => s.scenario?.mode === 'municipal')
   const showRecords = useApp((s) => s.layers.records)
   return (

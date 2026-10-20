@@ -98,7 +98,7 @@ export default function App() {
         </AnimatePresence>
         {!panelOpen && (
           <button
-            className="btn-primary absolute bottom-3 left-1/2 z-30 -translate-x-1/2 shadow-xl lg:hidden"
+            className="btn-primary absolute bottom-[78px] left-1/2 z-30 -translate-x-1/2 shadow-xl lg:hidden"
             onClick={() => setPanelOpen(true)}
             data-testid="open-panel"
           >

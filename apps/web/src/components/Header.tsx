@@ -26,13 +26,13 @@ export function Header() {
   const synthetic = scenario?.mode !== 'municipal'
 
   return (
-    <header className="relative z-30 flex h-12 shrink-0 items-center gap-3 border-b border-ink-600 bg-ink-850 px-3 sm:px-4">
+    <header className="relative z-30 flex h-12 shrink-0 items-center gap-2 whitespace-nowrap border-b border-ink-600 bg-ink-850 px-2 sm:gap-3 sm:px-4">
       <div className="flex items-center gap-2">
         <Logo />
-        <h1 className="text-[14px] font-bold tracking-[0.18em] text-fg">
+        <h1 className="text-[14px] font-bold tracking-[0.18em] text-fg max-sm:sr-only">
           STREETMEND<span className="sr-only"> — combination-aware pedestrian accessibility repair planning</span>
         </h1>
-        <span className="hidden text-[12px] text-fg-3 xl:inline">Fix the missing links. Reconnect the city.</span>
+        <span className="hidden text-[12px] text-fg-3 min-[1440px]:inline">Fix the missing links. Reconnect the city.</span>
       </div>
       <div className="mx-1 hidden h-5 w-px bg-ink-600 md:block" />
       <div role="tablist" aria-label="Operating mode" className="flex rounded-md border border-ink-600 bg-ink-900 p-0.5">
@@ -40,12 +40,12 @@ export function Header() {
           role="tab"
           aria-selected={scenarioId === 'demo'}
           onClick={() => scenarioId !== 'demo' && void loadScenario('demo')}
-          className={`flex items-center gap-1.5 rounded-[5px] px-2.5 py-1 text-[12.5px] font-medium ${scenarioId === 'demo' ? 'bg-ink-600 text-fg' : 'text-fg-3 hover:text-fg'}`}
+          className={`flex items-center gap-1.5 rounded-[5px] px-2 py-1 text-[12.5px] font-medium sm:px-2.5 ${scenarioId === 'demo' ? 'bg-ink-600 text-fg' : 'text-fg-3 hover:text-fg'}`}
           data-testid="mode-demo"
         >
           <FlaskConical size={13} aria-hidden />
-          <span className="hidden sm:inline">Guided Simulation</span>
-          <span className="sm:hidden">Demo</span>
+          <span className="hidden lg:inline">Guided Simulation</span>
+          <span className="lg:hidden">Simulation</span>
         </button>
         <button
           role="tab"
@@ -53,31 +53,32 @@ export function Header() {
           disabled={!municipal}
           title={municipal && !municipal.available ? municipal.unavailable_reason ?? '' : 'Real Charlotte, NC municipal records'}
           onClick={() => municipal && scenarioId !== municipal.id && void loadScenario(municipal.id)}
-          className={`flex items-center gap-1.5 rounded-[5px] px-2.5 py-1 text-[12.5px] font-medium disabled:opacity-40 ${scenarioId !== 'demo' ? 'bg-ink-600 text-fg' : 'text-fg-3 hover:text-fg'}`}
+          className={`flex items-center gap-1.5 rounded-[5px] px-2 py-1 text-[12.5px] font-medium sm:px-2.5 disabled:opacity-40 ${scenarioId !== 'demo' ? 'bg-ink-600 text-fg' : 'text-fg-3 hover:text-fg'}`}
           data-testid="mode-municipal"
         >
           <Database size={13} aria-hidden />
-          <span className="hidden sm:inline">Charlotte Data Explorer</span>
-          <span className="sm:hidden">Charlotte</span>
+          <span className="hidden lg:inline">Charlotte Data Explorer</span>
+          <span className="lg:hidden">Charlotte</span>
         </button>
       </div>
       <span
-        className={`hidden items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium lg:flex ${synthetic ? 'border-unk/30 bg-unk-dim/60 text-unk' : 'border-sel/30 bg-sel-dim text-sel-2'}`}
+        className={`hidden items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium md:flex ${synthetic ? 'border-unk/30 bg-unk-dim/60 text-unk' : 'border-sel/30 bg-sel-dim text-sel-2'}`}
         data-testid="data-status"
       >
         <span className={`h-1.5 w-1.5 rounded-full ${synthetic ? 'bg-unk' : 'bg-sel-2'}`} />
-        {synthetic ? 'Synthetic scenario · not a real place' : 'Municipal records · CDOT + OSM'}
+        <span className="hidden xl:inline">{synthetic ? 'Synthetic scenario · not a real place' : 'Municipal records · CDOT + OSM'}</span>
+        <span className="xl:hidden">{synthetic ? 'Synthetic data' : 'Municipal data'}</span>
       </span>
       <div className="flex-1" />
-      <span className="hidden items-center gap-1.5 text-[11px] text-fg-3 md:flex" aria-live="polite">
+      <span className="hidden items-center gap-1.5 text-[11px] text-fg-3 2xl:flex" aria-live="polite">
         <span className={`h-1.5 w-1.5 rounded-full ${health ? 'bg-ok' : 'bg-bad'}`} />
         {health ? `Engine v${health.version}` : 'API offline'}
       </span>
       <button className="btn-ghost" onClick={() => void reset()} disabled={!applied.length} data-testid="reset" title="Reset all simulated repairs">
-        <RotateCcw size={14} /> <span className="hidden sm:inline">Reset</span>
+        <RotateCcw size={14} /> <span className="hidden lg:inline">Reset</span>
       </button>
       <button className="btn-ghost" onClick={() => setMethodology(true)} data-testid="open-methodology" title="Data & methodology">
-        <BookOpen size={14} /> <span className="hidden sm:inline">Methodology</span>
+        <BookOpen size={14} /> <span className="hidden lg:inline">Methodology</span>
       </button>
       <button className="btn-ghost lg:hidden" onClick={() => setPanelOpen(!panelOpen)} aria-label="Toggle planning panel" aria-expanded={panelOpen}>
         <PanelRight size={16} />
