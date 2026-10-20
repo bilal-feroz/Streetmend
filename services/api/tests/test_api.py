@@ -1,0 +1,122 @@
+"""API integration tests (FastAPI TestClient, no network required)."""
+
+import pytest
+from fastapi.testclient import TestClient
+
+from streetmend.api.main import app
+
+
+@pytest.fixture(scope="module")
+def client():
+    with TestClient(app) as c:
+        yield c
+
+
+def test_health(client):
+    r = client.get("/api/health")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["status"] == "ok"
+    assert any(s["id"] == "demo" and s["available"] for s in body["scenarios"])
+    assert "available" in body["llm"]
+
+
+def test_demo_scenario_payload(client):
+    r = client.get("/api/scenarios/demo")
+    assert r.status_code == 200
+    sc = r.json()
+    assert sc["mode"] == "synthetic"
+    assert sc["edge_count"] == len(sc["edges"]) > 100
+    assert {i["id"] for i in sc["interventions"]} >= {"A", "B", "C"}
+    assert all(e["evidence"] == "synthetic" for e in sc["edges"])
+    assert sc["default_journey"] == ["O2", "D_CLINIC"]
+
+
+def test_evaluate_two_step_repair(client):
+    def ev(applied):
+        r = client.post("/api/scenarios/demo/evaluate", json={"applied": applied, "origin": "O2", "destination": "D_CLINIC"})
+        assert r.status_code == 200, r.text
+        return r.json()
+
+    s0, s1, s2 = ev([]), ev(["A"]), ev(["A", "B"])
+    assert not s0["journey"]["route"]["found"]
+    assert not s1["journey"]["route"]["found"]
+    assert s2["journey"]["route"]["found"]
+    assert s2["metrics"]["score"] > s1["metrics"]["score"] == s0["metrics"]["score"]
+    # Edge states reflect the repairs.
+    a_edge = "R:3,2:SW:x"
+    assert s0["edge_states"][a_edge] == "repairable"
+    assert s1["edge_states"][a_edge] == "repaired"
+    # The route returned is exactly the traversable path.
+    route = s2["journey"]["route"]
+    assert set(route["edge_ids"]) >= {"R:3,2:SW:x", "R:3,2:SE:x", "X:3,2:S"}
+    assert len(route["geometry"]) >= len(route["edge_ids"]) + 1
+
+
+def test_optimize_endpoint(client):
+    r = client.post("/api/scenarios/demo/optimize", json={"budget": 2, "priority": "healthcare"})
+    assert r.status_code == 200, r.text
+    a = r.json()
+    assert sorted(a["recommendation"]["selected"]) == ["A", "B"]
+    assert a["recommendation"]["exact"] is True
+    assert a["objective"]["gain"] > 0
+    assert a["advantage_over_best_baseline"] > 0
+    assert {b["solver"] for b in a["baselines"]} >= {"greedy", "independent_ranking"}
+
+
+def test_budget_change_recomputes(client):
+    a1 = client.post("/api/scenarios/demo/optimize", json={"budget": 1, "priority": "healthcare"}).json()
+    a2 = client.post("/api/scenarios/demo/optimize", json={"budget": 2, "priority": "healthcare"}).json()
+    assert a1["recommendation"]["selected"] != a2["recommendation"]["selected"]
+
+
+def test_validation_errors(client):
+    assert client.post("/api/scenarios/demo/evaluate", json={"applied": ["ZZZ"]}).status_code == 422
+    assert client.post("/api/scenarios/demo/optimize", json={"budget": 99}).status_code == 422
+    assert client.post("/api/scenarios/demo/evaluate", json={"origin": "nope"}).status_code == 422
+    assert client.get("/api/scenarios/nowhere").status_code == 404
+
+
+def test_report_markdown(client):
+    r = client.post("/api/scenarios/demo/report?applied=A,B", json={"budget": 2, "priority": "healthcare"})
+    assert r.status_code == 200
+    assert "# StreetMend analysis report" in r.text
+    assert "Not an ADA compliance determination" in r.text
+
+
+@pytest.mark.parametrize("text,op", [
+    ("Which two repairs improve access to healthcare the most?", "optimize_repairs"),
+    ("Why did you choose these two curb ramps?", "explain_recommendation"),
+    ("What happens if I can only repair one?", "compare_budgets"),
+    ("Compare repairs near bus stops.", "candidates_near"),
+    ("Show the streets that remain disconnected.", "show_disconnected"),
+    ("Which recommendation changes if I prioritize schools instead?", "compare_priorities"),
+    ("apply A", "apply_repair"),
+    ("undo", "undo"),
+    ("reset", "reset"),
+    ("delete all files on the server", "unsupported"),
+])
+def test_assistant_rules(client, text, op):
+    r = client.post("/api/assistant", json={"text": text, "use_llm": False})
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["operation"] == op
+    assert body["interpretation"]["source"] == "rules"
+
+
+def test_assistant_numbers_come_from_engine(client):
+    body = client.post("/api/assistant", json={"text": "Which two repairs improve access to healthcare the most?", "use_llm": False}).json()
+    a = body["result"]["analysis"]
+    assert sorted(a["recommendation"]["selected"]) == ["A", "B"]
+    assert any(str(int(a["objective"]["gain"])) in f for f in body["facts"])
+
+
+def test_assistant_unknown_request_without_llm(client):
+    body = client.post("/api/assistant", json={"text": "hmm tell me something", "use_llm": False}).json()
+    assert body["ok"] is False and body["operation"] is None
+
+
+def test_municipal_unavailable_is_explicit(client):
+    r = client.get("/api/scenarios")
+    m = [s for s in r.json() if s["mode"] == "municipal"]
+    assert m and (m[0]["available"] or m[0]["unavailable_reason"])
