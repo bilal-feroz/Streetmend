@@ -120,3 +120,19 @@ def test_repair_pruning_never_drops_a_useful_repair(model):
         assert g <= best_alone
         if rep.id not in searched:
             assert g == 0, rep.id
+
+
+def test_supply_index_conserves_supply(model):
+    """E2SFCA invariant: summed over homes, accessibility equals the supply that reaches any home (one unit per facility)."""
+
+    from streetmend.access.analysis import supply
+
+    for cat in ("healthcare", "transit", "parks"):
+        s = supply(model, cat)
+        reached = int((s["in_catchment"] > 0).any())  # at least one home is served
+        assert reached
+        # each facility that any home can reach contributes exactly one unit in total
+        assert abs(float(s["A"].sum()) - round(float(s["A"].sum()))) < 1e-6
+        assert 0 < round(float(s["A"].sum())) <= s["facilities"]
+    d = diagnose(model, SE_CELL, "education")
+    assert d["supply"]["facilities_in_catchment"] == 0  # cut off: no school within the catchment along the network

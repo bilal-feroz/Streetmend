@@ -294,6 +294,15 @@ function Diagnose() {
           Routes allow links of unknown condition (an upper bound on access). {r.nearest_facility ? `Nearest by straight line: ${r.nearest_facility.name}${r.nearest_facility.in_network ? '' : ' (outside the modeled network)'}.` : ''}
         </p>
       </div>
+      <div className="mt-2.5 flex items-start justify-between gap-3 rounded-lg bg-wash px-3 py-2 text-[11.5px]" data-testid="supply" title={d.supply.method}>
+        <span className="text-ink-2">
+          Service supply <span className="text-ink-3">(E2SFCA-style, one unit per facility)</span>
+        </span>
+        <span className="shrink-0 text-right font-semibold text-ink tnum">
+          {d.supply.index === null ? 'no facility in the network' : d.supply.index >= 1 ? 'at or above the area’s top quarter' : `${Math.round(d.supply.index * 100)}% of the area’s top quarter`}
+          <span className="block text-[10.5px] font-normal text-ink-3">{d.supply.facilities_in_catchment} of {d.supply.facilities_in_network} facilities within {m(T)}</span>
+        </span>
+      </div>
       {r.barriers.length > 0 && (
         <div className="mt-3">
           <div className="text-[11.5px] font-semibold text-ink-2">Recorded barriers on the shortest physical route</div>

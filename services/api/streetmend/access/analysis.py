@@ -94,6 +94,7 @@ class AccessModel:
     homes: list[Home]
     retrieved: str | None = None
     provenance: list[dict[str, Any]] = field(default_factory=list)
+    _supply: dict[tuple[str, str, float], dict[str, Any]] = field(default_factory=dict, repr=False)
 
     def fac(self, category: str, extra: list[Facility] | None = None) -> list[Facility]:
         return [f for f in self.facilities if f.category == category] + [f for f in (extra or []) if f.category == category]
@@ -258,6 +259,46 @@ def home_status(model: AccessModel, category: str, profile: Profile = Profile.ST
     return {"T": T, "verified": d[kv], "possible": d[kp], "physical": d["physical"], "straight": s_in, "straight_outside": s_out, "factor": factors}
 
 
+# E2SFCA-style supply (Luo & Qi 2009, as adapted by REACH): three distance zones inside the
+# catchment d0 with weights 1, 0.42 and 0.09, here measured along the network.
+ZONE_WEIGHTS = (1.0, 0.42, 0.09)
+
+
+def _zone(d: np.ndarray, d0: float) -> np.ndarray:
+    return np.select([d < d0 / 3, d < 2 * d0 / 3, d <= d0], list(ZONE_WEIGHTS), 0.0)
+
+
+def supply(model: AccessModel, category: str, profile: Profile = Profile.STEP_FREE, T: float | None = None) -> dict[str, Any]:
+    """Per-home service supply index: how many facilities a home can reach, shared with every
+    other home that reaches them. Every facility counts as one unit of supply: no capacity
+    data exists, so this measures facility availability under competition, not real capacity.
+    Facilities outside the modeled network are not counted (an edge effect near the boundary)."""
+
+    T = float(T or THRESHOLD_M[category])
+    k = (category, Profile(profile).value, T)
+    if k in model._supply:
+        return model._supply[k]
+    net = model.net
+    m = net.mask(state_key(profile, "possible"))
+    groups: dict[str, list[Snap]] = {}
+    for f in model.fac(category):
+        if f.snap is not None:
+            groups.setdefault(f.id, []).append(f.snap)
+    pts = [h.snap for h in model.homes]
+    W = np.zeros((len(groups), len(pts)))
+    for j, snaps in enumerate(groups.values()):
+        d = net.node_dist(snaps, m, limit=T + 1.0)
+        W[j] = _zone(net.point_dist(d, pts, m, snaps), T)
+    demand = W.sum(axis=1)  # step 1: each facility's supply-to-demand ratio (supply 1)
+    R = np.divide(1.0, demand, out=np.zeros_like(demand), where=demand > 0)
+    A = (W * R[:, None]).sum(axis=0)  # step 2: each home's accessibility
+    target = float(np.percentile(A, 75)) if len(A) else 0.0
+    shortage = np.clip((target - A) / target, 0.0, 1.0) if target > 0 else np.ones_like(A)
+    out = {"A": A, "target": target, "shortage": shortage, "in_catchment": (W > 0).sum(axis=0), "facilities": len(groups)}
+    model._supply[k] = out
+    return out
+
+
 def _r(x: float) -> float | None:
     return None if not np.isfinite(x) else round(float(x), 1)
 
@@ -268,6 +309,7 @@ def analyze(model: AccessModel, category: str, profile: Profile = Profile.STEP_F
     st = home_status(model, category, profile, T)
     walk = home_status(model, category, Profile.PEDESTRIAN, T) if profile == Profile.STEP_FREE else None
     T = st["T"]
+    sup = supply(model, category, profile, T)
     cells: dict[str, dict[str, Any]] = {}
     score_v = access_score(st["verified"], T)
     score_p = access_score(st["possible"], T)
@@ -281,6 +323,7 @@ def analyze(model: AccessModel, category: str, profile: Profile = Profile.STEP_F
         c["_ds"].append(st["straight"][k])
         c["_do"].append(st["straight_outside"][k])
         c["_sv"] += score_v[k]
+        c["_sup"] = c.get("_sup", 0.0) + float(sup["A"][k])
         c["_sp"] += score_p[k]
         if walk is not None and walk["factor"][k] == "served":
             c["walk_pass"] += 1
@@ -305,6 +348,7 @@ def analyze(model: AccessModel, category: str, profile: Profile = Profile.STEP_F
             "median_network_m": _r(float(np.median(c["_dp"]))), "median_straight_m": _r(float(np.median(c["_ds"]))),
             "median_outside_m": _r(float(np.median(c["_do"]))),
             "unmet_homes": n - passed - uncertain,
+            "supply_index": None if not sup["target"] else round(c["_sup"] / n / sup["target"], 2),
         })
     out_cells.sort(key=lambda c: (-c["unmet_homes"], -c["uncertain"], c["id"]))
     tot = {k: sum(c["factors"][k] for c in out_cells) for k in FACTOR_LABEL}
@@ -341,6 +385,9 @@ def diagnose(model: AccessModel, cell: str, category: str, profile: Profile = Pr
     T = T or THRESHOLD_M[category]
     st = home_status(model, category, profile, T, homes=homes)
     walk = home_status(model, category, Profile.PEDESTRIAN, T, homes=homes)
+    sup = supply(model, category, profile, T)
+    ix = {h.id: k for k, h in enumerate(model.homes)}
+    cell_ix = [ix[h.id] for h in homes]
     net = model.net
     facs = [f for f in model.fac(category) if f.snap is not None]
     snaps = [f.snap for f in facs]
@@ -389,6 +436,12 @@ def diagnose(model: AccessModel, cell: str, category: str, profile: Profile = Pr
             "barriers": [{"id": e, "kind": g.edges[e].kind.value, "reason": g.edges[e].reason, "source_ids": g.edges[e].source_ids[:3]} for e in barriers],
             "unknown": [{"id": e, "kind": g.edges[e].kind.value, "reason": g.edges[e].reason} for e in unknown][:12],
             "unknown_count": len(unknown),
+        },
+        "supply": {
+            "index": None if not sup["target"] else round(float(np.mean(sup["A"][cell_ix])) / sup["target"], 2),
+            "facilities_in_catchment": int(np.max(sup["in_catchment"][cell_ix])) if cell_ix else 0,
+            "facilities_in_network": sup["facilities"],
+            "method": "E2SFCA-style (Luo & Qi 2009; as adapted by REACH): zones of 1, 0.42, 0.09 within the threshold, network distance, one unit of supply per facility",
         },
         "assumptions": [
             "Demand: OSM residential buildings (and large untyped buildings in residential land use), one per building: a proxy, not population.",

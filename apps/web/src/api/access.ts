@@ -38,6 +38,7 @@ export interface AccessCell {
   median_straight_m: number | null
   median_outside_m: number | null
   unmet_homes: number
+  supply_index: number | null
 }
 
 export interface AccessFacility { id: string; name: string; kind: string; lon: number; lat: number; source: string; in_network: boolean }
@@ -84,6 +85,7 @@ export interface Diagnosis {
     unknown: { id: string; kind: string; reason: string }[]
     unknown_count: number
   }
+  supply: { index: number | null; facilities_in_catchment: number; facilities_in_network: number; method: string }
   assumptions: string[]
 }
 
