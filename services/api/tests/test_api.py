@@ -207,3 +207,35 @@ def test_trees_context_endpoint(client):
     assert meta["count"] == len(d["trees"]) > 1000
     lng, lat, r_m, h_m, src = d["trees"][0]
     assert -80.86 < lng < -80.80 and 35.19 < lat < 35.24 and 0 < r_m < 12 and 0 < h_m < 40 and src in (0, 1)
+
+
+P1 = [{"id": "P1", "op": "close", "edge_id": "X:172578423:1", "label": "Temporary closure"}]
+
+
+@pytest.mark.parametrize("text,op,changes", [
+    ("Which neighborhood has the poorest access to hospitals?", "identify_access_gaps", []),
+    ("Why is grocery access poor here?", "diagnose_access", []),
+    ("Is repairing better than adding a new school?", "compare_interventions", []),
+    ("Compare direct distance with actual pedestrian network distance.", "network_vs_straight", []),
+    ("Show the streets that disconnect the most modeled journeys if closed.", "critical_links", []),
+    ("Which schools become unreachable after this crossing closes?", "closure_impact", P1),
+    ("Why did verification fail?", "explain_verification", P1),
+    ("Which two connections should be repaired to restore clinic access?", "optimize_repairs", P1),
+])
+def test_street_intelligence_tools(client, text, op, changes):
+    r = client.post("/api/assistant", json={"text": text, "scenario_id": "preflight", "use_llm": False, "changes": changes})
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["operation"] == op and body["ok"] and body["facts"]
+
+
+def test_street_intelligence_numbers_come_from_engine(client):
+    fix = client.post("/api/assistant", json={"text": "Which two connections should be repaired to restore clinic access?", "scenario_id": "preflight",
+                                              "use_llm": False, "changes": P1}).json()
+    assert fix["result"]["fix"]["interventions"] == ["A", "B"]
+    cmp = client.post("/api/assistant", json={"text": "Is repairing better than adding a new school?", "scenario_id": "preflight", "use_llm": False}).json()
+    c = cmp["result"]["compare"]
+    assert c["winner"] == "fix" and str(c["fix"]["gain"]) in cmp["facts"][0]
+    bad = client.post("/api/assistant", json={"text": "why did it fail", "scenario_id": "preflight", "use_llm": False,
+                                              "changes": [{"id": "x", "op": "close", "edge_id": "nope"}]})
+    assert bad.status_code == 422

@@ -22,12 +22,22 @@ Operation = Literal[
     "reset",
     "show_route",
     "candidates_near",
+    # street intelligence: access analysis and change verification (deterministic tools)
+    "identify_access_gaps",
+    "diagnose_access",
+    "compare_interventions",
+    "network_vs_straight",
+    "critical_links",
+    "closure_impact",
+    "explain_verification",
+    "show_evidence",
     "unsupported",
 ]
 OPERATIONS: tuple[str, ...] = Operation.__args__  # type: ignore[attr-defined]
 
 Priority = Literal["balanced", "healthcare", "transit", "education"]
-Category = Literal["healthcare", "transit", "education"]
+Category = Literal["healthcare", "transit", "education", "grocery", "parks", "services"]
+Profile = Literal["step_free", "pedestrian"]
 
 
 class Intent(BaseModel):
@@ -36,6 +46,8 @@ class Intent(BaseModel):
     priority: Priority | None = None
     intervention_id: str | None = Field(None, max_length=40, pattern=r"^[A-Za-z0-9_:\-.]+$")
     category: Category | None = None
+    cell: str | None = Field(None, pattern=r"^[0-9a-f]{15}$")
+    profile: Profile | None = None
 
 
 def json_schema() -> dict:
@@ -48,7 +60,8 @@ def json_schema() -> dict:
             "budget": {"type": ["integer", "null"]},
             "priority": {"type": ["string", "null"], "enum": ["balanced", "healthcare", "transit", "education", None]},
             "intervention_id": {"type": ["string", "null"]},
-            "category": {"type": ["string", "null"], "enum": ["healthcare", "transit", "education", None]},
+            "category": {"type": ["string", "null"], "enum": ["healthcare", "transit", "education", "grocery", "parks", "services", None]},
+            "profile": {"type": ["string", "null"], "enum": ["step_free", "pedestrian", None]},
         },
-        "required": ["operation", "budget", "priority", "intervention_id", "category"],
+        "required": ["operation", "budget", "priority", "intervention_id", "category", "profile"],
     }

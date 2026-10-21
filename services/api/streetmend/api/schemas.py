@@ -314,6 +314,9 @@ class AssistantRequest(BaseModel):
     origin: str | None = None
     destination: str | None = None
     use_llm: bool = True
+    changes: list[ChangeIn] = Field(default_factory=list, max_length=32)
+    mitigations: list[str] = Field(default_factory=list, max_length=16)
+    cell: str | None = Field(None, pattern=r"^[0-9a-f]{15}$")
 
     @field_validator("text")
     @classmethod

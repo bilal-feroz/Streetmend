@@ -15,6 +15,11 @@ CATEGORY_WORDS = {
     "transit": ["bus", "transit", "stop", "transport", "train", "rail", "station"],
     "education": ["school", "education", "library", "college", "student", "learning", "university"],
 }
+ACCESS_WORDS = {
+    "grocery": ["grocery", "groceries", "supermarket", "food store", "food shop"],
+    "parks": ["park", "parks", "playground", "green space"],
+    "services": ["essential service", "bank", "post office", "community cent", "services"],
+}
 DISALLOWED = re.compile(
     r"\b(delete|drop|rm\b|shell|exec|execute|python|script|sql|database|file|password|token|api key|"
     r"system prompt|ignore (all|previous)|format|shutdown|install|download|upload)\b",
@@ -37,6 +42,46 @@ def _category(t: str) -> str | None:
     return min(hits)[1] if hits else None
 
 
+def _access_category(t: str) -> str | None:
+    hits = [(t.find(w), c) for c, ws in ACCESS_WORDS.items() for w in ws if re.search(rf"\b{w}", t)]
+    hits += [(t.find(w), c) for c, ws in CATEGORY_WORDS.items() for w in ws if re.search(rf"\b{w}", t)]
+    return min(hits)[1] if hits else None
+
+
+def _profile(t: str) -> str | None:
+    if re.search(r"step[- ]free|wheelchair|ramp|stroller|walker", t):
+        return "step_free"
+    if re.search(r"\bwalk(ing)?\b|on foot|pedestrian", t):
+        return "pedestrian"
+    return None
+
+
+def _street_intelligence(t: str) -> Intent | None:
+    """Access-analysis and verification questions (checked before the repair-planner phrasings)."""
+
+    cat = _access_category(t)
+    prof = _profile(t)
+    if re.search(r"straight[- ]line|crow flies|as the crow|direct distance", t):
+        return Intent(operation="network_vs_straight", category=cat, profile=prof)
+    if re.search(r"disconnects? the most|if (it is |they are |it were |they were )?closed|most critical|critical (streets?|links?|crossings?)", t):
+        return Intent(operation="critical_links", profile=prof)
+    if re.search(r"(become|becomes|are|is|go|goes) (unreachable|cut off|disconnected) (after|if|when|once)|after (this|the) (crossing|sidewalk|closure|change)", t):
+        return Intent(operation="closure_impact", category=cat, profile=prof)
+    if re.search(r"fix or build|(repair|fix)\w*\b.*\b(or|versus|vs\.?|better than|instead of|compared? (to|with))\b.*\b(build|new|add)|"
+                 r"(build|new|add)\w*\b.*\b(or|versus|vs\.?|better than|instead of)\b.*\b(repair|fix)|compare (the )?interventions|"
+                 r"which intervention", t):
+        return Intent(operation="compare_interventions", category=cat, profile=prof)
+    if re.search(r"why did (the )?(verification|checks?|tests?) fail|counterexample|what (breaks|broke|fails|failed)|why .*\bfail", t):
+        return Intent(operation="explain_verification", profile=prof)
+    if re.search(r"(show|see|what is) (me )?the evidence|evidence (behind|for)|how do (you|we) know", t):
+        return Intent(operation="show_evidence")
+    if re.search(r"\bwhy\b.*\b(access|served|underserved|poor|weak|low)\b|diagnos", t) and cat:
+        return Intent(operation="diagnose_access", category=cat, profile=prof)
+    if re.search(r"(neighbou?rhoods?|areas?|cells?|where|which part|blocks?).*(poor|weak|worst|lowest|least|underserved|lack|gaps?|no access|struggle|hardest|difficult|far from|farthest)|access gaps?|underserved", t):
+        return Intent(operation="identify_access_gaps", category=cat or "healthcare", profile=prof)
+    return None
+
+
 def parse(text: str, known_ids: set[str]) -> Intent | None:
     """Return an intent for recognised phrasings, or None when unsure."""
 
@@ -51,6 +96,9 @@ def parse(text: str, known_ids: set[str]) -> Intent | None:
     m = re.search(r"\b(apply|repair|fix|install|reconstruct|build)\s+(?:repair\s+|ramp\s+|candidate\s+)?([A-Za-z0-9_:\-.]+)\b", raw, re.I)
     if m and m.group(2) in known_ids:
         return Intent(operation="apply_repair", intervention_id=m.group(2))
+    si = _street_intelligence(t)
+    if si is not None:
+        return si
     cat = _category(t)
     n = _budget(t)
     if n is not None:

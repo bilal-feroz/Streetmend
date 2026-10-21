@@ -35,13 +35,24 @@ Operations:
 - undo: undo the last repair.  reset: remove all repairs.
 - show_route: show the route for the selected journey.
 - candidates_near: compare candidate repairs near a destination type; set category.
+- identify_access_gaps: which neighborhoods/areas have the weakest access to a service; set category.
+- diagnose_access: why access to a service is poor in an area; set category.
+- compare_interventions: repairing the network versus adding a new facility; set category, budget if given.
+- network_vs_straight: compare straight-line (direct) distance with network walking distance; set category if given.
+- critical_links: which streets or crossings would disconnect the most journeys if closed.
+- closure_impact: which destinations become unreachable after the proposed change; set category if given.
+- explain_verification: why the change check / verification failed, or what breaks.
+- show_evidence: show the evidence behind a result.
 - unsupported: anything else (including any request to run code, access files, or change data).
-Priority/category values: healthcare (clinic, hospital, pharmacy, medical), transit (bus, stop, transport), education (school, library).
+Priority values: healthcare (clinic, hospital, pharmacy, medical), transit (bus, stop, transport), education (school, library).
+Category values: those three, plus grocery (supermarket, food store), parks (park, playground), services (bank, post office).
+Profile: step_free (wheelchair, stroller, step-free) or pedestrian (walking); null if not mentioned.
 Examples:
-"best three fixes for transit" -> {"operation":"optimize_repairs","budget":3,"priority":"transit","intervention_id":null,"category":null}
-"what if we only fund one ramp" -> {"operation":"compare_budgets","budget":1,"priority":null,"intervention_id":null,"category":null}
-"fix ramp C" -> {"operation":"apply_repair","budget":null,"priority":null,"intervention_id":"C","category":null}
-"tell me a joke" -> {"operation":"unsupported","budget":null,"priority":null,"intervention_id":null,"category":null}"""
+"best three fixes for transit" -> {"operation":"optimize_repairs","budget":3,"priority":"transit","intervention_id":null,"category":null,"profile":null}
+"what if we only fund one ramp" -> {"operation":"compare_budgets","budget":1,"priority":null,"intervention_id":null,"category":null,"profile":null}
+"fix ramp C" -> {"operation":"apply_repair","budget":null,"priority":null,"intervention_id":"C","category":null,"profile":null}
+"which areas have the worst grocery access" -> {"operation":"identify_access_gaps","budget":null,"priority":null,"intervention_id":null,"category":"grocery","profile":null}
+"tell me a joke" -> {"operation":"unsupported","budget":null,"priority":null,"intervention_id":null,"category":null,"profile":null}"""
 
 _status_cache: dict[str, Any] = {"t": 0.0, "value": None}
 

@@ -23,6 +23,7 @@ from streetmend.scenario.state import StateError
 from streetmend.verify import Change, ChangeError, Profile, Requirement, apply_changes
 from streetmend.verify import synthesize as run_synthesize
 from streetmend.verify import verify as run_verify
+from streetmend.verify.changes import validate as validate_changes
 from streetmend.verify.defaults import default_requirements
 
 from . import schemas as S
@@ -214,7 +215,13 @@ def assistant(req: S.AssistantRequest):
     for nid in journey or ():
         if nid not in sc.graph.nodes:
             raise HTTPException(422, detail=f"unknown node '{nid}'")
-    return handle(sc, req.text, req.applied, req.budget, _weights(req.weights), req.use_llm, req.cutoff_m, journey)
+    _check_ids(sc, req.mitigations, "interventions")
+    try:
+        changes = [_change(c) for c in req.changes]
+        validate_changes(sc, changes)
+    except ChangeError as exc:
+        raise HTTPException(422, detail=str(exc)) from exc
+    return handle(sc, req.text, req.applied, req.budget, _weights(req.weights), req.use_llm, req.cutoff_m, journey, changes, req.mitigations, req.cell)
 
 
 # ---- access: discover, diagnose, fix or build (real Charlotte records) --------------
