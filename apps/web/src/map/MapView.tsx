@@ -366,6 +366,15 @@ export function MapView() {
       .finally(() => (treesLoad.current = 'done'))
   }, [handle, layers.trees])
 
+  // ---- the journey is never buried: no canopy along it or at its barriers ---------------------
+  useEffect(() => {
+    if (!handle || !scenario) return
+    const j = evaluation?.journey
+    const line = ((j?.route.found ? j.route.geometry : j?.potential_route?.geometry) ?? []) as [number, number][]
+    const pts = scenario.interventions.filter((i) => j?.potential_blockers.includes(i.id) || applied.includes(i.id)).map((i) => [[i.lon, i.lat]] as [number, number][])
+    handle.layer.setTreeClearing(line.length ? [line, ...pts] : pts, 15)
+  }, [handle, scenario, evaluation, applied])
+
   // ---- buildings: visibility + destination / selection tint ---------------------------
   const destBuilding = useMemo(() => {
     if (!handle || !buildingsReady || !scenario || !journey) return null

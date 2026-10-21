@@ -165,11 +165,11 @@ export class NetworkLayer {
     const cum = [0]
     for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + pts[i].distanceTo(pts[i - 1]))
     // a soft emerald glow, a crisp white halo, then the route itself
-    const glow = new Line2(new LineGeometry(), lineMaterial({ color: '#2fc497', width: 26, opacity: 0.2, elev: 0.55 }, this.resolution))
+    const glow = new Line2(new LineGeometry(), lineMaterial({ color: '#2fc497', width: 16, opacity: 0.16, elev: 0.55 }, this.resolution))
     const halo = new Line2(new LineGeometry(), lineMaterial({ color: '#ffffff', width: 12, opacity: 0.95, elev: 0.6 }, this.resolution))
     const core = new Line2(new LineGeometry(), lineMaterial({ color: '#06805f', width: 6.5, opacity: 1, elev: 0.7 }, this.resolution))
     // a faint copy that ignores depth: the route stays traceable under tree canopy
-    const ghost = new Line2(new LineGeometry(), lineMaterial({ color: '#06805f', width: 4, opacity: 0.38, elev: 0.7 }, this.resolution))
+    const ghost = new Line2(new LineGeometry(), lineMaterial({ color: '#06805f', width: 4, opacity: 0.22, elev: 0.7 }, this.resolution))
     ;(ghost.material as LineMaterial).depthTest = false
     ghost.renderOrder = 28
     glow.renderOrder = 29
@@ -217,10 +217,10 @@ export class NetworkLayer {
     if (!coords || coords.length < 2) return
     const pts = coords.flatMap(([lng, lat]) => this.frame.toLocal(lng, lat, 0.6))
     for (const [style, order, ghost] of [
-      [{ color: '#15513f', width: 3, opacity: 0.32, elev: 0.6 }, 21, true],
-      [{ color: '#2fc497', width: 22, opacity: 0.2, elev: 0.5 }, 22, false],
-      [{ color: '#ffffff', width: 10, opacity: 0.92, elev: 0.55 }, 23, false],
-      [{ color: '#145f4a', width: 4.6, opacity: 1, elev: 0.6 }, 24, false],
+      // a broken journey reads as a plain ink line: the planned path, not yet usable
+      [{ color: '#192c28', width: 3, opacity: 0.2, elev: 0.6 }, 21, true],
+      [{ color: '#ffffff', width: 9, opacity: 0.95, elev: 0.55 }, 23, false],
+      [{ color: '#22302c', width: 3.8, opacity: 1, elev: 0.6 }, 24, false],
     ] as const) {
       const g = new LineGeometry()
       g.setPositions(pts)

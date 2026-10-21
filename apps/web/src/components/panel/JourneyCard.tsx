@@ -2,6 +2,7 @@ import { CircleCheck, CircleHelp, CircleSlash, Pencil, RotateCcw, Undo2 } from '
 import { useState } from 'react'
 import type { EvaluateResponse, ScenarioOut } from '../../api/types'
 import { GUIDED_ID, useApp } from '../../state/store'
+import { StoryStrip } from './StoryStrip'
 
 const fmtM = (m: number | null | undefined) => (m == null ? '—' : `${Math.round(m).toLocaleString('en-US')} m`)
 
@@ -53,22 +54,30 @@ export function journeyStatus(sc: ScenarioOut, ev: EvaluateResponse | null) {
   return { tone: 'bad' as const, label: 'Disconnected in model', text: j.route.reason || `No traversable route within ${fmtM(ev?.metrics.cutoff_m)}.` }
 }
 
-/** The case headline: what is at stake, in one line, from engine state. */
-function caseTitle(sc: ScenarioOut, ev: EvaluateResponse | null, wasBroken: boolean, applied: string[]) {
-  const j = ev?.journey
-  if (!j) return 'Choose a journey.'
-  const len = j.route.found ? j.route.length_m : j.potential_route?.length_m
-  const short = len != null && len <= (ev?.metrics.cutoff_m ?? 800) ? 'A short journey' : 'A journey'
-  if (j.route.found) return wasBroken ? `${short}, reconnected.` : `${short}, connected.`
-  if (blockedCrossing(sc, [...new Set(j.potential_blockers)])) return `${short}. An incomplete crossing.`
-  const left = [...new Set(j.potential_blockers)]
-  const crossingOf = (id: string) => sc.interventions.find((i) => i.id === id)?.attrs?.crossing
-  if (left.length === 1 && crossingOf(left[0]) && applied.some((a) => crossingOf(a) === crossingOf(left[0]))) return `${short}. One end still blocked.`
-  if (left.length) return `${short}. A broken link.`
-  return 'No modeled route yet.'
+const clean = (label: string) => label.replace(/ \(\d+ bldg\)$/, '')
+
+/** The destination in plain words ("the hospital"), from its category and name. */
+function destNoun(d: { label: string; category?: string } | undefined) {
+  if (!d) return 'the destination'
+  if (d.category === 'healthcare') return /hospital|medical center/i.test(d.label) ? 'the hospital' : 'the clinic'
+  if (d.category === 'transit') return 'the bus stop'
+  if (d.category === 'education') return 'school'
+  return 'the destination'
 }
 
-const clean = (label: string) => label.replace(/ \(\d+ bldg\)$/, '')
+/** The case headline: who is affected and what they cannot reach, from engine state only. */
+function caseTitle(sc: ScenarioOut, ev: EvaluateResponse | null, wasBroken: boolean, applied: string[], who: string, where: string) {
+  const j = ev?.journey
+  if (!j) return 'Choose a journey.'
+  const plural = /^Homes\b/i.test(who)
+  if (j.route.found) return wasBroken ? `${who} can reach ${where} again.` : `${who} can reach ${where}.`
+  const left = [...new Set(j.potential_blockers)]
+  const crossingOf = (id: string) => sc.interventions.find((i) => i.id === id)?.attrs?.crossing
+  if (left.length === 1 && crossingOf(left[0]) && applied.some((a) => crossingOf(a) === crossingOf(left[0]))) return `One end fixed. ${who} ${plural ? 'are' : 'is'} still cut off.`
+  if (left.length) return `${who} ${plural ? 'are' : 'is'} cut off from ${where}.`
+  return `No modeled route to ${where} yet.`
+}
+
 
 export function JourneyCard() {
   const sc = useApp((s) => s.scenario)
@@ -90,65 +99,78 @@ export function JourneyCard() {
   const Icon = st.tone === 'ok' ? CircleCheck : st.tone === 'bad' ? CircleSlash : CircleHelp
   const tone = st.tone === 'ok' ? 'text-ok-ink bg-ok-bg' : st.tone === 'bad' ? 'text-bad-ink bg-bad-bg' : 'text-unk-ink bg-unk-bg'
   const sel = 'w-full min-w-0 truncate rounded-lg border border-line-2 bg-paper px-2.5 py-2 text-[13px] font-medium text-ink'
+  const j = ev?.journey
+  const len = j ? (j.route.found ? j.route.length_m : j.potential_route?.length_m) : null
+  const who = o ? clean(o.label) : 'This origin'
   return (
     <section aria-labelledby="case-h" className={`px-6 ${compact ? 'pt-5 pb-4' : 'pt-6 pb-5'}`} data-testid="journey-card">
-      <div className="eyebrow">{guided ? 'Case 01 · Modeled scenario' : 'Charlotte records · Elizabeth'}</div>
-      <h2 id="case-h" className={`display mt-2 text-ink transition-[font-size] duration-300 ${compact ? 'text-[22px]' : 'text-[32px]'}`}>
-        {caseTitle(sc, ev, !(initial?.journey?.route.found ?? true), applied)}
-      </h2>
-
-      {compact ? (
-        <p className="mt-2 text-[13px] leading-snug font-semibold text-ink">
-          {o ? clean(o.label) : '—'} <span className="font-normal text-ink-3">→</span> {d?.label ?? '—'}
-        </p>
-      ) : (
-      <ol className="mt-4 space-y-0" aria-label="Selected journey">
-        <li className="flex items-start gap-3">
-          <span className="mt-1 grid h-[18px] w-[18px] shrink-0 place-items-center rounded-[5px] bg-ink" aria-hidden>
-            <span className="h-1.5 w-1.5 rounded-full bg-white" />
+      <div data-testid="journey-status" aria-live="polite">
+        <div className="flex items-center justify-between gap-2">
+          <div className="eyebrow truncate">{guided ? 'Case 01' : 'Charlotte records'}</div>
+          <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-[3px] text-[10.5px] font-bold tracking-[0.08em] uppercase ${tone}`}>
+            <Icon size={12} strokeWidth={2.6} aria-hidden />
+            {st.label}
           </span>
-          <div className="min-w-0">
-            <div className="text-[11px] font-semibold text-ink-3">From</div>
-            <div className="text-[14.5px] leading-snug font-semibold text-ink">{o ? clean(o.label) : '—'}</div>
-          </div>
-        </li>
-        <li className="ml-[8.5px] h-4 w-px border-l border-dashed border-ink/35" aria-hidden />
-        <li className="flex items-start gap-3">
-          <span className={`mt-1 grid h-[18px] w-[18px] shrink-0 place-items-center rounded-[5px] ${st.tone === 'ok' ? 'bg-ok' : 'bg-bad'}`} aria-hidden>
-            <span className="h-1.5 w-1.5 rounded-full bg-white" />
-          </span>
-          <div className="min-w-0">
-            <div className="text-[11px] font-semibold text-ink-3">To</div>
-            <div className="text-[14.5px] leading-snug font-semibold text-ink">{d?.label ?? '—'}</div>
-          </div>
-        </li>
-      </ol>
-      )}
-
-      <div className={compact ? 'mt-2.5' : 'mt-4'} data-testid="journey-status" aria-live="polite">
-        <span className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11.5px] font-bold tracking-[0.08em] uppercase ${tone}`}>
-          <Icon size={13} strokeWidth={2.6} aria-hidden />
-          {st.label}
-        </span>
+        </div>
+        <h2 id="case-h" className={`display mt-2.5 text-balance text-ink transition-[font-size] duration-300 ${compact ? 'text-[23px]' : 'text-[clamp(25px,2.05vw,30px)]'}`}>
+          {caseTitle(sc, ev, !(initial?.journey?.route.found ?? true), applied, who, destNoun(d))}
+        </h2>
         <p className={`mt-2 leading-relaxed text-ink-2 ${compact ? 'text-[12.5px]' : 'text-[13.5px]'}`}>{st.text}</p>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-x-1 gap-y-1">
-        <button className="btn-ghost -ml-2 px-2 py-1 text-[12.5px]" onClick={() => setEditing(!editing)} aria-expanded={editing} data-testid="change-journey">
-          <Pencil size={12.5} aria-hidden /> Change journey
-        </button>
-        {applied.length > 0 && (
-          <>
-            <span className="text-[12px] text-ink-3" aria-hidden>·</span>
-            <button className="btn-ghost px-2 py-1 text-[12.5px]" onClick={() => void undo()} disabled={!canUndo} data-testid="undo">
-              <Undo2 size={12.5} aria-hidden /> Undo
+      {!compact && (
+        <ol className="relative mt-4 rounded-xl bg-wash px-3.5 py-3 pr-11" aria-label="Selected journey">
+          <li className="absolute top-2 right-2">
+            <button className="grid h-7 w-7 place-items-center rounded-lg text-ink-2 hover:bg-paper hover:text-ink" onClick={() => setEditing(!editing)} aria-expanded={editing} aria-label="Change journey" title="Change journey" data-testid="change-journey">
+              <Pencil size={13} aria-hidden />
             </button>
-            <button className="btn-ghost px-2 py-1 text-[12.5px]" onClick={() => void reset()} data-testid="reset">
-              <RotateCcw size={12.5} aria-hidden /> Start over
+          </li>
+          <li className="flex items-center gap-3">
+            <span className="grid h-[18px] w-[18px] shrink-0 place-items-center rounded-[5px] bg-ink" aria-hidden>
+              <span className="h-1.5 w-1.5 rounded-full bg-white" />
+            </span>
+            <div className="min-w-0 truncate text-[13.5px] font-semibold text-ink">
+              <span className="sr-only">From </span>
+              {who}
+            </div>
+          </li>
+          <li className="flex items-center gap-3" aria-hidden>
+            <span className="ml-[8.5px] h-5 w-px border-l border-dashed border-ink/35" />
+            {len != null && <span className="ml-[3px] text-[11px] font-semibold text-ink-3 tnum">{Math.round(len)} m on foot · step-free</span>}
+          </li>
+          <li className="flex items-center gap-3">
+            <span className={`grid h-[18px] w-[18px] shrink-0 place-items-center rounded-[5px] ${st.tone === 'ok' ? 'bg-ok' : 'bg-bad'}`} aria-hidden>
+              <span className="h-1.5 w-1.5 rounded-full bg-white" />
+            </span>
+            <div className="min-w-0 text-[13.5px] leading-snug font-semibold text-ink">
+              <span className="sr-only">To </span>
+              {d?.label ?? '—'}
+            </div>
+          </li>
+        </ol>
+      )}
+
+      <StoryStrip />
+
+      {(applied.length > 0 || compact) && (
+        <div className="mt-2 flex flex-wrap items-center gap-x-1 gap-y-1">
+          {compact && (
+            <button className="btn-ghost -ml-2 px-2 py-1 text-[12.5px]" onClick={() => setEditing(!editing)} aria-expanded={editing} data-testid="change-journey">
+              <Pencil size={12.5} aria-hidden /> Change journey
             </button>
-          </>
-        )}
-      </div>
+          )}
+          {applied.length > 0 && (
+            <>
+              <button className={`btn-ghost px-2 py-1 text-[12.5px] ${compact ? '' : '-ml-2'}`} onClick={() => void undo()} disabled={!canUndo} data-testid="undo">
+                <Undo2 size={12.5} aria-hidden /> Undo
+              </button>
+              <button className="btn-ghost px-2 py-1 text-[12.5px]" onClick={() => void reset()} data-testid="reset">
+                <RotateCcw size={12.5} aria-hidden /> Start over
+              </button>
+            </>
+          )}
+        </div>
+      )}
       {editing && (
         <div className="mt-2 space-y-2 rounded-xl bg-wash p-3">
           <label className="block text-[11.5px] font-semibold text-ink-2">

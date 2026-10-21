@@ -98,12 +98,12 @@ export function PlanView() {
   const analysis = useApp((s) => s.analysis)
   const { setBudget, setPriority, setPanelView } = useApp.getState()
   return (
-    <section aria-labelledby="plan-h" className="border-t border-line px-6 pt-5 pb-3">
+    <section aria-labelledby="plan-h" className="border-t border-line px-6 pt-4 pb-3">
       <h2 id="plan-h" className="display text-[24px] text-ink">
         What would you repair?
       </h2>
-      <p className="mt-1.5 text-[13px] leading-relaxed text-ink-2">StreetMend tests every combination of candidate repairs against access to essential destinations.</p>
-      <div className="mt-5 space-y-4">
+      <p className="mt-1 text-[13px] leading-relaxed text-ink-2">StreetMend tests every combination of repairs and picks the set that reconnects the most journeys.</p>
+      <div className="mt-4 space-y-3.5">
         <div>
           <div className="mb-1.5 flex items-baseline justify-between">
             <span className="kicker">Repair budget</span>

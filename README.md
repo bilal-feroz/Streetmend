@@ -42,6 +42,8 @@ Full tables: [docs/BENCHMARK.md](docs/BENCHMARK.md). The honest conclusion: simp
 
 ## Screenshots
 
+The case panel tells the story in four steps, each computed by the engine and clickable: **Before** (disconnected) → **Repair A** (still disconnected) → **A + B** (connected) → **Result** (+10 journeys, shown before/after on the map).
+
 The opening flies from the United States to North Carolina, Charlotte and the Elizabeth study area: one continuous camera from a national outline (US Census boundaries) into the real map and the 3D city.
 
 | United States | North Carolina | Charlotte |

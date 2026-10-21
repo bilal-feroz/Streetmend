@@ -34,20 +34,20 @@ export interface BuildingIndex {
 
 // Architectural massing palette: bright roofs over warm stone walls; towers a
 // touch cooler. A small per-building variation keeps blocks from merging.
-const ROOF = new THREE.Color('#fcfbf7')
-const WALL = new THREE.Color('#e6e3db')
+const ROOF = new THREE.Color('#fdfcf8')
+const WALL = new THREE.Color('#d9d4c9')
 const TALL_ROOF = new THREE.Color('#eef2f3')
-const TALL_WALL = new THREE.Color('#cfd9de') // towers read as glass
+const TALL_WALL = new THREE.Color('#c3cfd6') // towers read as glass
 
 // Gentle material families by OSM building type (visual only): warm homes,
 // cool offices and shops, stone institutions, darker outbuildings.
 const FAMILY: Record<string, [string, string]> = {
-  house: ['#ece7dd', '#fbf9f4'], detached: ['#ece7dd', '#fbf9f4'], semidetached_house: ['#ece7dd', '#fbf9f4'], bungalow: ['#ece7dd', '#fbf9f4'],
-  terrace: ['#e9e3d8', '#f8f5ee'], residential: ['#e9e4da', '#f9f7f1'], apartments: ['#e5e0d5', '#f6f3ec'], dormitory: ['#e5e0d5', '#f6f3ec'],
-  commercial: ['#e1e4e3', '#f3f4f3'], retail: ['#e1e4e3', '#f3f4f3'], office: ['#dde3e5', '#f1f4f5'], hotel: ['#dde3e5', '#f1f4f5'],
-  hospital: ['#e7e5df', '#f8f7f3'], school: ['#e9e2d6', '#f7f3ea'], college: ['#e9e2d6', '#f7f3ea'], university: ['#e9e2d6', '#f7f3ea'],
-  church: ['#e8e1d4', '#f5f1e8'], civic: ['#e4e3df', '#f4f4f1'], public: ['#e4e3df', '#f4f4f1'],
-  garage: ['#dbd8d0', '#e8e6df'], garages: ['#dbd8d0', '#e8e6df'], shed: ['#dbd8d0', '#e8e6df'], carport: ['#dbd8d0', '#e8e6df'], parking: ['#d9dad6', '#e4e5e2'],
+  house: ['#ded6c8', '#fdfbf6'], detached: ['#ded6c8', '#fdfbf6'], semidetached_house: ['#ded6c8', '#fdfbf6'], bungalow: ['#ded6c8', '#fdfbf6'],
+  terrace: ['#dad1c2', '#fbf8f1'], residential: ['#dbd4c7', '#fcfaf4'], apartments: ['#d6cfc2', '#f9f7f1'], dormitory: ['#d6cfc2', '#f9f7f1'],
+  commercial: ['#d2d7d7', '#f6f7f6'], retail: ['#d2d7d7', '#f6f7f6'], office: ['#cdd5d9', '#f4f6f7'], hotel: ['#cdd5d9', '#f4f6f7'],
+  hospital: ['#d9d6ce', '#fbfaf6'], school: ['#dbd2c4', '#faf7ef'], college: ['#dbd2c4', '#faf7ef'], university: ['#dbd2c4', '#faf7ef'],
+  church: ['#d9d0c0', '#f8f4eb'], civic: ['#d6d4cd', '#f7f7f4'], public: ['#d6d4cd', '#f7f7f4'],
+  garage: ['#cfcbc2', '#ebe9e2'], garages: ['#cfcbc2', '#ebe9e2'], shed: ['#cfcbc2', '#ebe9e2'], carport: ['#cfcbc2', '#ebe9e2'], parking: ['#cdcecb', '#e6e7e4'],
 }
 const familyCache = new Map<string, [THREE.Color, THREE.Color]>()
 function family(type: string | undefined): [THREE.Color, THREE.Color] {
@@ -83,6 +83,8 @@ export async function buildBuildingGeometry(fc: BuildingCollection, frame: Local
   const shades: number[] = []
   const wall: number[] = [] // per vertex: metres along the facade, metres up, is-wall, is-tower (facade shader)
   const edge: number[] = []
+  const skirt: number[] = [] // ground contact shadow around each footprint (x, y, z) ...
+  const skirtA: number[] = [] // ... with an RGBA colour that fades outward
   const ids: string[] = []
   const props: BuildingProps[] = []
   const centroids: [number, number][] = []
@@ -143,8 +145,8 @@ export async function buildBuildingGeometry(fc: BuildingCollection, frame: Local
           const b = ring[(i + 1) % ring.length]
           const ax = a.x, az = -a.y, bx = b.x, bz = -b.y
           // ambient occlusion: walls darken toward the ground
-          const lo = 0.7
-          const shadeTop = Math.min(1, lo + (h / 30) * 0.22 + 0.16)
+          const lo = 0.6
+          const shadeTop = Math.min(1, lo + (h / 30) * 0.24 + 0.24)
           const len = Math.hypot(bx - ax, bz - az)
           wIs = 1
           wTall = tall ? 1 : 0
@@ -157,6 +159,17 @@ export async function buildBuildingGeometry(fc: BuildingCollection, frame: Local
           W(runU, mh); pushV(ax, mh, az, lo, wallC); W(runU + len, h); pushV(bx, h, bz, shadeTop, wallC); W(runU, h); pushV(ax, h, az, shadeTop, wallC)
           runU += len
           edge.push(ax, h, az, bx, h, bz)
+          if (ring === rings[0] && mh < 0.5 && len > 0.2) {
+            // outward normal (rings are CCW in east-north space; local z points south)
+            const nx = (b.y - a.y) / len
+            const nn = -(b.x - a.x) / len
+            const W2 = 2.6
+            const a2x = ax + nx * W2, a2z = az - nn * W2, b2x = bx + nx * W2, b2z = bz - nn * W2
+            skirt.push(ax, 0.06, az, bx, 0.06, bz, b2x, 0.06, b2z, ax, 0.06, az, b2x, 0.06, b2z, a2x, 0.06, a2z)
+            const k0 = [0.11, 0.13, 0.12, 0.2]
+            const k1 = [0.11, 0.13, 0.12, 0]
+            skirtA.push(...k0, ...k0, ...k1, ...k0, ...k1, ...k1)
+          }
           // vertical corner lines where the outline turns
           const p = ring[(i - 1 + ring.length) % ring.length]
           const d1 = new THREE.Vector2(a.x - p.x, a.y - p.y).normalize()
@@ -192,8 +205,11 @@ export async function buildBuildingGeometry(fc: BuildingCollection, frame: Local
   geo.computeBoundingSphere()
   const lines = new THREE.BufferGeometry()
   lines.setAttribute('position', new THREE.Float32BufferAttribute(edge, 3))
+  const contact = new THREE.BufferGeometry()
+  contact.setAttribute('position', new THREE.Float32BufferAttribute(skirt, 3))
+  contact.setAttribute('color', new THREE.Float32BufferAttribute(skirtA, 4))
   const index: BuildingIndex = { ids, props, centroids, starts: Int32Array.from(starts), counts: Int32Array.from(counts) }
-  return { geo, lines, index, baseColors: Float32Array.from(col), shades: Float32Array.from(shades) }
+  return { geo, lines, contact, index, baseColors: Float32Array.from(col), shades: Float32Array.from(shades) }
 }
 
 /** Index of the building owning a vertex (binary search over starts). */

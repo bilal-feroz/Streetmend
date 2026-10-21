@@ -87,6 +87,7 @@ export function MapLabels({ handle }: { handle: MapHandle }) {
     const place = () => {
       const w = handle.map.getCanvas().clientWidth - panelInset()
       const at = new Map(anchors.map((a) => [a.key, layer.project(a.lng, a.lat, a.alt)]))
+      const boxes = new Map<string, [number, number, number, number]>() // x, y, w, h of each text label
       for (const a of anchors) {
         const el = refs.current.get(a.key)
         if (!el) continue
@@ -115,9 +116,21 @@ export function MapLabels({ handle }: { handle: MapHandle }) {
           else if (!right && p[0] - 18 - lw < 8 && p[0] + 18 + lw <= w - 8) right = true
           const x = right ? Math.min(p[0] + 18, w - 8 - lw) : Math.max(p[0] - 18 - lw, 8)
           el.style.transform = `translate(${Math.round(x)}px, ${Math.round(p[1])}px) translate(0, -50%)`
+          boxes.set(a.key, [x, p[1] - el.offsetHeight / 2, lw, el.offsetHeight])
         } else {
           el.style.transform = `translate(${Math.round(p[0])}px, ${Math.round(p[1] + a.dy)}px) translate(-50%, -100%)`
+          boxes.set(a.key, [p[0] - el.offsetWidth / 2, p[1] + a.dy - el.offsetHeight, el.offsetWidth, el.offsetHeight])
         }
+      }
+      // Labels never overlap: when the view is small, lower-priority labels step aside.
+      const kept: [number, number, number, number][] = []
+      for (const k of ['tip', 'gap', 'dest', 'origin']) {
+        const b = boxes.get(k)
+        const el = refs.current.get(k)
+        if (!b || !el) continue
+        const hit = kept.some(([x, y, bw, bh]) => b[0] < x + bw + 4 && x < b[0] + b[2] + 4 && b[1] < y + bh + 4 && y < b[1] + b[3] + 4)
+        if (hit) el.style.opacity = '0'
+        else kept.push(b)
       }
     }
     layer.onRender = place

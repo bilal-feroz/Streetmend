@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { buildBuildingGeometry, buildingOfVertex, type BuildingCollection, type BuildingIndex } from './buildings'
 import type { LocalFrame } from './frame'
 import { HealEffect } from './heal'
-import { buildTrees, type TreeData } from './trees'
+import { applyClearing, buildTrees, type TreeData, type TreeMeshes } from './trees'
 import { MarkerLayer, type MarkerSpec } from './markers'
 import { NetworkLayer, type EdgeGeom, type NetCategory } from './network'
 
@@ -53,6 +53,7 @@ export class CityLayer implements CustomLayerInterface {
   treeCount = 0
   private buildingMesh: THREE.Mesh | null = null
   private buildingLines: THREE.LineSegments | null = null
+  private contactMesh: THREE.Mesh | null = null
   private baseColors: Float32Array | null = null
   private shades: Float32Array | null = null
   index: BuildingIndex | null = null
@@ -172,7 +173,7 @@ export class CityLayer implements CustomLayerInterface {
     this.markers.after.updateScale(this.P.elements[5], h)
     const z = this.map.getZoom()
     this.treeGroup.visible = z > 12.4 && this.treeGroup.userData.on !== false // a canopy at regional zoom would only cost frames
-    if (this.buildingLines) (this.buildingLines.material as THREE.LineBasicMaterial).opacity = THREE.MathUtils.clamp((z - 14.2) / 1.6, 0, 1) * 0.42 * this.height
+    if (this.buildingLines) (this.buildingLines.material as THREE.LineBasicMaterial).opacity = THREE.MathUtils.clamp((z - 14.2) / 1.6, 0, 1) * 0.5 * this.height
     if (this.overlayAlpha < 1 || this.alphaDirty) this.applyOverlayAlpha()
 
     for (const [k, a] of this.anims) {
@@ -231,7 +232,7 @@ export class CityLayer implements CustomLayerInterface {
 
   // ---- buildings -------------------------------------------------------------
   async setBuildings(fc: BuildingCollection) {
-    const { geo, lines, index, baseColors, shades } = await buildBuildingGeometry(fc, this.frame)
+    const { geo, lines, contact, index, baseColors, shades } = await buildBuildingGeometry(fc, this.frame)
     if (!this.ready) return
     this.clearBuildings()
     this.shades = shades
@@ -262,7 +263,7 @@ export class CityLayer implements CustomLayerInterface {
     mesh.castShadow = true
     mesh.receiveShadow = false // facades are shaded by the sun direction; self-shadowing only added acne
     mesh.renderOrder = 1
-    const lmat = new THREE.LineBasicMaterial({ color: '#6a665e', transparent: true, opacity: 0.4, depthWrite: false })
+    const lmat = new THREE.LineBasicMaterial({ color: '#57534b', transparent: true, opacity: 0.5, depthWrite: false })
     const lineObj = new THREE.LineSegments(lines, lmat)
     lineObj.renderOrder = 2
     // compile the building shaders off the critical path (KHR_parallel_shader_compile when available)
@@ -273,7 +274,11 @@ export class CityLayer implements CustomLayerInterface {
     } catch {
       /* falls back to compiling on first draw */
     }
-    this.buildingGroup.add(mesh, lineObj)
+    // soft ground-contact shadow around every footprint (ambient occlusion on the street)
+    const contactMesh = new THREE.Mesh(contact, new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false, side: THREE.DoubleSide }))
+    contactMesh.renderOrder = 0
+    this.buildingGroup.add(mesh, lineObj, contactMesh)
+    this.contactMesh = contactMesh
     this.buildingMesh = mesh
     this.buildingLines = lineObj
     this.index = index
@@ -287,7 +292,7 @@ export class CityLayer implements CustomLayerInterface {
     bb.getCenter(center)
     const ground = new THREE.Mesh(
       new THREE.PlaneGeometry(size.x + 400, size.z + 400).rotateX(-Math.PI / 2),
-      new THREE.ShadowMaterial({ color: '#1d2a26', opacity: 0.25, depthWrite: false }),
+      new THREE.ShadowMaterial({ color: '#1d2a26', opacity: 0.3, depthWrite: false }),
     )
     ground.position.set(center.x, 0.05, center.z)
     ground.receiveShadow = true
@@ -302,7 +307,7 @@ export class CityLayer implements CustomLayerInterface {
   }
 
   private clearBuildings() {
-    for (const o of [this.buildingMesh, this.buildingLines]) {
+    for (const o of [this.buildingMesh, this.buildingLines, this.contactMesh]) {
       if (!o) continue
       this.buildingGroup.remove(o)
       o.geometry.dispose()
@@ -315,6 +320,7 @@ export class CityLayer implements CustomLayerInterface {
     }
     this.buildingMesh = null
     this.buildingLines = null
+    this.contactMesh = null
     this.ground = null
   }
 
@@ -325,13 +331,15 @@ export class CityLayer implements CustomLayerInterface {
       this.height = from + (target - from) * k
       this.buildingGroup.scale.y = Math.max(0.001, this.height)
       if (this.ground) this.ground.visible = this.height > 0.15
+      if (this.contactMesh) this.contactMesh.visible = this.height > 0.15
       this.shadowDirty = true
     })
   }
 
   /** The tree canopy (instanced crowns + trunks), scaled with the buildings for 2D/3D. */
   async setTrees(data: TreeData) {
-    const { crowns, trunks } = buildTrees(data, this.frame)
+    const meshes = buildTrees(data, this.frame)
+    const { crowns, trunks } = meshes
     try {
       const probe = new THREE.Scene()
       probe.add(crowns, trunks)
@@ -346,9 +354,30 @@ export class CityLayer implements CustomLayerInterface {
       ;((o as THREE.InstancedMesh).material as THREE.Material).dispose()
     }
     this.treeGroup.add(crowns, trunks)
+    this.trees = meshes
     this.treeCount = data.trees.length
+    this.treesDrawn = meshes.drawn
+    if (this.clearing) applyClearing(meshes, this.clearing.paths, this.clearing.radius)
     this.shadowDirty = true
     this.repaint()
+  }
+
+  private trees: TreeMeshes | null = null
+  private clearing: { paths: [number, number][][]; radius: number } | null = null
+  treesDrawn = 0
+
+  /** Keeps the canopy off the selected journey (lng/lat polylines): it always stays readable. */
+  setTreeClearing(paths: [number, number][][], radius: number) {
+    const local = paths.map((p) => p.map(([lng, lat]) => {
+      const [x, , z] = this.frame.toLocal(lng, lat)
+      return [x, z] as [number, number]
+    }))
+    this.clearing = { paths: local, radius }
+    if (this.trees) {
+      applyClearing(this.trees, local, radius)
+      this.shadowDirty = true
+      this.repaint()
+    }
   }
 
   /** Direct height control (the opening animation drives it per frame). */
@@ -357,6 +386,7 @@ export class CityLayer implements CustomLayerInterface {
     this.height = h
     this.buildingGroup.scale.y = Math.max(0.001, h)
     if (this.ground) this.ground.visible = h > 0.15
+      if (this.contactMesh) this.contactMesh.visible = h > 0.15
     this.shadowDirty = true
     this.repaint()
   }
@@ -388,6 +418,7 @@ export class CityLayer implements CustomLayerInterface {
   setBuildingsVisible(on: boolean) {
     this.buildingGroup.visible = on
     if (this.ground) this.ground.visible = on && this.height > 0.15
+      if (this.contactMesh) this.contactMesh.visible = on && this.height > 0.15
     this.repaint()
   }
 

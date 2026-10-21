@@ -131,6 +131,8 @@ interface AppState {
   setJourney: (origin: string, destination: string) => void
   apply: (id: string, opts?: { narrate?: boolean; camera?: boolean }) => Promise<void>
   remove: (id: string) => Promise<void>
+  /** Move to exactly this repair set: extends by applying (with narration and the heal), otherwise jumps. */
+  setRepairs: (ids: string[]) => Promise<void>
   undo: () => Promise<void>
   reset: () => Promise<void>
   analyze: () => Promise<void>
@@ -390,6 +392,19 @@ export const useApp = create<AppState>((set, get) => {
     remove: async (id) => {
       if (!get().applied.includes(id)) return
       set((s) => ({ history: [...s.history, s.applied], applied: s.applied.filter((x) => x !== id), banner: null }))
+      await evaluate({ animate: true })
+    },
+    setRepairs: async (ids) => {
+      const cur = get().applied
+      if (cur.length === ids.length && cur.every((x) => ids.includes(x))) return
+      if (cur.every((x) => ids.includes(x))) {
+        for (const id of ids.filter((x) => !cur.includes(x))) {
+          await get().apply(id)
+          if (ids[ids.length - 1] !== id) await sleep(900) // let each repair land before the next
+        }
+        return
+      }
+      set((s) => ({ history: [...s.history, s.applied], applied: [...ids], banner: null }))
       await evaluate({ animate: true })
     },
     undo: async () => {

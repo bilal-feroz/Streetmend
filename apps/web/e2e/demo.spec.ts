@@ -203,6 +203,29 @@ test('3D city layer is pixel-aligned with the basemap at any camera', async ({ p
   await expectAligned(page)
 })
 
+test('the story strip: before, repair A, A + B, result (engine-computed, clickable)', async ({ page, request }) => {
+  await open(page)
+  const sc = await (await request.get(`${API}/scenarios/${GUIDED}`)).json()
+  const [origin, destination] = sc.default_journey as [string, string]
+  const ev = async (applied: string[]) => (await request.post(`${API}/scenarios/${GUIDED}/evaluate`, { data: { applied, origin, destination, weights: HEALTH } })).json()
+  const [e0, e1, e2] = await Promise.all([ev([]), ev(['A']), ev(['A', 'B'])])
+  expect([e0.journey.route.found, e1.journey.route.found, e2.journey.route.found]).toEqual([false, false, true])
+  await expect(page.getByTestId('story-0')).toContainText('Disconnected')
+  await expect(page.getByTestId('story-1')).toContainText('Still disconnected')
+  await expect(page.getByTestId('story-2')).toContainText('Connected')
+  await expect(page.getByTestId('story-result')).toContainText(`+${e2.metrics.connected_pairs - e0.metrics.connected_pairs} journeys`)
+  await page.getByTestId('story-1').click()
+  await expect(status(page)).toContainText('(B)')
+  await page.getByTestId('story-2').click()
+  await expect(status(page)).toContainText('Connected')
+  await expect(banner(page)).toHaveText('TWO REPAIRS. ONE RECONNECTED JOURNEY.')
+  await page.getByTestId('story-result').click()
+  await expect(page.getByTestId('compare-after')).toContainText(`${e2.metrics.connected_pairs} of ${e2.metrics.total_pairs} journeys connected`)
+  await page.getByTestId('story-0').click()
+  await expect(status(page)).toContainText('Both curb ramps')
+  await expect(page.getByTestId('compare')).toHaveCount(0)
+})
+
 test('one repair is not enough: budget one recommends nothing', async ({ page, request }) => {
   await open(page)
   await radio(page, 'budget', '1').click()
