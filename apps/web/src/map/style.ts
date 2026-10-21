@@ -10,8 +10,8 @@ const GLYPHS = 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf'
 const C = {
   land: '#f0eee7',
   residential: '#eceae2',
-  park: '#d2e2c1',
-  wood: '#c6dab3',
+  park: '#c9dfb2',
+  wood: '#bcd6a3',
   water: '#bcd2da',
   waterLine: '#a7c2cc',
   building: '#dedad0',
@@ -100,9 +100,9 @@ export function baseStyle(): StyleSpecification {
         id: 'label-road', type: 'symbol', source: 'openmaptiles', 'source-layer': 'transportation_name', minzoom: 14,
         layout: {
           'symbol-placement': 'line', 'text-field': ['coalesce', ['get', 'name:en'], ['get', 'name']], 'text-font': ['Noto Sans Regular'],
-          'text-size': ['interpolate', ['linear'], ['zoom'], 14, 10, 18, 12.5], 'text-letter-spacing': 0.04, 'text-max-angle': 30, 'symbol-spacing': 320,
+          'text-size': ['interpolate', ['linear'], ['zoom'], 14, 10.5, 16, 12.5, 18, 14.5], 'text-letter-spacing': 0.03, 'text-max-angle': 30, 'symbol-spacing': 340,
         },
-        paint: { 'text-color': C.label, 'text-opacity': 0.85, 'text-halo-color': C.halo, 'text-halo-width': 1.6 },
+        paint: { 'text-color': '#3f4a45', 'text-halo-color': '#ffffff', 'text-halo-width': 2, 'text-halo-blur': 0.4 },
       },
       {
         id: 'label-city', type: 'symbol', source: 'openmaptiles', 'source-layer': 'place', minzoom: 5.5, maxzoom: 12.5,

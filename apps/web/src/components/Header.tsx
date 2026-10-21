@@ -123,7 +123,7 @@ export function Header() {
   const presenting = useApp((s) => s.presenting)
   const { setDialog, setPanelOpen, startPresentation, stopPresentation } = useApp.getState()
   return (
-    <header className="relative z-30 flex h-[56px] shrink-0 items-center gap-2 whitespace-nowrap bg-canvas px-3 sm:gap-3 sm:px-5">
+    <header className="surface relative z-30 flex h-[60px] shrink-0 items-center gap-2 rounded-2xl px-3 whitespace-nowrap sm:gap-3 sm:px-4">
       <Wordmark />
       <div className="mx-1 hidden h-5 w-px bg-line-2 md:block" />
       <StudyArea />

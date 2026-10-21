@@ -188,6 +188,7 @@ test('guided flow: 3D city, two dependent repairs, evidence, undo, explorer and 
 })
 
 test('3D city layer is pixel-aligned with the basemap at any camera', async ({ page }) => {
+  test.setTimeout(180_000) // several camera and 2D/3D changes, each re-rendering shadows on a CPU rasteriser in CI
   await open(page)
   for (const [pitch, bearing, zoom] of [[0, 0, 15], [45, -32, 16], [70, 120, 17.2], [60, -150, 14.6]]) {
     await page.evaluate(`window.__sm.map.jumpTo({ pitch: ${pitch}, bearing: ${bearing}, zoom: ${zoom} })`)

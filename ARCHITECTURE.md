@@ -81,6 +81,13 @@ Measured: the exact budget-2 search over Charlotte's 206 relevant strict-policy 
   * The final frame is `journeyCamera`, the same composition as the Journey preset.
   * Time-based, skippable, shortened on return visits, motion-free under reduced motion, and it lands on a fallback camera if data never arrives.
 * Building geometry is built time-sliced and its shaders are compiled with `compileAsync`, so no animation stalls on them.
+* `map/three/trees.ts`: the canopy as two instanced meshes, crowns and trunks. That is tens of thousands of trees in two draw calls, scaled with the buildings for the 2D/3D transition and hidden at regional zoom. The building material adds a facade window pattern in its shader, from per-vertex wall coordinates.
+* `map/three/heal.ts`: the heal effect, played at the repaired curb ramp once the engine confirms an applied repair. It has three parts:
+  * expanding emerald ground rings;
+  * a soft glow and rising light motes;
+  * a brief pulse along the repaired links.
+
+  It is purely visual and skipped under reduced motion.
 * `map/three/CityLayer.ts`: the camera bridge. MapLibre hands each custom layer its projection matrix `P` and mercator view-projection `M`. The Three.js view matrix is `P⁻¹ · M · L`, where `L` maps local metres (east, up, south) around a fixed origin to mercator. Three.js therefore renders with exactly MapLibre's camera, and nothing is positioned with CSS. `alignmentReport()` compares the two projections; the E2E suite requires < 0.5 px at several pitches and bearings (measured error is about 1e-8 px). The layer also holds the sun (shadow map refreshed only when buildings change), the ground shadow catcher, and the scissored before/after split.
 * `map/three/buildings.ts`: footprint extrusion (walls plus triangulated roofs, holes kept) merged into one mesh with per-vertex shading. A building index supports picking, tinting the destination building and the 2D/3D height animation.
 * `map/three/network.ts`: the pedestrian network as screen-space fat lines (`LineSegments2`), one draw call per state category, plus the route (white halo, green core), the potential route and the reach wave. Every line is engine geometry.

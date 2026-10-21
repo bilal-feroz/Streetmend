@@ -153,7 +153,11 @@ Measured on this machine (NVIDIA RTX 3050 Laptop GPU, 4 GB): about 3.7 s per war
   | OSM `building:levels` | 59 | levels × 3.2 m, plus roof levels |
   | neither tag | 4,721 | a type-based estimate (for example 7 m for a house) |
 
-  Estimated heights are a visualization assumption and do not affect any computation. The building inspector shows each building's height source.
+  Estimated heights are a visualization assumption and do not affect any computation. The building inspector shows each building's height source. Facade windows are a shader pattern drawn from wall geometry (floors every 3.4 m), and building colours follow the OSM building type; both are visual only.
+* **Trees**: 55,807 crowns.
+  * 4,300 are OSM-mapped trees at their real positions.
+  * The rest are placed so that each area's canopy share matches the City's 2022 tree canopy assessment, avoiding buildings, streets and water; their positions are illustrative.
+  * The route and the selected journey are also drawn as a faint line that ignores depth, so they stay traceable under the canopy.
 * **Alignment**: the Three.js layer renders with MapLibre's own projection matrices, so footprints, network lines, routes and markers stay on the basemap at every zoom, pitch and bearing; the E2E suite measures the agreement (< 0.5 px required).
 * **Curb-ramp inspector**: the small 3D crossing view is illustrative (generic road, curbs, crosswalk and ramps). Its dimensions and slopes are not surveyed; only the ramp states (blocked / repaired) come from the engine.
 * **Status is never colour-only**: markers carry glyphs (bar = blocked, check = repaired, ? = unknown, letter = candidate) and hypothetical barriers have a dashed ring; journey state is also written in words in the panel.

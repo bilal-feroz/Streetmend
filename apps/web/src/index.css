@@ -164,6 +164,16 @@ input[type='range'].sm-range::-moz-range-thumb {
   }
 }
 
+/* the blocked crossing's ring turns slowly: noticeable, not alarming */
+.sm-burst {
+  animation: sm-spin 14s linear infinite;
+}
+@keyframes sm-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

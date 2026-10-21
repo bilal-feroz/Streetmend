@@ -56,6 +56,16 @@ Building heights are used only for display; no analysis reads them.
 
 License: **ODbL 1.0, © OpenStreetMap contributors.**
 
+### Tree canopy (3D city, visual context)
+
+`scripts/ingest/fetch_trees.py` writes `data/samples/charlotte_city/trees.json`: 55,807 trees for the 3D-city box. It draws on two sources:
+* the **City of Charlotte / TreesCharlotte Charlotte Mecklenburg Tree Canopy** assessment (2022 imagery; ArcGIS feature service `Charlotte_Mecklenburg_Tree_Canopy`, field `TreeCanopyArea2022Percent`) for how much canopy each area has;
+* **OpenStreetMap** for 4,300 individually mapped trees (`natural=tree`) at their real positions, and for the buildings, streets and water that crowns must avoid.
+
+The assessment layer stacks several geographies (city, districts, neighbourhoods, block groups), so each spot takes the percentage of the finest area covering it. Crowns are then added until the area's canopy share is reached.
+
+The 51,507 added crowns are placed by a seeded random draw, so their exact positions are illustrative. The canopy amount per area is the measured one. Trees are visual context only; no analysis uses them. Served at `/api/context/trees` (about 240 KB gzipped).
+
 ### US state boundaries (opening only)
 
 The USA → Charlotte opening uses `states-10m.json` from the [us-atlas](https://github.com/topojson/us-atlas) package (ISC license), derived from the US Census Bureau's 2017 cartographic boundary files at 1:10,000,000 (public domain). It is bundled with the web app as a static asset (115 KB) and used only for the opening animation.

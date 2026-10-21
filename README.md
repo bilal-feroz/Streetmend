@@ -27,7 +27,7 @@ So the planning question is not "which ramp is worst?" but:
 | **Pedestrian graph** | Corners, curb landings, crossings and sidewalk sides. Every edge has an explicit state (traversable / blocked / unknown) and an evidence label (synthetic, municipal record, historical survey, OSM, inferred, assumed). Corners on different sides of a street connect only through a crossing with ramps at both ends. |
 | **Combination-aware optimization** | Exact enumeration of every repair set within the budget (optimal for the stated candidate set and objective), plus greedy, individual-ranking and nearest-to-destination baselines. Beam search for very large candidate sets, always labeled approximate. |
 | **Evidence, not decoration** | Every route on the map is a real graph path and every number comes from the engine. Synergy is measured explicitly: each repair's gain alone, its marginal value within the set, and newly connected origin–destination pairs. |
-| **Real Charlotte map, 2D and 3D** | A warm atlas basemap (OpenFreeMap, no API key) with a Three.js layer that shares MapLibre's camera exactly: 5,113 OSM building footprints as an architectural massing model with sun shadows. The network stays quiet context; only the selected journey (ink), where it breaks (coral) and the computed route (emerald) carry colour. Camera presets, a 2D precision view, a before/after split on the same view, an illustrative 3D curb-ramp inspector, and a USA → Charlotte opening on first visit. |
+| **Real Charlotte map, 2D and 3D** | A warm atlas basemap (OpenFreeMap, no API key) with a Three.js layer that shares MapLibre's camera exactly: 5,113 OSM building footprints as an architectural massing model with sun shadows, and a tree canopy of 55,807 trees: 4,300 mapped trees at their real positions, the rest matching the City's 2022 canopy share per area. The network stays quiet context; only the selected journey (deep green), where it breaks (coral) and the computed route (emerald) carry colour. Camera presets, a 2D precision view, a before/after split on the same view, an illustrative 3D curb-ramp inspector, and a USA → Charlotte opening on first visit. |
 | **Two operating modes** | **Guided scenario**: real Elizabeth streets with *hypothetical* barrier states, set up to show the dependent-repair problem, plus a six-step presentation mode. **Charlotte Data Explorer**: real CDOT curb-ramp and sidewalk records, CATS bus stops and OpenStreetMap streets/destinations, with record-level detail and data-quality reporting. |
 | **Natural-language questions** | "Which two repairs improve access to healthcare the most?" A deterministic rule parser handles common phrasing; unrecognized phrasing can go to a local model (Ollama, `qwen3:4b`) that may only choose one allowlisted operation with validated arguments. The model never computes routes or scores; optional model wording is rejected if it contains any number or magnitude word not in the computed facts. |
 
@@ -96,6 +96,7 @@ Without Ollama, the assistant runs on the rule parser only. To use a different m
 ```bash
 uv run --project services/api --extra ingest python scripts/ingest/fetch_charlotte.py --refresh
 uv run --project services/api --extra ingest python scripts/ingest/fetch_buildings.py
+uv run --project services/api --extra ingest python scripts/ingest/fetch_trees.py
 ```
 
 ## Demo

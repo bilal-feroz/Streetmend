@@ -194,3 +194,16 @@ def test_buildings_context_endpoint(client):
     assert f["geometry"]["type"] in ("Polygon", "MultiPolygon") and "h" in f["properties"]
     lon, lat = (f["geometry"]["coordinates"][0][0] if f["geometry"]["type"] == "Polygon" else f["geometry"]["coordinates"][0][0][0])
     assert -80.86 < lon < -80.80 and 35.19 < lat < 35.24
+
+
+def test_trees_context_endpoint(client):
+    r = client.get("/api/context/trees", headers={"Accept-Encoding": "gzip"})
+    if r.status_code == 503:
+        pytest.skip("trees not prepared")
+    assert r.status_code == 200
+    d = r.json()
+    meta = d["metadata"]
+    assert "2022" in meta["sources"]["canopy"] and "illustrative" in meta["method"]
+    assert meta["count"] == len(d["trees"]) > 1000
+    lng, lat, r_m, h_m, src = d["trees"][0]
+    assert -80.86 < lng < -80.80 and 35.19 < lat < 35.24 and 0 < r_m < 12 and 0 < h_m < 40 and src in (0, 1)

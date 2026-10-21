@@ -149,16 +149,18 @@ export function placeIcon(kind: PlaceKind, ring: string | null, dim: boolean): H
   }
   shadow(ctx)
   roundRect(ctx, 9, 9, 78, 78, 18)
-  ctx.fillStyle = PALETTE.white
+  // transit stops and the journey origin are solid tiles; other places are white tiles
+  const solid = kind === 'transit' ? '#355dd8' : kind === 'origin' && ring ? '#0b6b52' : null
+  ctx.fillStyle = solid ?? PALETTE.white
   ctx.fill()
   noShadow(ctx)
   ctx.lineWidth = 2.5
-  ctx.strokeStyle = '#c9d2cb'
+  ctx.strokeStyle = solid ? 'rgba(255,255,255,0.9)' : '#c9d2cb'
   ctx.stroke()
   ctx.translate(S / 2, S / 2)
   ctx.scale(1.12, 1.12)
   ctx.translate(-S / 2, -S / 2)
-  const ink = kind === 'healthcare' ? '#b23d33' : kind === 'transit' ? '#2846aa' : kind === 'education' ? '#775210' : PALETTE.ink
+  const ink = solid ? '#ffffff' : kind === 'healthcare' ? '#c23a30' : kind === 'education' ? '#775210' : PALETTE.ink
   ctx.strokeStyle = ink
   ctx.fillStyle = ink
   ctx.lineWidth = 6

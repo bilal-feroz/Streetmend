@@ -53,14 +53,15 @@ export default function App() {
       <a href="#planning" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-ink focus:px-3 focus:py-1 focus:text-white">
         Skip to planning panel
       </a>
-      <motion.div initial={false} animate={{ opacity: ready ? 1 : 0, y: ready ? 0 : -8 }} transition={{ duration: 0.5, ease: EASE }}>
-        <Header />
-      </motion.div>
-      {/* --inset: the width the floating panel takes from the map; chrome is placed against the visible map */}
+      {/* --inset: the width the floating panel takes from the map; chrome is placed against the visible map.
+          The header floats over the city too: the map runs edge to edge. */}
       <main className="relative min-h-0 flex-1 [--inset:0px] lg:[--inset:calc(clamp(340px,25vw,430px)+28px)]">
         <MapView />
+        <motion.div className="absolute inset-x-3 top-3 z-30" initial={false} animate={{ opacity: ready ? 1 : 0, y: ready ? 0 : -10 }} transition={{ duration: 0.5, ease: EASE }}>
+          <Header />
+        </motion.div>
         <motion.div className="pointer-events-none absolute inset-0 z-10" initial={false} animate={{ opacity: ready ? 1 : 0 }} transition={{ duration: 0.5, delay: ready ? 0.25 : 0 }}>
-          <div className="absolute top-4 bottom-24 left-4 flex w-[min(440px,calc(100%-var(--inset)-96px))] flex-col items-start gap-2.5 max-sm:w-[calc(100%-32px)]">
+          <div className="absolute top-[84px] bottom-24 left-4 flex w-[min(440px,calc(100%-var(--inset)-96px))] flex-col items-start gap-2.5 max-sm:w-[calc(100%-32px)]">
             <ScenarioBadge />
             <Banner />
             {!phone && (
@@ -69,7 +70,7 @@ export default function App() {
               </div>
             )}
           </div>
-          <div className="absolute top-4 right-[calc(var(--inset)+16px)] max-sm:top-auto max-sm:right-auto max-sm:bottom-16 max-sm:left-4">
+          <div className="absolute top-[84px] right-[calc(var(--inset)+16px)] max-sm:top-auto max-sm:right-auto max-sm:bottom-16 max-sm:left-4">
             <MapToolbar />
           </div>
           {!presenting && (
@@ -103,7 +104,7 @@ export default function App() {
             id="planning"
             data-floating-panel
             aria-label="Planning workspace"
-            className="absolute top-1 right-4 bottom-4 z-20 w-[clamp(340px,25vw,430px)] overflow-hidden rounded-2xl border border-black/[0.06] bg-paper shadow-[0_1px_2px_rgba(25,44,40,0.06),0_24px_48px_-24px_rgba(25,44,40,0.35)]"
+            className="absolute top-[84px] right-3 bottom-3 z-20 w-[clamp(340px,25vw,430px)] overflow-hidden rounded-2xl border border-black/[0.06] bg-paper shadow-[0_1px_2px_rgba(25,44,40,0.06),0_24px_48px_-24px_rgba(25,44,40,0.35)]"
             initial={false}
             animate={{ opacity: ready ? 1 : 0, x: ready ? 0 : 32 }}
             transition={{ duration: 0.65, delay: ready ? 0.1 : 0, ease: EASE }}

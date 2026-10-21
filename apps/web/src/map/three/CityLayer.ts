@@ -2,6 +2,8 @@ import type { CustomLayerInterface, CustomRenderMethodInput, Map as MLMap } from
 import * as THREE from 'three'
 import { buildBuildingGeometry, buildingOfVertex, type BuildingCollection, type BuildingIndex } from './buildings'
 import type { LocalFrame } from './frame'
+import { HealEffect } from './heal'
+import { buildTrees, type TreeData } from './trees'
 import { MarkerLayer, type MarkerSpec } from './markers'
 import { NetworkLayer, type EdgeGeom, type NetCategory } from './network'
 
@@ -46,6 +48,9 @@ export class CityLayer implements CustomLayerInterface {
   private VP = new THREE.Matrix4()
   private VPinv = new THREE.Matrix4()
   private buildingGroup = new THREE.Group()
+  private heal = new HealEffect()
+  private treeGroup = new THREE.Group()
+  treeCount = 0
   private buildingMesh: THREE.Mesh | null = null
   private buildingLines: THREE.LineSegments | null = null
   private baseColors: Float32Array | null = null
@@ -73,6 +78,8 @@ export class CityLayer implements CustomLayerInterface {
     this.camera.matrixAutoUpdate = false
     this.camera.matrixWorldAutoUpdate = false
     this.sceneMain.add(this.buildingGroup)
+    this.buildingGroup.add(this.treeGroup)
+    this.markerScenes.after.add(this.heal.group)
     // Daylight: a modest sky fill and a stronger warm sun from the south-west,
     // so lit and shaded facades read as separate planes.
     this.sceneMain.add(new THREE.HemisphereLight('#ffffff', '#a59f92', 1.2))
@@ -121,7 +128,20 @@ export class CityLayer implements CustomLayerInterface {
     this.renderer.shadowMap.enabled = true
     this.renderer.shadowMap.type = THREE.PCFShadowMap
     this.renderer.shadowMap.autoUpdate = false
+    // Software rasterisers (no usable GPU) cannot carry the tree canopy at interactive rates.
+    const ext = gl.getExtension('WEBGL_debug_renderer_info')
+    const name = String(ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER))
+    this.softwareRenderer = /swiftshader|llvmpipe|software|basic render/i.test(name)
     this.ready = true
+  }
+
+  /** True when WebGL runs on a CPU rasteriser: heavy optional layers stay off. */
+  softwareRenderer = false
+
+  setTreesVisible(on: boolean) {
+    this.treeGroup.userData.on = on
+    this.shadowDirty = true
+    this.repaint()
   }
 
   onRemove() {
@@ -151,6 +171,7 @@ export class CityLayer implements CustomLayerInterface {
     this.markers.before.updateScale(this.P.elements[5], h)
     this.markers.after.updateScale(this.P.elements[5], h)
     const z = this.map.getZoom()
+    this.treeGroup.visible = z > 12.4 && this.treeGroup.userData.on !== false // a canopy at regional zoom would only cost frames
     if (this.buildingLines) (this.buildingLines.material as THREE.LineBasicMaterial).opacity = THREE.MathUtils.clamp((z - 14.2) / 1.6, 0, 1) * 0.42 * this.height
     if (this.overlayAlpha < 1 || this.alphaDirty) this.applyOverlayAlpha()
 
@@ -174,7 +195,8 @@ export class CityLayer implements CustomLayerInterface {
     r.render(this.sceneMain, this.camera)
     this.renderSides(this.scenes)
     this.onRender?.()
-    if (this.anims.size) this.map.triggerRepaint()
+    const healing = this.heal.tick(now)
+    if (this.anims.size || healing) this.map.triggerRepaint()
   }
 
   /** One scene per side; in split view the before side is scissored to the left. */
@@ -214,6 +236,28 @@ export class CityLayer implements CustomLayerInterface {
     this.clearBuildings()
     this.shades = shades
     const mat = new THREE.MeshLambertMaterial({ vertexColors: true })
+    // Facade texture from geometry: floor lines and windows, cooler glass on towers. It is
+    // a visual cue only (no real window data) and fades out where it would shimmer.
+    mat.onBeforeCompile = (sh) => {
+      sh.vertexShader = 'attribute vec4 aWall;\nvarying vec4 vWall;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  vWall = aWall;')
+      sh.fragmentShader =
+        'varying vec4 vWall;\n' +
+        sh.fragmentShader.replace(
+          '#include <color_fragment>',
+          `#include <color_fragment>
+  if (vWall.z > 0.5) {
+    vec2 cell = vec2(vWall.x / 3.1, vWall.y / 3.4);
+    vec2 f = fract(cell);
+    float win = step(0.3, f.y) * step(f.y, 0.8) * step(0.16, f.x) * step(f.x, 0.84);
+    float band = step(f.y, 0.06);
+    vec2 w = fwidth(cell);
+    float fade = clamp(1.6 - max(w.x, w.y) * 3.2, 0.0, 1.0) * step(1.2, vWall.y);
+    vec3 glass = mix(vec3(0.62, 0.6, 0.56), vec3(0.5, 0.6, 0.66), vWall.w);
+    diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * glass * 1.08, win * fade * mix(0.42, 0.62, vWall.w));
+    diffuseColor.rgb *= 1.0 - band * fade * 0.06;
+  }`,
+        )
+    }
     const mesh = new THREE.Mesh(geo, mat)
     mesh.castShadow = true
     mesh.receiveShadow = false // facades are shaded by the sun direction; self-shadowing only added acne
@@ -283,6 +327,28 @@ export class CityLayer implements CustomLayerInterface {
       if (this.ground) this.ground.visible = this.height > 0.15
       this.shadowDirty = true
     })
+  }
+
+  /** The tree canopy (instanced crowns + trunks), scaled with the buildings for 2D/3D. */
+  async setTrees(data: TreeData) {
+    const { crowns, trunks } = buildTrees(data, this.frame)
+    try {
+      const probe = new THREE.Scene()
+      probe.add(crowns, trunks)
+      await this.renderer.compileAsync(probe, this.camera)
+    } catch {
+      /* compiled on first draw instead */
+    }
+    if (!this.ready) return
+    for (const o of [...this.treeGroup.children]) {
+      this.treeGroup.remove(o)
+      ;(o as THREE.InstancedMesh).geometry.dispose()
+      ;((o as THREE.InstancedMesh).material as THREE.Material).dispose()
+    }
+    this.treeGroup.add(crowns, trunks)
+    this.treeCount = data.trees.length
+    this.shadowDirty = true
+    this.repaint()
   }
 
   /** Direct height control (the opening animation drives it per frame). */
@@ -418,7 +484,15 @@ export class CityLayer implements CustomLayerInterface {
     })
   }
 
+  /** Plays the heal effect where a repair was applied. */
+  healAt(lng: number, lat: number) {
+    const [x, , z] = this.frame.toLocal(lng, lat)
+    this.heal.play(x, z)
+    this.repaint()
+  }
+
   dispose() {
+    this.heal.dispose()
     this.anims.clear()
     this.clearBuildings()
     for (const s of ['before', 'after'] as Side[]) {

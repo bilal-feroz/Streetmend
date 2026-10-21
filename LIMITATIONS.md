@@ -27,6 +27,7 @@ StreetMend is a planning and research prototype. Its outputs are **planning esti
 
 ## Map and 3D limitations
 * **Estimated building heights.** 4,721 of 5,113 buildings (92%) have no height or levels tag in OpenStreetMap and are drawn at a type-based estimated height. Roofs are flat and the ground is flat (no terrain). OSM footprint coverage can be incomplete or out of date.
+* **Tree positions are illustrative.** Of 55,807 trees, 4,300 are OSM-mapped at their real positions. The rest only reproduce each area's measured 2022 canopy share; individual trees are not surveyed. Species and heights are not modelled.
 * **Illustrative crossing view.** The 3D curb-ramp inspector shows conceptual geometry, not surveyed dimensions or slopes.
 * **Basemap needs a connection.** Tiles and label fonts load from OpenFreeMap. Offline, the app says so; the buildings, network, routes, markers and all analysis still work on a plain background.
 * **The opening needs the network once.** The USA → Charlotte flight waits until the map tiles along its path have loaded, so it never shows an empty map. Measured on a cold first visit it took about 4.8 s, and 8.7 s with an artificial 700 ms delay on every tile request; a cached replay takes about 4 s. It can be skipped (button or Esc), is shortened on return visits, and is replaced by a direct arrival under reduced motion. If tiles never arrive, the national outline stays up until the 3D city takes over.

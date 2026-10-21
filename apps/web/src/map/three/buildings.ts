@@ -36,8 +36,30 @@ export interface BuildingIndex {
 // touch cooler. A small per-building variation keeps blocks from merging.
 const ROOF = new THREE.Color('#fcfbf7')
 const WALL = new THREE.Color('#e6e3db')
-const TALL_ROOF = new THREE.Color('#f3f5f4')
-const TALL_WALL = new THREE.Color('#dfe3e1')
+const TALL_ROOF = new THREE.Color('#eef2f3')
+const TALL_WALL = new THREE.Color('#cfd9de') // towers read as glass
+
+// Gentle material families by OSM building type (visual only): warm homes,
+// cool offices and shops, stone institutions, darker outbuildings.
+const FAMILY: Record<string, [string, string]> = {
+  house: ['#ece7dd', '#fbf9f4'], detached: ['#ece7dd', '#fbf9f4'], semidetached_house: ['#ece7dd', '#fbf9f4'], bungalow: ['#ece7dd', '#fbf9f4'],
+  terrace: ['#e9e3d8', '#f8f5ee'], residential: ['#e9e4da', '#f9f7f1'], apartments: ['#e5e0d5', '#f6f3ec'], dormitory: ['#e5e0d5', '#f6f3ec'],
+  commercial: ['#e1e4e3', '#f3f4f3'], retail: ['#e1e4e3', '#f3f4f3'], office: ['#dde3e5', '#f1f4f5'], hotel: ['#dde3e5', '#f1f4f5'],
+  hospital: ['#e7e5df', '#f8f7f3'], school: ['#e9e2d6', '#f7f3ea'], college: ['#e9e2d6', '#f7f3ea'], university: ['#e9e2d6', '#f7f3ea'],
+  church: ['#e8e1d4', '#f5f1e8'], civic: ['#e4e3df', '#f4f4f1'], public: ['#e4e3df', '#f4f4f1'],
+  garage: ['#dbd8d0', '#e8e6df'], garages: ['#dbd8d0', '#e8e6df'], shed: ['#dbd8d0', '#e8e6df'], carport: ['#dbd8d0', '#e8e6df'], parking: ['#d9dad6', '#e4e5e2'],
+}
+const familyCache = new Map<string, [THREE.Color, THREE.Color]>()
+function family(type: string | undefined): [THREE.Color, THREE.Color] {
+  const k = type ?? 'yes'
+  let f = familyCache.get(k)
+  if (!f) {
+    const hex = FAMILY[k]
+    f = hex ? [new THREE.Color(hex[0]), new THREE.Color(hex[1])] : [WALL, ROOF]
+    familyCache.set(k, f)
+  }
+  return f
+}
 
 function vary(id: string | number, c: THREE.Color, out: THREE.Color) {
   let h = 2166136261
@@ -59,6 +81,7 @@ export async function buildBuildingGeometry(fc: BuildingCollection, frame: Local
   const pos: number[] = []
   const col: number[] = []
   const shades: number[] = []
+  const wall: number[] = [] // per vertex: metres along the facade, metres up, is-wall, is-tower (facade shader)
   const edge: number[] = []
   const ids: string[] = []
   const props: BuildingProps[] = []
@@ -67,8 +90,13 @@ export async function buildBuildingGeometry(fc: BuildingCollection, frame: Local
   const counts: number[] = []
   const c = new THREE.Color()
 
+  let wu = 0
+  let wv = 0
+  let wIs = 0
+  let wTall = 0
   const pushV = (x: number, y: number, z: number, shade: number, base: THREE.Color) => {
     pos.push(x, y, z)
+    wall.push(wu, wv, wIs, wTall)
     shades.push(shade)
     c.copy(base).multiplyScalar(shade)
     col.push(c.r, c.g, c.b)
@@ -83,8 +111,9 @@ export async function buildBuildingGeometry(fc: BuildingCollection, frame: Local
     const h = Math.max(2.5, f.properties.h)
     const mh = Math.max(0, Math.min(f.properties.mh || 0, h - 1))
     const tall = h > 40
-    const wallC = vary(f.id, tall ? TALL_WALL : WALL, new THREE.Color())
-    const roofC = vary(f.id, tall ? TALL_ROOF : ROOF, new THREE.Color())
+    const [famWall, famRoof] = family(f.properties.b)
+    const wallC = vary(f.id, tall ? TALL_WALL : famWall, new THREE.Color())
+    const roofC = vary(f.id, tall ? TALL_ROOF : famRoof, new THREE.Color())
     const start = pos.length / 3
     let cx = 0
     let cy = 0
@@ -107,6 +136,7 @@ export async function buildBuildingGeometry(fc: BuildingCollection, frame: Local
         cn++
       }
       // Walls
+      let runU = 0
       for (const ring of rings) {
         for (let i = 0; i < ring.length; i++) {
           const a = ring[i]
@@ -115,9 +145,17 @@ export async function buildBuildingGeometry(fc: BuildingCollection, frame: Local
           // ambient occlusion: walls darken toward the ground
           const lo = 0.7
           const shadeTop = Math.min(1, lo + (h / 30) * 0.22 + 0.16)
+          const len = Math.hypot(bx - ax, bz - az)
+          wIs = 1
+          wTall = tall ? 1 : 0
+          const W = (u: number, v: number) => {
+            wu = u
+            wv = v
+          }
           // two triangles (a,b,c),(a,c,d): outward normals for CCW outer rings
-          pushV(ax, mh, az, lo, wallC); pushV(bx, mh, bz, lo, wallC); pushV(bx, h, bz, shadeTop, wallC)
-          pushV(ax, mh, az, lo, wallC); pushV(bx, h, bz, shadeTop, wallC); pushV(ax, h, az, shadeTop, wallC)
+          W(runU, mh); pushV(ax, mh, az, lo, wallC); W(runU + len, mh); pushV(bx, mh, bz, lo, wallC); W(runU + len, h); pushV(bx, h, bz, shadeTop, wallC)
+          W(runU, mh); pushV(ax, mh, az, lo, wallC); W(runU + len, h); pushV(bx, h, bz, shadeTop, wallC); W(runU, h); pushV(ax, h, az, shadeTop, wallC)
+          runU += len
           edge.push(ax, h, az, bx, h, bz)
           // vertical corner lines where the outline turns
           const p = ring[(i - 1 + ring.length) % ring.length]
@@ -127,6 +165,7 @@ export async function buildBuildingGeometry(fc: BuildingCollection, frame: Local
         }
       }
       // Roof
+      wIs = 0
       const tris = THREE.ShapeUtils.triangulateShape(rings[0], rings.slice(1))
       const all = rings.flat()
       for (const [i0, i1, i2] of tris) {
@@ -148,6 +187,7 @@ export async function buildBuildingGeometry(fc: BuildingCollection, frame: Local
   const geo = new THREE.BufferGeometry()
   geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3))
   geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3))
+  geo.setAttribute('aWall', new THREE.Float32BufferAttribute(wall, 4))
   geo.computeVertexNormals()
   geo.computeBoundingSphere()
   const lines = new THREE.BufferGeometry()

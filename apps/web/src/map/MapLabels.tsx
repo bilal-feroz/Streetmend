@@ -13,14 +13,15 @@ interface Anchor {
   tone: 'origin' | 'dest-ok' | 'dest-bad' | 'tip' | 'gap'
   dy: number
   side?: boolean // place beside the marker instead of above it
+  burst?: boolean // a ground-level ring, not a text label
 }
 
 const TONE: Record<Anchor['tone'], string> = {
-  origin: 'border-sel/40 text-ink',
-  'dest-ok': 'border-ok/50 text-ink',
-  'dest-bad': 'border-bad/50 text-ink',
+  origin: 'border-ok/60 text-ink',
+  'dest-ok': 'border-ok text-ink',
+  'dest-bad': 'border-bad text-ink',
   tip: 'border-line text-ink',
-  gap: 'border-bad/60 text-bad-ink',
+  gap: 'border-bad border-[1.5px] text-bad-ink',
 }
 
 /** DOM labels pinned to geographic points; positions are written every frame
@@ -56,8 +57,9 @@ export function MapLabels({ handle }: { handle: MapHandle }) {
         key: 'gap', lng, lat, alt: 6,
         text: half ? 'One end still blocked' : blockers.length === 2 && blockers[0].attrs?.crossing === blockers[1].attrs?.crossing ? 'Blocked crossing' : 'Where the journey breaks',
         sub: `${blockers.map((b) => b.id).join(' + ')} · ${hypo ? 'hypothetical barrier' : 'recorded barrier'}${blockers.length > 1 ? 's' : ''}`,
-        tone: 'gap', dy: -46,
+        tone: 'gap', dy: -50,
       })
+      out.push({ key: 'burst', lng, lat, alt: 0.5, text: '', tone: 'gap', dy: 0, burst: true })
     }
     if (hovered && !['origin', 'dest'].includes(hovered)) {
       const [kind, id] = [hovered.slice(0, hovered.indexOf(':')), hovered.slice(hovered.indexOf(':') + 1)]
@@ -99,6 +101,10 @@ export function MapLabels({ handle }: { handle: MapHandle }) {
           continue
         }
         el.style.opacity = '1'
+        if (a.burst) {
+          el.style.transform = `translate(${Math.round(p[0])}px, ${Math.round(p[1])}px) translate(-50%, -50%)`
+          continue
+        }
         if (a.side) {
           // Endpoint labels face away from the other endpoint, so they never cover the
           // route or the repairs between them; flip or clamp to stay on screen.
@@ -124,23 +130,52 @@ export function MapLabels({ handle }: { handle: MapHandle }) {
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-      {anchors.map((a) => (
+      {anchors.map((a) =>
+        a.burst ? (
+          <div
+            key={a.key}
+            ref={(el) => {
+              if (el) refs.current.set(a.key, el)
+              else refs.current.delete(a.key)
+            }}
+            className="absolute left-0 top-0"
+            style={{ opacity: 0 }}
+          >
+            <svg width="96" height="96" viewBox="-48 -48 96 96" className="sm-burst block">
+              <circle r="30" fill="rgba(218,90,80,0.10)" stroke="#da5a50" strokeWidth="1.6" strokeDasharray="4 4" />
+              {Array.from({ length: 16 }, (_, i) => {
+                const a = (i / 16) * Math.PI * 2
+                return <line key={i} x1={Math.cos(a) * 36} y1={Math.sin(a) * 36} x2={Math.cos(a) * (i % 2 ? 41 : 45)} y2={Math.sin(a) * (i % 2 ? 41 : 45)} stroke="#da5a50" strokeWidth="1.6" strokeLinecap="round" opacity="0.8" />
+              })}
+            </svg>
+          </div>
+        ) : (
         <div
           key={a.key}
           ref={(el) => {
             if (el) refs.current.set(a.key, el)
             else refs.current.delete(a.key)
           }}
-          className={`absolute left-0 top-0 max-w-[300px] rounded-lg border bg-white/95 px-2.5 py-1.5 shadow-[0_2px_10px_rgba(25,44,40,0.16)] ${TONE[a.tone]}`}
+          className={`absolute left-0 top-0 max-w-[300px] rounded-xl border-[1.5px] bg-white/95 px-3 py-2 shadow-[0_4px_16px_rgba(25,44,40,0.18)] ${TONE[a.tone]}`}
           style={{ opacity: 0 }}
         >
-          {a.tone === 'gap' && <span className="absolute left-1/2 top-full h-[38px] w-px bg-bad/70" aria-hidden />}
-          <div className={`truncate leading-tight ${a.tone === 'gap' ? 'text-[11px] font-extrabold tracking-[0.08em] uppercase' : 'text-[12px] font-semibold'}`}>{a.text}</div>
+          {a.tone === 'gap' && <span className="absolute left-1/2 top-full h-[40px] w-[1.5px] -translate-x-1/2 bg-bad" aria-hidden />}
+          <div className={`flex items-center gap-1.5 truncate leading-tight ${a.tone === 'gap' ? 'text-[12.5px] font-extrabold tracking-[0.06em] uppercase' : 'text-[13px] font-bold'}`}>
+            {a.tone === 'gap' && (
+              <svg width="14" height="13" viewBox="0 0 14 13" aria-hidden className="shrink-0">
+                <path d="M7 0.8 L13.4 12.2 H0.6 Z" fill="#da5a50" stroke="#da5a50" strokeWidth="1.2" strokeLinejoin="round" />
+                <path d="M7 4.6 V8.2" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" />
+                <circle cx="7" cy="10.2" r="0.95" fill="#fff" />
+              </svg>
+            )}
+            {a.text}
+          </div>
           {a.sub && (
-            <div className={`text-[10.5px] font-medium leading-tight ${a.tone === 'dest-bad' ? 'text-bad-ink' : a.tone === 'dest-ok' ? 'text-ok-ink' : 'text-ink-2'}`}>{a.sub}</div>
+            <div className={`mt-0.5 text-[11px] font-semibold leading-tight ${a.tone === 'dest-bad' ? 'text-bad-ink' : a.tone === 'dest-ok' ? 'text-ok-ink' : 'text-ink-2'}`}>{a.sub}</div>
           )}
         </div>
-      ))}
+        ),
+      )}
     </div>
   )
 }

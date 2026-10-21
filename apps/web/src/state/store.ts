@@ -55,6 +55,7 @@ export interface Layers {
   network: boolean
   candidates: boolean
   places: boolean
+  trees: boolean
   records: boolean
   inventory: boolean
 }
@@ -85,6 +86,8 @@ interface AppState {
   initialEval: EvaluateResponse | null
   evaluating: boolean
   traceNonce: number
+  /** the last repair the engine confirmed: drives the map's heal effect */
+  heal: { id: string; nonce: number } | null
 
   analysis: OptimizeResponse | null
   analysisKey: string | null
@@ -295,6 +298,7 @@ export const useApp = create<AppState>((set, get) => {
     initialEval: null,
     evaluating: false,
     traceNonce: 0,
+    heal: null,
     analysis: null,
     analysisKey: null,
     analyzing: false,
@@ -307,7 +311,7 @@ export const useApp = create<AppState>((set, get) => {
     selected: null,
     hovered: null,
     highlight: [],
-    layers: { buildings: true, network: true, candidates: true, places: true, records: false, inventory: false },
+    layers: { buildings: true, network: true, candidates: true, places: true, trees: true, records: false, inventory: false },
     banner: null,
     presenting: false,
     scene: 0,
@@ -380,6 +384,7 @@ export const useApp = create<AppState>((set, get) => {
       const before = get().evaluation
       set((s) => ({ history: [...s.history, s.applied], applied: [...s.applied, id], compare: s.compare === 'before' ? 'off' : s.compare }))
       const after = await evaluate({ animate: true })
+      if (after && get().applied.includes(id)) set((s) => ({ heal: { id, nonce: (s.heal?.nonce ?? 0) + 1 } }))
       if (opts.narrate !== false) await narrateRepair(id, before, after, opts.camera !== false)
     },
     remove: async (id) => {

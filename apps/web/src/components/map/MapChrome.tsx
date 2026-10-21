@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'motion/react'
-import { ArrowLeft, ArrowRight, Crosshair, Layers, LocateFixed, Map as MapIcon, Route, Scan, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Crosshair, Layers, LocateFixed, Map as MapIcon, Minus, Plus, Route, Scan, X } from 'lucide-react'
 import { useState } from 'react'
 import { SCENES, useApp, type CameraPreset, type Layers as LayerState } from '../../state/store'
 import { Tip } from '../ui'
@@ -60,6 +60,7 @@ const LAYER_LABELS: Record<keyof LayerState, string> = {
   network: 'Pedestrian network',
   candidates: 'Repair candidates',
   places: 'Origins & destinations',
+  trees: 'Tree canopy',
   records: 'CDOT ramp records',
   inventory: 'CDOT sidewalk inventory',
 }
@@ -108,6 +109,13 @@ export function MapToolbar() {
             <LocateFixed size={16} aria-hidden />
           </button>
         </Tip>
+        <div className="mx-1.5 my-1 h-px bg-line max-sm:hidden" />
+        <button className={`${btn} max-sm:hidden`} onClick={() => window.__sm?.map.zoomIn()} aria-label="Zoom in" data-testid="zoom-in">
+          <Plus size={16} aria-hidden />
+        </button>
+        <button className={`${btn} max-sm:hidden`} onClick={() => window.__sm?.map.zoomOut()} aria-label="Zoom out" data-testid="zoom-out">
+          <Minus size={16} aria-hidden />
+        </button>
       </div>
       {open && (
         <div className="surface absolute right-[52px] top-[96px] w-56 p-1.5 max-sm:right-auto max-sm:bottom-12 max-sm:left-0 max-sm:top-auto">
@@ -163,7 +171,7 @@ export function Legend() {
   return (
     <div className="surface pointer-events-auto">
       <button className="flex w-full items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-ink-2 hover:text-ink" aria-expanded={open} onClick={() => setOpen(!open)} data-testid="legend">
-        <MapIcon size={13} aria-hidden /> Legend
+        <MapIcon size={13} aria-hidden /> Map legend
       </button>
       {open && (
         <div className="space-y-1 px-3 pb-3">
@@ -181,7 +189,7 @@ export function Legend() {
             <span className="flex items-center gap-1.5"><Dot cls="border-white bg-ok" glyph="✓" glyphCls="text-white" /> Repaired</span>
             <span className="flex items-center gap-1.5"><Dot cls="border-white bg-unk" glyph="?" glyphCls="text-white" /> Uncertain</span>
           </div>
-          <p className="pt-1 text-[10.5px] leading-snug text-ink-3">Building heights: OSM tags where present, otherwise estimated by building type (visual only).</p>
+          <p className="pt-1 text-[10.5px] leading-snug text-ink-3">Building heights: OSM tags where present, otherwise estimated by type. Trees: canopy amount per area from the City's 2022 assessment; positions illustrative except OSM-mapped trees. Visual only.</p>
         </div>
       )}
     </div>

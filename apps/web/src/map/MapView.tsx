@@ -12,6 +12,7 @@ import type { EvaluateResponse, ScenarioOut } from '../api/types'
 import { useReducedMotion } from '../lib/useReducedMotion'
 import { useApp } from '../state/store'
 import type { BuildingCollection } from './three/buildings'
+import type { TreeData } from './three/trees'
 import { CityLayer, type Side } from './three/CityLayer'
 import { LocalFrame } from './three/frame'
 import { placeIcon, repairIcon, type PlaceKind, type RepairState } from './three/icons'
@@ -47,7 +48,7 @@ export function fitCam(map: MLMap, pts: [number, number][], pitch: number, beari
   const lats = pts.map((c) => c[1])
   const inset = panelInset()
   const cam = map.cameraForBounds([[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]], {
-    padding: { top: 96, bottom: 84, left: 84, right: 84 + inset },
+    padding: { top: 130, bottom: 84, left: 84, right: 84 + inset }, // the floating header covers the top
     bearing,
   })
   if (!cam?.center) return null
@@ -137,6 +138,7 @@ export function MapView() {
   const split = useApp((s) => s.split)
   const camera = useApp((s) => s.camera)
   const traceNonce = useApp((s) => s.traceNonce)
+  const heal = useApp((s) => s.heal)
   const records = useApp((s) => s.records)
   const scenarioId = useApp((s) => s.scenarioId)
 
@@ -286,6 +288,16 @@ export function MapView() {
     }
   }, [handle, scenario, evaluation, initialEval, traceNonce, reduced, layers.network])
 
+  // ---- heal: the moment a repair lands (visual only, at the engine-applied location) --------
+  useEffect(() => {
+    if (!handle || !heal || !scenario || reduced) return
+    const iv = scenario.interventions.find((i) => i.id === heal.id)
+    if (!iv) return
+    handle.layer.healAt(iv.lon, iv.lat)
+    handle.layer.animate('heal-pulse', 1300, (k) => handle.layer.networks.after.pulse('repaired', k))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [heal?.nonce])
+
   // ---- markers ----------------------------------------------------------------------
   useEffect(() => {
     if (!handle || !scenario) return
@@ -318,17 +330,41 @@ export function MapView() {
         for (const o of scenario.origins) {
           const isJ = journey?.origin === o.id
           if (!isJ && zoom < 16.6) continue
-          specs.push(placeSpec(`pl:${o.id}`, o.lon, o.lat, 'origin', isJ ? '#192c28' : null, isJ ? 32 : 13, !isJ))
+          specs.push(placeSpec(`pl:${o.id}`, o.lon, o.lat, 'origin', isJ ? '#ffffff' : null, isJ ? 34 : 13, !isJ))
         }
         for (const d of scenario.destinations) {
           const isJ = journey?.destination === d.id
           const ring = isJ ? (found ? '#087f63' : '#da5a50') : null
-          specs.push(placeSpec(`pl:${d.id}`, d.lon, d.lat, d.category as PlaceKind, ring, isJ ? 32 : municipal ? 14 : 17, !isJ && !reached.has(d.id)))
+          specs.push(placeSpec(`pl:${d.id}`, d.lon, d.lat, d.category as PlaceKind, ring, isJ ? 34 : municipal ? 14 : 19, !isJ && !reached.has(d.id) && d.category !== 'transit'))
         }
       }
       handle.layer.setMarkers(side, specs)
     }
   }, [handle, scenario, evaluation, initialEval, applied, analysis, highlight, selected, journey, layers.candidates, layers.places, zoom])
+
+  // ---- tree canopy: loaded once, only when the layer is on and the GPU can carry it ----------
+  const treesLoad = useRef<'idle' | 'loading' | 'done'>('idle')
+  const rendererChecked = useRef(false)
+  useEffect(() => {
+    if (!handle) return
+    if (!rendererChecked.current) {
+      rendererChecked.current = true
+      // a CPU rasteriser: the canopy starts off (it can still be switched on under Layers)
+      if (handle.layer.softwareRenderer && useApp.getState().layers.trees) {
+        useApp.getState().toggleLayer('trees')
+        return
+      }
+    }
+    handle.layer.setTreesVisible(layers.trees)
+    if (!layers.trees || treesLoad.current !== 'idle') return
+    treesLoad.current = 'loading'
+    // the canopy is context: if it is missing the city still works
+    fetch('/api/context/trees')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((t: TreeData | null) => t && handle.layer.setTrees(t))
+      .catch(() => undefined)
+      .finally(() => (treesLoad.current = 'done'))
+  }, [handle, layers.trees])
 
   // ---- buildings: visibility + destination / selection tint ---------------------------
   const destBuilding = useMemo(() => {

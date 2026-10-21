@@ -8,7 +8,7 @@ import { CHARLOTTE, latOf, lngOf, loadUsGeometry, mx, my, NC_LABEL, US_BOUNDS, U
 
 // Used only if the scenario never loads: the Elizabeth study area itself.
 const FALLBACK: Cam = { center: [-80.8255, 35.2105], zoom: 15.3, pitch: 52, bearing: -30 }
-const FLIGHT_MS = 2200
+const FLIGHT_MS = 2600
 const SHORT_MS = 1500
 
 const clamp01 = (x: number) => Math.max(0, Math.min(1, x))
@@ -24,6 +24,11 @@ const ramp = (v: number, a: number, b: number) => smooth((v - a) / (b - a))
 // Zoom is perceived logarithmically: a sine ease keeps the peak zoom rate near
 // 1.6x the average (a cubic ease peaks at 3x and rushes the regional scales).
 const sineInOut = (x: number) => 0.5 - 0.5 * Math.cos(Math.PI * clamp01(x))
+// zero velocity and zero acceleration at both ends: motion starts and settles without a jolt
+const smoother = (x: number) => {
+  const t = clamp01(x)
+  return t * t * t * (t * (t * 6 - 15) + 10)
+}
 
 type Stage = 'usa' | 'nc' | 'charlotte' | 'city'
 
@@ -309,14 +314,14 @@ export function GeographicIntro({ handle, target }: { handle: MapHandle | null; 
       }
       if (kind === 'full') {
         if (flightStart < 0) {
-          // Stages 1–2: the nation, then North Carolina; a gentle push toward Charlotte.
-          let dz = 0.9 * inOut(ramp(t, 600, 1250))
-          if (t > 1250) dz += Math.min(0.45, (t - 1250) / 5000) // calm drift if data is still loading
+          // Stages 1–2: the nation, then North Carolina; a gentle push toward Charlotte
+          // that comes fully to rest, so the flight can start from stillness (no jolt).
+          const dz = smoother((t - 520) / 1080)
           zoomAbout(V, { x: mx(c0.lng), y: my(c0.lat), z: z0 }, clt, z0 + dz)
           if (regional === 'idle' && t > 540) startRegional() // after the outline has drawn in: any first-render stall lands on a still frame
           if (regional === 'done' && preload === 'idle' && (targetRef.current || t > 9000)) startPreload()
           setWaiting(t > 2800)
-          if (t >= 1250 && preload === 'done') {
+          if (t >= 1650 && preload === 'done') {
             flightStart = now
             from = { ...V }
             map.jumpTo(toCam(V))
@@ -333,7 +338,7 @@ export function GeographicIntro({ handle, target }: { handle: MapHandle | null; 
           V.x = fx + (from!.x - fx) * r
           V.y = fy + (from!.y - fy) * r
           V.z = z
-          const k3 = ramp(z, 12, f.zoom) // tilt and turn only once the city is in view
+          const k3 = smoother((z - 10.8) / (f.zoom - 10.8)) // tilt and turn ease in as the city comes into view
           map.jumpTo(toCam(V, f.pitch * k3, f.bearing * k3))
           if (three) layer.setHeightNow(ramp(z, Math.max(12.6, f.zoom - 2.4), f.zoom))
           setStageOnce(z < 6.2 ? 'nc' : z < 11.5 ? 'charlotte' : 'city')

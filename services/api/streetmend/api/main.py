@@ -168,3 +168,17 @@ def buildings():
     if not path.exists():
         raise HTTPException(503, detail="Building footprints not prepared. Run scripts/ingest/fetch_buildings.py.")
     return Response(path.read_bytes(), media_type="application/geo+json", headers={"Cache-Control": "public, max-age=3600"})
+
+
+@app.get("/api/context/trees")
+def trees():
+    """Tree canopy for the 3D city (visualization context, not graph input): canopy amount per
+    area from the City's 2022 assessment, OSM-mapped trees at real positions, other positions illustrative."""
+    from fastapi.responses import Response
+
+    from streetmend.municipal.scenario import DATA_DIR
+
+    path = DATA_DIR / "samples" / "charlotte_city" / "trees.json"
+    if not path.exists():
+        raise HTTPException(503, detail="Tree canopy not prepared. Run scripts/ingest/fetch_trees.py.")
+    return Response(path.read_bytes(), media_type="application/json", headers={"Cache-Control": "public, max-age=3600"})

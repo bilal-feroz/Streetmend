@@ -72,7 +72,7 @@ export class NetworkLayer {
   private materials: LineMaterial[] = []
   private wave: LineSegments2 | null = null
   private waveSegs: { a: number[]; b: number[]; d: number }[] = []
-  private route: { halo: Line2; core: Line2; pts: THREE.Vector3[]; cum: number[] } | null = null
+  private route: { glow: Line2; halo: Line2; core: Line2; ghost: Line2; pts: THREE.Vector3[]; cum: number[] } | null = null
   private potential: Line2[] = []
 
   constructor(frame: LocalFrame, resolution: THREE.Vector2) {
@@ -153,7 +153,7 @@ export class NetworkLayer {
   /** Route polyline; `frac` reveals a prefix (0..1) for the tracing animation. */
   setRoute(coords: [number, number][] | null) {
     if (this.route) {
-      for (const l of [this.route.halo, this.route.core]) {
+      for (const l of [this.route.glow, this.route.halo, this.route.core, this.route.ghost]) {
         this.group.remove(l)
         l.geometry.dispose()
         ;(l.material as LineMaterial).dispose()
@@ -164,18 +164,25 @@ export class NetworkLayer {
     const pts = coords.map(([lng, lat]) => new THREE.Vector3(...this.frame.toLocal(lng, lat, 0.7)))
     const cum = [0]
     for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + pts[i].distanceTo(pts[i - 1]))
-    const halo = new Line2(new LineGeometry(), lineMaterial({ color: '#ffffff', width: 12, opacity: 0.92, elev: 0.6 }, this.resolution))
-    const core = new Line2(new LineGeometry(), lineMaterial({ color: '#087f63', width: 6, opacity: 1, elev: 0.7 }, this.resolution))
+    // a soft emerald glow, a crisp white halo, then the route itself
+    const glow = new Line2(new LineGeometry(), lineMaterial({ color: '#2fc497', width: 26, opacity: 0.2, elev: 0.55 }, this.resolution))
+    const halo = new Line2(new LineGeometry(), lineMaterial({ color: '#ffffff', width: 12, opacity: 0.95, elev: 0.6 }, this.resolution))
+    const core = new Line2(new LineGeometry(), lineMaterial({ color: '#06805f', width: 6.5, opacity: 1, elev: 0.7 }, this.resolution))
+    // a faint copy that ignores depth: the route stays traceable under tree canopy
+    const ghost = new Line2(new LineGeometry(), lineMaterial({ color: '#06805f', width: 4, opacity: 0.38, elev: 0.7 }, this.resolution))
+    ;(ghost.material as LineMaterial).depthTest = false
+    ghost.renderOrder = 28
+    glow.renderOrder = 29
     halo.renderOrder = 30
     core.renderOrder = 31
-    this.group.add(halo, core)
-    this.route = { halo, core, pts, cum }
+    this.group.add(ghost, glow, halo, core)
+    this.route = { glow, halo, core, ghost, pts, cum }
     this.revealRoute(1)
   }
 
   revealRoute(frac: number) {
     if (!this.route) return
-    const { pts, cum, halo, core } = this.route
+    const { pts, cum, glow, halo, core, ghost } = this.route
     const total = cum[cum.length - 1]
     const target = Math.max(0, Math.min(1, frac)) * total
     const out: number[] = [pts[0].x, pts[0].y, pts[0].z]
@@ -190,7 +197,7 @@ export class NetworkLayer {
       break
     }
     if (out.length < 6) out.push(...out.slice(0, 3))
-    for (const l of [halo, core]) {
+    for (const l of [ghost, glow, halo, core]) {
       l.geometry.dispose()
       const g = new LineGeometry()
       g.setPositions(out)
@@ -209,14 +216,27 @@ export class NetworkLayer {
     this.potential = []
     if (!coords || coords.length < 2) return
     const pts = coords.flatMap(([lng, lat]) => this.frame.toLocal(lng, lat, 0.6))
-    for (const [style, order] of [[{ color: '#ffffff', width: 8, opacity: 0.85, elev: 0.55 }, 23], [{ color: '#192c28', width: 3.2, opacity: 0.86, elev: 0.6 }, 24]] as const) {
+    for (const [style, order, ghost] of [
+      [{ color: '#15513f', width: 3, opacity: 0.32, elev: 0.6 }, 21, true],
+      [{ color: '#2fc497', width: 22, opacity: 0.2, elev: 0.5 }, 22, false],
+      [{ color: '#ffffff', width: 10, opacity: 0.92, elev: 0.55 }, 23, false],
+      [{ color: '#145f4a', width: 4.6, opacity: 1, elev: 0.6 }, 24, false],
+    ] as const) {
       const g = new LineGeometry()
       g.setPositions(pts)
       const l = new Line2(g, lineMaterial(style, this.resolution))
+      if (ghost) (l.material as LineMaterial).depthTest = false // visible under canopy
       l.renderOrder = order
       this.potential.push(l)
       this.group.add(l)
     }
+  }
+
+  /** Brief widening of one category's lines (the heal moment), k in 0..1. */
+  pulse(cat: NetCategory, k: number) {
+    const obj = this.cats.get(cat)
+    if (!obj) return
+    ;(obj.material as LineMaterial).linewidth = CAT_STYLE[cat].width * window.devicePixelRatio * (1 + 1.8 * Math.sin(Math.PI * Math.min(1, k)))
   }
 
   updateResolution() {
