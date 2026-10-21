@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator
@@ -327,3 +328,24 @@ class HealthOut(BaseModel):
     version: str
     scenarios: list[ScenarioSummary]
     llm: dict[str, Any]
+
+
+# ---- access: discover, diagnose, fix or build ----------------------------------
+AccessCategory = Literal["healthcare", "education", "grocery", "transit", "parks", "services"]
+
+
+class CompareRequest(BaseModel):
+    category: AccessCategory
+    cells: list[str] = Field(..., min_length=1, max_length=12)
+    profile: Literal["step_free", "pedestrian"] = "step_free"
+    policy: Literal["possible", "verified"] = "possible"
+    budget: int = Field(2, ge=1, le=3)
+    threshold_m: float | None = Field(None, gt=50, le=3000)
+
+    @field_validator("cells")
+    @classmethod
+    def _cells(cls, v: list[str]) -> list[str]:
+        for c in v:
+            if not re.fullmatch(r"[0-9a-f]{15}", c):
+                raise ValueError(f"not an H3 cell id: {c!r}")
+        return v

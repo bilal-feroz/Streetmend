@@ -208,6 +208,68 @@ def assistant(req: S.AssistantRequest):
     return handle(sc, req.text, req.applied, req.budget, _weights(req.weights), req.use_llm, req.cutoff_m, journey)
 
 
+# ---- access: discover, diagnose, fix or build (real Charlotte records) --------------
+def _access_model():
+    from streetmend.access.analysis import municipal_model
+
+    try:
+        return municipal_model("moderate")
+    except FileNotFoundError as exc:
+        raise HTTPException(503, detail=f"Access data not prepared: {exc}. Run scripts/ingest/fetch_facilities.py.") from exc
+
+
+def _category(cat: str) -> str:
+    from streetmend.access.analysis import CATEGORIES
+
+    if cat not in CATEGORIES:
+        raise HTTPException(404, detail=f"unknown category '{cat}' (one of {', '.join(CATEGORIES)})")
+    return cat
+
+
+def _profile(p: str) -> Profile:
+    try:
+        return Profile(p)
+    except ValueError as exc:
+        raise HTTPException(422, detail="profile must be step_free or pedestrian") from exc
+
+
+@app.get("/api/access/overview")
+def access_overview(profile: str = "step_free"):
+    from streetmend.access.analysis import overview
+
+    m = _access_model()
+    return {**overview(m, _profile(profile)), "provenance": m.provenance, "graph": m.sc.id}
+
+
+@app.get("/api/access/{category}")
+def access_category(category: str, profile: str = "step_free", threshold_m: float | None = None):
+    from streetmend.access.analysis import analyze as access_analyze
+
+    if threshold_m is not None and not 50 < threshold_m <= 3000:
+        raise HTTPException(422, detail="threshold_m must be in (50, 3000]")
+    return access_analyze(_access_model(), _category(category), _profile(profile), threshold_m)
+
+
+@app.get("/api/access/{category}/cells/{cell}")
+def access_diagnose(category: str, cell: str, profile: str = "step_free", threshold_m: float | None = None):
+    from streetmend.access.analysis import diagnose
+
+    try:
+        return diagnose(_access_model(), cell, _category(category), _profile(profile), threshold_m)
+    except KeyError as exc:
+        raise HTTPException(404, detail=f"no homes in cell '{cell}'") from exc
+
+
+@app.post("/api/access/compare")
+def access_compare(req: S.CompareRequest):
+    from streetmend.access.intervene import compare
+
+    try:
+        return compare(_access_model(), req.category, req.cells, Profile(req.profile), req.policy, req.budget, req.threshold_m)
+    except KeyError as exc:
+        raise HTTPException(404, detail=str(exc)) from exc
+
+
 @app.get("/api/municipal/records")
 def municipal_records():
     from streetmend.municipal.scenario import load_records

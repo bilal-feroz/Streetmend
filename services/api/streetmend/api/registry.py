@@ -43,6 +43,12 @@ class Registry:
 
                 pre = load_preflight_scenario()
                 self.scenarios[pre.id] = pre
+                try:  # warm the access model (homes and facilities snapped to the real graph)
+                    from streetmend.access.analysis import municipal_model
+
+                    municipal_model("moderate")
+                except FileNotFoundError as exc:
+                    log.warning("access analysis unavailable: %s", exc)
             except FileNotFoundError as exc:
                 self.unavailable["charlotte-elizabeth"] = Unavailable(
                     "charlotte-elizabeth", "Charlotte Data Explorer - Elizabeth", "municipal",

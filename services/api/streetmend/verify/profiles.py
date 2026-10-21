@@ -8,7 +8,9 @@ PEDESTRIAN : an ambulatory pedestrian can step down a curb, so a missing or
              step" on their route). Closures, missing sidewalks and crossings
              with no usable crossing stop them too.
 
-Unknown edges are excluded under the conservative policy and included under the
+A ramp edge of unknown condition is usable on foot: whatever the ramp's state,
+a walker can step the curb. Every other unknown edge (an uninventoried
+sidewalk, say) is excluded under the conservative policy and included under the
 optimistic one; checks compare both, so unknown data can make a result
 INCONCLUSIVE but never silently PASS.
 """
@@ -44,7 +46,9 @@ def usable(e, enabled: set[str], profile: Profile, include_unknown: bool) -> boo
         return True
     if include_unknown and e.state == Passability.UNKNOWN:
         return True
-    return profile == Profile.PEDESTRIAN and is_curb_step(e)
+    if profile != Profile.PEDESTRIAN or e.kind != EdgeKind.RAMP:
+        return False
+    return is_curb_step(e) or (e.state == Passability.UNKNOWN and e.attrs.get("barrier") != "closure")
 
 
 def profile_graph(pg: PedGraph, enabled: set[str], profile: Profile, include_unknown: bool) -> nx.MultiGraph:
