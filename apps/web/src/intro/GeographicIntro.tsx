@@ -63,6 +63,7 @@ export function GeographicIntro({ handle, target }: { handle: MapHandle | null; 
   const [mounted, setMounted] = useState(intro.phase === 'running')
   const [stage, setStage] = useState<Stage>('usa')
   const [waiting, setWaiting] = useState(false)
+  const [arriving, setArriving] = useState(false) // short or no-motion arrival: the city is on screen
   const canvas = useRef<HTMLCanvasElement>(null)
   const lbl = { us: useRef<HTMLDivElement>(null), nc: useRef<HTMLDivElement>(null), clt: useRef<HTMLDivElement>(null), cltText: useRef<HTMLSpanElement>(null), insets: useRef<HTMLDivElement>(null), mark: useRef<HTMLDivElement>(null) }
   const skip = useRef(false)
@@ -93,6 +94,7 @@ export function GeographicIntro({ handle, target }: { handle: MapHandle | null; 
     skip.current = false
     setMounted(true)
     setStage('usa')
+    setArriving(false)
   }, [intro.phase, intro.nonce])
 
   useEffect(() => {
@@ -352,7 +354,10 @@ export function GeographicIntro({ handle, target }: { handle: MapHandle | null; 
       } else {
         // short (returning visit) or none (reduced motion): arrive at the city directly
         if (preload === 'idle' && (targetRef.current || t > 6000)) startPreload()
+        if (flightStart < 0) setWaiting(t > 2800)
         if (preload === 'done' && flightStart < 0) {
+          setWaiting(false)
+          setArriving(true)
           if (kind === 'none') {
             land()
             return
@@ -401,7 +406,8 @@ export function GeographicIntro({ handle, target }: { handle: MapHandle | null; 
       <p className="sr-only" aria-live="polite">
         {stage === 'usa' ? 'United States' : stage === 'nc' ? 'North Carolina' : stage === 'charlotte' ? 'Charlotte' : 'Elizabeth, Charlotte'}
       </p>
-      {full && (!geo || !handle) && (
+      {/* never a blank sheet: the mark holds the screen until there is geography to show */}
+      {(full ? !geo || !handle : !arriving) && (
         <div className="absolute inset-0 grid place-items-center" aria-hidden>
           <div className="flex items-center gap-3 text-[13px] font-extrabold tracking-[0.22em] text-ink">
             <Logo /> STREETMEND

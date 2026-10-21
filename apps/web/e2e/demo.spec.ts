@@ -540,12 +540,15 @@ test.describe('opening animation', () => {
     await expect.poll(() => page.evaluate('window.__introStats.skipped')).toBe(true)
   })
 
-  test('is shortened on a return visit', async ({ page }) => {
+  test('plays in full on a return visit too; ?intro=short gives the short arrival', async ({ page }) => {
     await page.addInitScript(() => window.localStorage.setItem('streetmend.introSeen', '1'))
     await page.goto('/')
+    await expect(page.getByTestId('intro')).toHaveAttribute('data-stage', 'nc', { timeout: 12_000 })
+    await expect(page.getByTestId('intro')).toHaveCount(0, { timeout: 40_000 })
+    expect(((await page.evaluate('window.__introStats')) as { kind: string }).kind).toBe('full')
+    await page.goto('/?intro=short')
     await expect(page.getByTestId('intro')).toHaveCount(0, { timeout: 12_000 })
-    const stats = (await page.evaluate('window.__introStats')) as { kind: string; totalMs: number }
-    expect(stats.kind).toBe('short')
+    expect(((await page.evaluate('window.__introStats')) as { kind: string }).kind).toBe('short')
   })
 
   test('respects reduced motion', async ({ page }) => {

@@ -40,8 +40,8 @@ export type CameraPreset = 'overview' | 'journey' | 'street' | 'network' | 'top'
 export type IntroKind = 'full' | 'short' | 'none'
 const INTRO_SEEN = 'streetmend.introSeen'
 
-/** First visit: the full USA → Charlotte flight. Returning visits: a short
- * arrival. ?intro=0|1|short overrides; reduced motion skips the movement. */
+/** The full USA → Charlotte flight on every visit (it is the demo's opening, and
+ * skippable). ?intro=0|1|short overrides; reduced motion skips the movement. */
 function initialIntro(): IntroKind {
   if (typeof window === 'undefined') return 'none'
   const q = new URLSearchParams(window.location.search).get('intro')
@@ -49,11 +49,6 @@ function initialIntro(): IntroKind {
   if (q === '1' || q === 'full') return 'full'
   if (q === 'short') return 'short'
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return 'none'
-  try {
-    if (window.localStorage.getItem(INTRO_SEEN)) return 'short'
-  } catch {
-    /* storage unavailable: treat as a first visit */
-  }
   return 'full'
 }
 
