@@ -139,6 +139,8 @@ export function MapView() {
   const camera = useApp((s) => s.camera)
   const traceNonce = useApp((s) => s.traceNonce)
   const heal = useApp((s) => s.heal)
+  const draft = useApp((s) => s.draft)
+  const verifyRes = useApp((s) => s.verify)
   const records = useApp((s) => s.records)
   const scenarioId = useApp((s) => s.scenarioId)
 
@@ -287,6 +289,24 @@ export function MapView() {
       layer.animate(`route-${side}`, Math.min(1900, 900 + len * 1.1), (k) => net.revealRoute(k))
     }
   }, [handle, scenario, evaluation, initialEval, traceNonce, reduced, layers.network])
+
+  // ---- change check: the proposed closure as a barricade; today's route as a ghost once it breaks ----
+  useEffect(() => {
+    if (!handle || !scenario) return
+    const closures = draft.filter((c) => c.op === 'close').map((c) => scenario.edges.find((e) => e.id === c.edge_id)?.geometry as [number, number][] | undefined).filter(Boolean) as [number, number][][]
+    const route = evaluation?.journey?.route
+    const ghost = verifyRes && route && !route.found ? (verifyRes.baseline.step_free_route?.geometry ?? null) : null
+    for (const side of ['after', 'before'] as Side[]) {
+      const net = handle.layer.networks[side]
+      const showClosure = side === 'after' // the "today" side of the split never has the proposal
+      net.setOverlay('closure', showClosure ? closures.flatMap((c) => [
+        { coords: c, color: '#ffffff', width: 15, order: 50 },
+        { coords: c, color: '#e0742a', width: 10, dashed: [2.2, 1.6], order: 51 },
+      ]) : null)
+      net.setOverlay('ghost', side === 'after' && ghost ? [{ coords: ghost as [number, number][], color: '#6f7d77', width: 3.4, opacity: 0.85, dashed: [5, 4], depthTest: false, order: 20 }] : null)
+    }
+    handle.map.triggerRepaint()
+  }, [handle, scenario, draft, evaluation, verifyRes])
 
   // ---- heal: the moment a repair lands (visual only, at the engine-applied location) --------
   useEffect(() => {
@@ -524,6 +544,10 @@ export function MapView() {
         if (iv) map.easeTo({ center: [iv.lon, iv.lat], zoom: three ? 18.4 : 18.9, pitch: three ? 58 : 0, offset, duration: dur, essential: true })
         break
       }
+      case 'closure':
+        // the proposal in its street context: close enough to read, wide enough to see the journey
+        if (camera.lonlat) map.easeTo({ center: camera.lonlat, zoom: three ? 17.5 : 17.9, pitch: three ? 56 : 0, offset, duration: reduced ? 0 : 1300, essential: true })
+        break
       case 'point':
         if (camera.lonlat) map.easeTo({ center: camera.lonlat, zoom: three ? 18.4 : 18.8, pitch: three ? 60 : 0, offset, duration: reduced ? 0 : 1100, essential: true })
         break

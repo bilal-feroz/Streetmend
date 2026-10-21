@@ -1,6 +1,6 @@
 import { BookOpen, ChevronDown, CircleHelp, Ellipsis, MapPin, PanelRight, Play, Presentation, RotateCcw, Settings } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { EXPLORER_ID, GUIDED_ID, useApp } from '../state/store'
+import { EXPLORER_ID, GUIDED_ID, PREFLIGHT_ID, useApp } from '../state/store'
 import { Segmented } from './ui'
 
 /** The mark: two sidewalks joined across a street by a repaired crossing
@@ -54,20 +54,23 @@ export function DataModeSwitch({ testId = 'data-mode' }: { testId?: string }) {
   const scenarioId = useApp((s) => s.scenarioId)
   const health = useApp((s) => s.health)
   const loadScenario = useApp((s) => s.loadScenario)
-  const explorer = scenarioId !== GUIDED_ID
+  const mode = scenarioId === PREFLIGHT_ID ? 'check' : scenarioId === GUIDED_ID ? 'guided' : 'explorer'
   const municipalAvailable = health?.scenarios.some((s) => s.id === EXPLORER_ID && s.available) ?? true
   return (
     <Segmented
       size="sm"
       label="Data mode"
-      value={explorer ? 'explorer' : 'guided'}
+      value={mode}
       testId={testId}
       onChange={(v) => {
-        if (v === 'guided' && explorer) void loadScenario(GUIDED_ID)
-        if (v === 'explorer' && !explorer && municipalAvailable) void loadScenario(EXPLORER_ID)
+        if (v === mode) return
+        if (v === 'check') void loadScenario(PREFLIGHT_ID)
+        if (v === 'guided') void loadScenario(GUIDED_ID)
+        if (v === 'explorer' && municipalAvailable) void loadScenario(EXPLORER_ID)
       }}
       options={[
-        { value: 'guided', label: 'Guided scenario', title: 'Hypothetical barriers on real Charlotte streets' },
+        { value: 'check', label: 'Change check', title: 'Test a proposed street change before it is made' },
+        { value: 'guided', label: 'Repair planner', title: 'Find the repairs that reconnect the most journeys (hypothetical barriers on real streets)' },
         { value: 'explorer', label: 'Data explorer', title: 'Real CDOT municipal records' },
       ]}
     />
@@ -118,7 +121,7 @@ function MoreMenu() {
 }
 
 export function Header() {
-  const explorer = useApp((s) => s.scenarioId !== GUIDED_ID)
+  const explorer = useApp((s) => s.scenarioId !== GUIDED_ID && s.scenarioId !== PREFLIGHT_ID)
   const panelOpen = useApp((s) => s.panelOpen)
   const presenting = useApp((s) => s.presenting)
   const { setDialog, setPanelOpen, startPresentation, stopPresentation } = useApp.getState()

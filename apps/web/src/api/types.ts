@@ -268,3 +268,97 @@ export interface HealthOut {
   scenarios: ScenarioSummary[]
   llm: { enabled: boolean; available: boolean; model: string; endpoint: string; detail?: string }
 }
+
+// ---- change verification (preflight) ---------------------------------------------
+export interface ChangeIn {
+  id: string
+  op: 'close' | 'reopen'
+  edge_id: string
+  label?: string
+  reason?: string
+  temporary?: boolean
+  hypothetical?: boolean
+}
+
+export type CheckStatus = 'PASS' | 'FAIL' | 'INCONCLUSIVE'
+
+export interface Counterexample {
+  origin: string
+  origin_label: string
+  destination: string
+  destination_label: string
+  profile: string
+  baseline_route: { length_m: number | null; edge_ids: string[]; geometry: [number, number][] }
+  broken_edges: { id: string; kind: string; label: string; reason: string; change: string | null; geometry: [number, number][] }[]
+  best_alternative: { found: boolean; length_m?: number | null; geometry?: [number, number][] }
+  walking_route?: { found: boolean; length_m?: number | null; geometry?: [number, number][]; steps?: { id: string; label: string; lon: number; lat: number; reason: string }[] }
+  assumptions: string[]
+  summary: string
+}
+
+export interface CheckOut {
+  id: string
+  label: string
+  kind: 'route' | 'category' | 'share' | 'detour'
+  profile: 'step_free' | 'pedestrian'
+  status: CheckStatus
+  value: string
+  detail: string
+  regression: boolean
+  length_m?: number | null
+  baseline_m?: number
+  kept?: number
+  baseline_pairs?: number
+  counterexample?: Counterexample
+}
+
+export interface VerifyState {
+  name: string
+  applied: string[]
+  checks: CheckOut[]
+  summary: Record<CheckStatus, number>
+  regressions: string[]
+  step_free_route: { found: boolean; length_m: number | null; edge_ids: string[]; geometry: [number, number][] } | null
+  walking_route: { found: boolean; length_m: number | null } | null
+  metrics: { step_free_journeys: number; walking_journeys: number; total_pairs: number; cutoff_m: number | null }
+}
+
+export interface VerifyResponse {
+  baseline: VerifyState
+  proposed: VerifyState
+  fixed: VerifyState | null
+  changes: ChangeIn[]
+  runtime_ms: number
+}
+
+export interface FixSingle {
+  id: string
+  label: string
+  kind: string
+  resolves: boolean
+  checks: Record<string, CheckStatus>
+  values: Record<string, string>
+}
+
+export interface FixResponse {
+  status: 'found' | 'none' | 'nothing_to_fix'
+  size: number
+  interventions: string[]
+  alternatives: string[][]
+  targets: string[]
+  candidates: string[]
+  singles: FixSingle[]
+  members_alone: FixSingle[]
+  evaluated: number
+  exhaustive: boolean
+  max_size: number
+  verification: VerifyState | null
+  runtime_ms: number
+}
+
+export interface ProposalSpec {
+  id: string
+  label: string
+  reason: string
+  changes: ChangeIn[]
+}

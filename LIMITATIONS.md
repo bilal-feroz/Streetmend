@@ -19,6 +19,13 @@ StreetMend is a planning and research prototype. Its outputs are **planning esti
 * **No costs.** `ActualCosts` is empty for every study-area record, so budgets are repair counts.
 * **Small study area.** About 1.3 × 1.1 km; citywide behavior is untested.
 
+## Change-check limitations
+* **Planning checks, not compliance.** Requirements are configurable planning checks on a modeled network, not ADA determinations, and passing them does not certify a route as safe.
+* **Two profiles only.** Step-free and walking. Vehicle access, signal timing, crossing duration, slope and surface are not modeled. A vehicular graph was not built.
+* **The walking profile assumes a curb can be stepped** where a ramp is missing or failed. People with other needs may not manage it.
+* **The fix is minimal for the catalog.** Mitigations are drawn from the scenario's catalog of typed interventions on existing edges. New alignments, such as a new temporary path, are not generated, so options outside the catalog are not considered. Search is exhaustive up to the stated size and reports when it is not.
+* **The demo case is hypothetical.** The closure, the missing ramps on the other crossing and the two legs with no usable crossing are scenario settings on real streets, not city plans or survey findings.
+
 ## Model and algorithm limitations
 * The objective counts weighted origin–destination pairs within a threshold. It ignores route quality beyond length (slope, surface, shade, safety) and partial accessibility.
 * "Optimal" means optimal for the stated candidate set, objective, weights and threshold, and only for exact-enumeration results. Beam-search results are approximate.

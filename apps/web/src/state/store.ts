@@ -2,6 +2,10 @@ import { create } from 'zustand'
 import { api, ApiError, type MunicipalRecords } from '../api/client'
 import type {
   AssistantResponse,
+  ChangeIn,
+  FixResponse,
+  ProposalSpec,
+  VerifyResponse,
   EvaluateResponse,
   HealthOut,
   OptimizeResponse,
@@ -18,10 +22,20 @@ export const PRESETS: Record<Priority, Weights> = {
 }
 
 export const GUIDED_ID = 'guided'
+export const PREFLIGHT_ID = 'preflight'
+
+/** ?scenario=guided|preflight|charlotte-elizabeth picks the starting mode (default: the change check). */
+function initialScenario(): string {
+  if (typeof window === 'undefined') return PREFLIGHT_ID
+  const q = new URLSearchParams(window.location.search).get('scenario')
+  return q && /^[a-z0-9-]{2,40}$/.test(q) ? q : PREFLIGHT_ID
+}
+
+export type CheckStage = 'baseline' | 'drafted' | 'checked' | 'fixed'
 export const EXPLORER_ID = 'charlotte-elizabeth'
 
 export type Selection = { type: 'intervention' | 'edge' | 'place' | 'record' | 'building'; id: string } | null
-export type CameraPreset = 'overview' | 'journey' | 'street' | 'network' | 'top' | 'route' | 'point' | 'intervention'
+export type CameraPreset = 'overview' | 'journey' | 'street' | 'network' | 'top' | 'route' | 'point' | 'intervention' | 'closure'
 
 export type IntroKind = 'full' | 'short' | 'none'
 const INTRO_SEEN = 'streetmend.introSeen'
@@ -44,7 +58,7 @@ function initialIntro(): IntroKind {
 }
 
 export interface Banner {
-  kind: 'reconnected' | 'partial' | 'info'
+  kind: 'reconnected' | 'partial' | 'info' | 'regression'
   title: string
   body?: string
   nonce: number
@@ -109,6 +123,15 @@ interface AppState {
   scene: number
   sceneBusy: boolean
 
+  /** change check: draft proposal (drawn on the map), the proposal applied to the evaluated state, results */
+  draft: ChangeIn[]
+  changes: ChangeIn[]
+  verify: VerifyResponse | null
+  fix: FixResponse | null
+  checkStage: CheckStage
+  checkBusy: 'checks' | 'fix' | 'apply' | null
+  checkError: string | null
+
   intro: { kind: IntroKind; phase: 'running' | 'done'; nonce: number }
 
   assistantPending: boolean
@@ -151,6 +174,13 @@ interface AppState {
   setPanelOpen: (open: boolean) => void
   setUseLLM: (v: boolean) => void
   setExplorerTab: (t: AppState['explorerTab']) => void
+  proposeChange: (c: ChangeIn | ProposalSpec) => void
+  withdrawChange: (id: string) => void
+  runChecks: () => Promise<void>
+  findFix: () => Promise<void>
+  applyFix: () => Promise<void>
+  toggleMitigation: (id: string) => Promise<void>
+  resetCheck: () => Promise<void>
   startPresentation: () => void
   stopPresentation: () => void
   replayIntro: () => void
@@ -177,6 +207,18 @@ export const SCENES = [
   { title: 'The measured result', caption: 'Before and after on the same view: journeys connected, access gained, and how simple ranking compares.' },
 ] as const
 
+/** The change check, in six acts: every state is computed by the engine as you go. */
+export const PREFLIGHT_SCENES = [
+  { title: 'A city that works', caption: 'Before construction, homes on Hawthorne Lane have a step-free route to Novant Health Presbyterian in the model.' },
+  { title: 'A planner proposes a change', caption: 'A hypothetical construction closure of the East 7th Street crossing. It changes the proposed network, not today’s.' },
+  { title: 'StreetMend finds a regression', caption: 'Every access check runs on the proposed network. One journey loses its only step-free route; walkers still get through.' },
+  { title: 'StreetMend finds a fix', caption: 'Exact search over the mitigation catalog for the smallest set that makes every failed check pass.' },
+  { title: 'Apply and verify', caption: 'The fix is applied to a new network state and the original checks run again.' },
+  { title: 'The engine is real', caption: 'Remove one intervention and the check fails again. Put it back and it passes. Nothing is pre-recorded.' },
+] as const
+
+export const scenesFor = (id: string): readonly { title: string; caption: string }[] => (id === PREFLIGHT_ID ? PREFLIGHT_SCENES : SCENES)
+
 export const useApp = create<AppState>((set, get) => {
   const key = () => {
     const s = get()
@@ -191,6 +233,7 @@ export const useApp = create<AppState>((set, get) => {
     try {
       const res = await api.evaluate(s.scenarioId, {
         applied: s.applied,
+        changes: s.changes,
         origin: s.journey?.origin,
         destination: s.journey?.destination,
         weights: s.weights,
@@ -285,7 +328,7 @@ export const useApp = create<AppState>((set, get) => {
 
   return {
     health: null,
-    scenarioId: GUIDED_ID,
+    scenarioId: initialScenario(),
     scenario: null,
     loading: true,
     error: null,
@@ -318,6 +361,13 @@ export const useApp = create<AppState>((set, get) => {
     presenting: false,
     scene: 0,
     sceneBusy: false,
+    draft: [],
+    changes: [],
+    verify: null,
+    fix: null,
+    checkStage: 'baseline',
+    checkBusy: null,
+    checkError: null,
     intro: { kind: initialIntro(), phase: 'running', nonce: 0 },
     assistantPending: false,
     assistantLast: null,
@@ -342,6 +392,7 @@ export const useApp = create<AppState>((set, get) => {
         loading: true, analyzing: false, error: null, scenarioId: id, analysis: null, analysisKey: null, applied: [], history: [],
         banner: null, selected: null, highlight: [], evaluation: null, initialEval: null, assistantLast: null, assistantError: null,
         panelView: 'plan', compare: 'off', presenting: false, scene: 0,
+        draft: [], changes: [], verify: null, fix: null, checkStage: 'baseline', checkBusy: null, checkError: null,
       })
       try {
         const sc = await api.scenario(id)
@@ -491,6 +542,109 @@ export const useApp = create<AppState>((set, get) => {
     setUseLLM: (v) => set({ useLLM: v }),
     setExplorerTab: (t) => set({ explorerTab: t }),
 
+    proposeChange: (c) => {
+      const list = 'changes' in c ? c.changes : [c]
+      set((s) => ({
+        draft: [...s.draft.filter((d) => !list.some((x) => x.edge_id === d.edge_id)), ...list],
+        checkStage: s.checkStage === 'baseline' ? 'drafted' : s.checkStage,
+        banner: null,
+      }))
+      const e = get().scenario?.edges.find((x) => x.id === list[0]?.edge_id)
+      if (e) get().cameraTo({ preset: 'closure', lonlat: e.geometry[Math.floor(e.geometry.length / 2)] as [number, number] })
+    },
+
+    withdrawChange: (id) => set((s) => ({ draft: s.draft.filter((d) => d.id !== id), checkStage: s.draft.length <= 1 && !s.changes.length ? 'baseline' : s.checkStage })),
+
+    /** TEST: build the proposed state (proposal + current mitigations) and run every check on it. */
+    runChecks: async () => {
+      const s = get()
+      if (!s.scenario || !s.journey) return
+      set({ checkBusy: 'checks', checkError: null, changes: s.draft })
+      try {
+        const [res] = await Promise.all([
+          api.verify(s.scenarioId, { proposal: s.draft, mitigations: s.applied, origin: s.journey.origin, destination: s.journey.destination }),
+          evaluate({ animate: true }),
+        ])
+        const fixed = res.fixed
+        const final = fixed ?? res.proposed
+        const failing = final.checks.filter((c) => c.regression)
+        set({ verify: res, checkBusy: null, checkStage: fixed && !failing.length ? 'fixed' : 'checked' })
+        if (!s.draft.length) return
+        if (failing.length) {
+          const first = failing.find((c) => c.profile === 'step_free') ?? failing[0]
+          const d = first.counterexample?.destination_label ?? 'an essential destination'
+          banner({
+            kind: 'regression',
+            title: 'ACCESS REGRESSION DETECTED',
+            body: first.profile === 'step_free' ? `Step-free access to ${d} has been lost in this modeled scenario.` : `${first.label}: ${first.value}.`,
+          })
+        } else if (fixed) {
+          banner({ kind: 'reconnected', title: 'ACCESS RESTORED — CHECK PASSED', body: `All ${final.checks.length} access checks pass on the recomputed network.` })
+        } else {
+          banner({ kind: 'info', title: 'No regression found', body: `All ${final.checks.length} access checks still pass with this change.` })
+        }
+      } catch (e) {
+        set({ checkBusy: null, checkError: errMsg(e) })
+      }
+    },
+
+    /** GENERATE FIX: exact search for the smallest mitigation set; the engine verifies it. */
+    findFix: async () => {
+      const s = get()
+      if (!s.journey || !s.changes.length) return
+      set({ checkBusy: 'fix', checkError: null })
+      try {
+        const res = await api.verifyFix(s.scenarioId, { proposal: s.changes, origin: s.journey.origin, destination: s.journey.destination })
+        set({ fix: res, checkBusy: null, highlight: res.interventions })
+        if (res.status === 'found') {
+          const n = res.interventions.length
+          banner({
+            kind: 'info',
+            title: n === 2 ? 'Two coordinated interventions restore the required journey.' : `${n} intervention${n === 1 ? '' : 's'} restore${n === 1 ? 's' : ''} the required journey.`,
+            body: `Exact search over ${res.evaluated} candidate sets; no smaller set passes every check.`,
+          })
+          get().cameraTo({ preset: 'street' })
+        } else if (res.status === 'none') {
+          banner({ kind: 'regression', title: 'No fix found in the catalog', body: `No set of up to ${res.max_size} catalog interventions makes every check pass.` })
+        }
+      } catch (e) {
+        set({ checkBusy: null, checkError: errMsg(e) })
+      }
+    },
+
+    /** VERIFY: apply the fix one intervention at a time, then rerun the original checks. */
+    applyFix: async () => {
+      const s = get()
+      const ids = s.fix?.interventions ?? []
+      if (!ids.length) return
+      set({ checkBusy: 'apply' })
+      try {
+        for (const id of ids) {
+          if (get().applied.includes(id)) continue
+          await get().apply(id, { narrate: false, camera: false })
+          await sleep(650)
+        }
+      } finally {
+        set({ checkBusy: null })
+      }
+      await get().runChecks()
+      get().cameraTo({ preset: 'route' })
+    },
+
+    /** The engine is real: take one intervention out or put it back, and every check reruns. */
+    toggleMitigation: async (id) => {
+      const s = get()
+      if (s.applied.includes(id)) await s.remove(id)
+      else await s.apply(id, { narrate: false, camera: false })
+      await get().runChecks()
+    },
+
+    resetCheck: async () => {
+      set({ draft: [], changes: [], verify: null, fix: null, checkStage: 'baseline', checkBusy: null, checkError: null, applied: [], history: [], highlight: [], banner: null, compare: 'off', selected: null })
+      await evaluate({ animate: true })
+      get().cameraTo({ preset: 'journey' })
+    },
+
     startPresentation: () => {
       set({ presenting: true })
       void get().goToScene(0)
@@ -510,6 +664,51 @@ export const useApp = create<AppState>((set, get) => {
     goToScene: async (n) => {
       const s = get()
       if (s.sceneBusy || !s.scenario) return
+      if (s.scenarioId === PREFLIGHT_ID) {
+        set({ scene: n, sceneBusy: true })
+        try {
+          const st = get()
+          const p = (st.scenario?.context.verify as { proposals?: ProposalSpec[] } | undefined)?.proposals?.[0]
+          if (n === 0) await st.resetCheck()
+          else if (n === 1) {
+            await st.resetCheck()
+            if (p) get().proposeChange(p)
+          } else if (n === 2) {
+            if (!get().draft.length && p) get().proposeChange(p)
+            if (get().applied.length) set({ applied: [], history: [] })
+            set({ fix: null, highlight: [] })
+            await get().runChecks()
+            get().cameraTo({ preset: 'journey' })
+          } else if (n === 3) {
+            if (!get().changes.length) {
+              if (p && !get().draft.length) get().proposeChange(p)
+              await get().runChecks()
+            }
+            await get().findFix()
+          } else if (n === 4) {
+            if (!get().changes.length) {
+              if (p && !get().draft.length) get().proposeChange(p)
+              await get().runChecks()
+            }
+            if (!get().fix) await get().findFix()
+            await get().applyFix()
+          } else if (n === 5) {
+            if (get().checkStage !== 'fixed') {
+              if (!get().changes.length) {
+                if (p && !get().draft.length) get().proposeChange(p)
+                await get().runChecks()
+              }
+              if (!get().fix) await get().findFix()
+              await get().applyFix()
+            }
+            const last = get().fix?.interventions.at(-1)
+            if (last && get().applied.includes(last)) await get().toggleMitigation(last)
+          }
+        } finally {
+          set({ sceneBusy: false, scene: n })
+        }
+        return
+      }
       set({ scene: n, sceneBusy: true, banner: null })
       const sc = s.scenario
       const dj = sc.default_journey

@@ -10,10 +10,11 @@ interface Anchor {
   alt: number
   text: string
   sub?: string
-  tone: 'origin' | 'dest-ok' | 'dest-bad' | 'tip' | 'gap'
+  tone: 'origin' | 'dest-ok' | 'dest-bad' | 'tip' | 'gap' | 'closure'
   dy: number
   side?: boolean // place beside the marker instead of above it
   burst?: boolean // a ground-level ring, not a text label
+  dx?: number // horizontal offset of a callout; a leader line joins it to its point
 }
 
 const TONE: Record<Anchor['tone'], string> = {
@@ -22,6 +23,7 @@ const TONE: Record<Anchor['tone'], string> = {
   'dest-bad': 'border-bad text-ink',
   tip: 'border-line text-ink',
   gap: 'border-bad border-[1.5px] text-bad-ink',
+  closure: 'border-[#e0742a] border-[1.5px] text-[#9a4a12]',
 }
 
 /** DOM labels pinned to geographic points; positions are written every frame
@@ -32,6 +34,8 @@ export function MapLabels({ handle }: { handle: MapHandle }) {
   const hovered = useApp((s) => s.hovered)
   const applied = useApp((s) => s.applied)
   const ev = useApp((s) => (s.compare === 'before' ? s.initialEval : s.evaluation))
+  const draft = useApp((s) => s.draft)
+  const lines = useRef(new Map<string, SVGLineElement>())
   const found = ev?.journey?.route.found ?? false
   const refs = useRef(new Map<string, HTMLDivElement>())
 
@@ -53,13 +57,22 @@ export function MapLabels({ handle }: { handle: MapHandle }) {
       const lng = blockers.reduce((a, b) => a + b.lon, 0) / blockers.length
       const lat = blockers.reduce((a, b) => a + b.lat, 0) / blockers.length
       const hypo = scenario.mode === 'hypothetical'
+      const check = scenario.id === 'preflight'
+      const both = blockers.length === 2 && blockers[0].attrs?.crossing === blockers[1].attrs?.crossing
       out.push({
         key: 'gap', lng, lat, alt: 6,
-        text: half ? 'One end still blocked' : blockers.length === 2 && blockers[0].attrs?.crossing === blockers[1].attrs?.crossing ? 'Blocked crossing' : 'Where the journey breaks',
-        sub: `${blockers.map((b) => b.id).join(' + ')} · ${hypo ? 'hypothetical barrier' : 'recorded barrier'}${blockers.length > 1 ? 's' : ''}`,
-        tone: 'gap', dy: -50,
+        text: half ? 'One end still blocked' : check && both ? 'No curb ramps' : both ? 'Blocked crossing' : 'Where the journey breaks',
+        sub: check && both && !half ? 'Walkers step the curb · not step-free' : `${blockers.map((b) => b.id).join(' + ')} · ${hypo ? 'hypothetical barrier' : 'recorded barrier'}${blockers.length > 1 ? 's' : ''}`,
+        tone: 'gap', dy: -54, dx: draft.length ? 96 : 0,
       })
       out.push({ key: 'burst', lng, lat, alt: 0.5, text: '', tone: 'gap', dy: 0, burst: true })
+    }
+    // the planner's proposal, pinned where it happens
+    for (const c of draft.filter((x) => x.op === 'close').slice(0, 1)) {
+      const e = scenario.edges.find((x) => x.id === c.edge_id)
+      if (!e) continue
+      const [lng, lat] = e.geometry[Math.floor(e.geometry.length / 2)]
+      out.push({ key: 'closure', lng, lat, alt: 3, text: 'Proposed closure', sub: 'Hypothetical · construction', tone: 'closure', dy: -54, dx: blockers.length ? -96 : 0 })
     }
     if (hovered && !['origin', 'dest'].includes(hovered)) {
       const [kind, id] = [hovered.slice(0, hovered.indexOf(':')), hovered.slice(hovered.indexOf(':') + 1)]
@@ -80,7 +93,7 @@ export function MapLabels({ handle }: { handle: MapHandle }) {
       }
     }
     return out
-  }, [scenario, journey, hovered, found, applied, ev])
+  }, [scenario, journey, hovered, found, applied, ev, draft])
 
   useEffect(() => {
     const { layer } = handle
@@ -88,6 +101,7 @@ export function MapLabels({ handle }: { handle: MapHandle }) {
       const w = handle.map.getCanvas().clientWidth - panelInset()
       const at = new Map(anchors.map((a) => [a.key, layer.project(a.lng, a.lat, a.alt)]))
       const boxes = new Map<string, [number, number, number, number]>() // x, y, w, h of each text label
+      for (const ln of lines.current.values()) ln.style.opacity = '0'
       for (const a of anchors) {
         const el = refs.current.get(a.key)
         if (!el) continue
@@ -118,19 +132,29 @@ export function MapLabels({ handle }: { handle: MapHandle }) {
           el.style.transform = `translate(${Math.round(x)}px, ${Math.round(p[1])}px) translate(0, -50%)`
           boxes.set(a.key, [x, p[1] - el.offsetHeight / 2, lw, el.offsetHeight])
         } else {
-          el.style.transform = `translate(${Math.round(p[0])}px, ${Math.round(p[1] + a.dy)}px) translate(-50%, -100%)`
-          boxes.set(a.key, [p[0] - el.offsetWidth / 2, p[1] + a.dy - el.offsetHeight, el.offsetWidth, el.offsetHeight])
+          const dx = a.dx ?? 0
+          el.style.transform = `translate(${Math.round(p[0] + dx)}px, ${Math.round(p[1] + a.dy)}px) translate(-50%, -100%)`
+          boxes.set(a.key, [p[0] + dx - el.offsetWidth / 2, p[1] + a.dy - el.offsetHeight, el.offsetWidth, el.offsetHeight])
+          const ln = lines.current.get(a.key)
+          if (ln) {
+            ln.setAttribute('x1', String(p[0]))
+            ln.setAttribute('y1', String(p[1]))
+            ln.setAttribute('x2', String(p[0] + dx))
+            ln.setAttribute('y2', String(p[1] + a.dy))
+          }
         }
       }
       // Labels never overlap: when the view is small, lower-priority labels step aside.
       const kept: [number, number, number, number][] = []
-      for (const k of ['tip', 'gap', 'dest', 'origin']) {
+      for (const k of ['tip', 'gap', 'closure', 'dest', 'origin']) {
         const b = boxes.get(k)
         const el = refs.current.get(k)
         if (!b || !el) continue
         const hit = kept.some(([x, y, bw, bh]) => b[0] < x + bw + 4 && x < b[0] + b[2] + 4 && b[1] < y + bh + 4 && y < b[1] + b[3] + 4)
         if (hit) el.style.opacity = '0'
         else kept.push(b)
+        const ln = lines.current.get(k)
+        if (ln) ln.style.opacity = el.style.opacity
       }
     }
     layer.onRender = place
@@ -143,6 +167,22 @@ export function MapLabels({ handle }: { handle: MapHandle }) {
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+      <svg className="absolute inset-0 h-full w-full overflow-visible">
+        {anchors
+          .filter((a) => a.tone === 'gap' || a.tone === 'closure')
+          .filter((a) => !a.burst)
+          .map((a) => (
+            <line
+              key={a.key}
+              ref={(el) => {
+                if (el) lines.current.set(a.key, el)
+                else lines.current.delete(a.key)
+              }}
+              stroke={a.tone === 'gap' ? '#da5a50' : '#e0742a'}
+              strokeWidth={1.5}
+            />
+          ))}
+      </svg>
       {anchors.map((a) =>
         a.burst ? (
           <div
@@ -172,11 +212,10 @@ export function MapLabels({ handle }: { handle: MapHandle }) {
           className={`absolute left-0 top-0 max-w-[300px] rounded-xl border-[1.5px] bg-white/95 px-3 py-2 shadow-[0_4px_16px_rgba(25,44,40,0.18)] ${TONE[a.tone]}`}
           style={{ opacity: 0 }}
         >
-          {a.tone === 'gap' && <span className="absolute left-1/2 top-full h-[40px] w-[1.5px] -translate-x-1/2 bg-bad" aria-hidden />}
-          <div className={`flex items-center gap-1.5 truncate leading-tight ${a.tone === 'gap' ? 'text-[12.5px] font-extrabold tracking-[0.06em] uppercase' : 'text-[13px] font-bold'}`}>
-            {a.tone === 'gap' && (
+          <div className={`flex items-center gap-1.5 truncate leading-tight ${a.tone === 'gap' || a.tone === 'closure' ? 'text-[12.5px] font-extrabold tracking-[0.06em] uppercase' : 'text-[13px] font-bold'}`}>
+            {(a.tone === 'gap' || a.tone === 'closure') && (
               <svg width="14" height="13" viewBox="0 0 14 13" aria-hidden className="shrink-0">
-                <path d="M7 0.8 L13.4 12.2 H0.6 Z" fill="#da5a50" stroke="#da5a50" strokeWidth="1.2" strokeLinejoin="round" />
+                <path d="M7 0.8 L13.4 12.2 H0.6 Z" fill={a.tone === 'gap' ? '#da5a50' : '#e0742a'} stroke={a.tone === 'gap' ? '#da5a50' : '#e0742a'} strokeWidth="1.2" strokeLinejoin="round" />
                 <path d="M7 4.6 V8.2" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" />
                 <circle cx="7" cy="10.2" r="0.95" fill="#fff" />
               </svg>

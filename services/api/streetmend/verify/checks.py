@@ -301,8 +301,8 @@ def counterexample(req: Requirement, st: NetworkState, base: NetworkState) -> di
     closure = next((x for x in broken if x.get("change")), None)
     lead = closure["label"] if closure else (broken[0]["label"] if broken else None)
     if broken:
-        parts.append(f"The proposal removes {lead} from the only modeled {pl} route from {out['origin_label']} to {out['destination_label']}." if not same.found or (limit and (same.length_m or 0) > limit)
-                     else f"The proposal removes {lead} from today's {pl} route.")
+        parts.append(f"{lead} cuts the only modeled {pl} route from {out['origin_label']} to {out['destination_label']}." if not same.found or (limit and (same.length_m or 0) > limit)
+                     else f"{lead} interrupts today's {pl} route.")
     if p == Profile.STEP_FREE:
         w = st.route(o, t, Profile.PEDESTRIAN, False, None)
         if w.found:

@@ -4,6 +4,10 @@
 
 ```mermaid
 flowchart LR
+  P[Proposal<br/>typed changes] --> V[verify<br/>baseline · proposed · fixed]
+  V --> CK[Checks<br/>PASS / FAIL / INCONCLUSIVE]
+  CK --> CE[Counterexample]
+  CK --> SY[Minimal-fix search<br/>verified on recomputed graph]
   subgraph Sources
     R[CDOT ADA Curb Ramps] --> I
     S[CDOT Sidewalk Inventory] --> I
@@ -53,6 +57,11 @@ flowchart LR
 | `municipal/build.py` | Charlotte graph builder and ramp passability policies |
 | `municipal/scenario.py` | Loads prepared data, builds the three policy variants, serves source records |
 | `ai/intents.py` · `rules.py` · `llm.py` · `executor.py` | Allowlist schema, offline rule parser, Ollama client with JSON-schema decoding and grounding check, operation registry |
+| `verify/changes.py` | Typed changes (`close`, `reopen`) with validation; `apply_changes` builds a proposed scenario without touching the baseline |
+| `verify/profiles.py` | Step-free and walking profiles on one graph; curb steps |
+| `verify/checks.py` | Requirements, `NetworkState` (compiled Dijkstra per profile), three-valued evaluation, counterexamples |
+| `verify/engine.py` | `verify` (baseline / proposed / fixed checks) and `synthesize` (minimal-fix search, verified) |
+| `scenario/preflight.py` | The change-check scenario: real Elizabeth graph + hypothetical existing conditions, proposals, requirements and mitigation catalog |
 | `api/` | FastAPI app, Pydantic contracts, registry, serialization, Markdown report; `/api/context/buildings` serves the footprint layer (gzip) |
 
 ## Exact fast evaluation

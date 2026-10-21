@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { ArrowLeft, ArrowRight, Crosshair, Layers, LocateFixed, Map as MapIcon, Minus, Plus, Route, Scan, X } from 'lucide-react'
 import { useState } from 'react'
-import { SCENES, useApp, type CameraPreset, type Layers as LayerState } from '../../state/store'
+import { scenesFor, useApp, type CameraPreset, type Layers as LayerState } from '../../state/store'
 import { Tip } from '../ui'
 
 /** Always-visible honesty indicator: what is real, what is modeled. */
@@ -236,9 +236,10 @@ export function PresentationBar() {
   const presenting = useApp((s) => s.presenting)
   const scene = useApp((s) => s.scene)
   const busy = useApp((s) => s.sceneBusy)
+  const SCENES = scenesFor(useApp((s) => s.scenarioId))
   const { goToScene, stopPresentation } = useApp.getState()
   if (!presenting) return null
-  const s = SCENES[scene]
+  const s = SCENES[scene] ?? SCENES[0]
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}

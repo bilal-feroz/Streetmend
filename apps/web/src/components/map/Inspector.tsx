@@ -156,6 +156,20 @@ export function Inspector({ buildings }: { buildings?: { name: string | null; b:
             Inspect repair {owner.id}
           </button>
         )}
+        {st.scenarioId === 'preflight' && e.kind !== 'entrance' && state !== 'blocked' && !st.draft.some((c) => c.edge_id === e.id) && (
+          // Change Studio: any sidewalk or crossing can be proposed for closure, then tested
+          <button
+            className="btn-primary mt-2.5 w-full rounded-lg py-2 text-[13px]"
+            onClick={() => {
+              const what = e.kind === 'crossing' ? 'crossing' : e.kind === 'ramp' ? 'curb ramp' : 'sidewalk'
+              st.proposeChange({ id: `U-${e.id}`, op: 'close', edge_id: e.id, label: `Temporary closure of this ${what}${e.label ? `: ${e.label}` : ''}`, reason: 'Proposed (hypothetical): closed for construction.' })
+              st.select(null)
+            }}
+            data-testid="propose-closure"
+          >
+            Propose closure
+          </button>
+        )}
       </>
     )
   } else if (selected.type === 'building' && buildings) {

@@ -74,6 +74,7 @@ export class NetworkLayer {
   private waveSegs: { a: number[]; b: number[]; d: number }[] = []
   private route: { glow: Line2; halo: Line2; core: Line2; ghost: Line2; pts: THREE.Vector3[]; cum: number[] } | null = null
   private potential: Line2[] = []
+  private overlays = new Map<string, Line2[]>()
 
   constructor(frame: LocalFrame, resolution: THREE.Vector2) {
     this.frame = frame
@@ -232,6 +233,39 @@ export class NetworkLayer {
     }
   }
 
+  /**
+   * Named overlay lines drawn above the network (change check): the proposed closure
+   * as a barricade, today's route as a ghost once it breaks. Each layer is a list of
+   * strokes drawn bottom to top.
+   */
+  setOverlay(key: string, lines: { coords: [number, number][]; color: string; width: number; opacity?: number; dashed?: [number, number]; depthTest?: boolean; order?: number }[] | null) {
+    for (const l of this.overlays.get(key) ?? []) {
+      this.group.remove(l)
+      l.geometry.dispose()
+      ;(l.material as LineMaterial).dispose()
+    }
+    this.overlays.delete(key)
+    if (!lines?.length) return
+    const out: Line2[] = []
+    for (const [i, s] of lines.entries()) {
+      if (s.coords.length < 2) continue
+      const g = new LineGeometry()
+      g.setPositions(s.coords.flatMap(([lng, lat]) => this.frame.toLocal(lng, lat, 0.9)))
+      const m = lineMaterial({ color: s.color, width: s.width, opacity: s.opacity ?? 1, dashed: !!s.dashed, elev: 0.9 }, this.resolution)
+      if (s.dashed) {
+        m.dashSize = s.dashed[0]
+        m.gapSize = s.dashed[1]
+      }
+      if (s.depthTest === false) m.depthTest = false
+      const l = new Line2(g, m)
+      if (s.dashed) l.computeLineDistances()
+      l.renderOrder = (s.order ?? 40) + i
+      out.push(l)
+      this.group.add(l)
+    }
+    this.overlays.set(key, out)
+  }
+
   /** Brief widening of one category's lines (the heal moment), k in 0..1. */
   pulse(cat: NetCategory, k: number) {
     const obj = this.cats.get(cat)
@@ -247,6 +281,7 @@ export class NetworkLayer {
   }
 
   dispose() {
+    for (const k of [...this.overlays.keys()]) this.setOverlay(k, null)
     this.setCategories({})
     this.clearWave()
     this.setRoute(null)

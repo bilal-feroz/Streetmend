@@ -164,3 +164,71 @@ Measured on this machine (NVIDIA RTX 3050 Laptop GPU, 4 GB): about 3.7 s per war
 * **Curb-ramp inspector**: the small 3D crossing view is illustrative (generic road, curbs, crosswalk and ramps). Its dimensions and slopes are not surveyed; only the ramp states (blocked / repaired) come from the engine.
 * **Status is never colour-only**: markers carry glyphs (bar = blocked, check = repaired, ? = unknown, letter = candidate) and hypothetical barriers have a dashed ring; journey state is also written in words in the panel.
 
+## 9. Change verification (preflight)
+
+**Network states.** A proposal is a list of typed changes on real edges:
+* `close`: the edge becomes unusable for every profile (barrier `closure`).
+* `reopen`: a closed or blocked edge becomes usable.
+
+Each change is validated: the edge must exist, the kind must be allowed (sidewalk, crossing or ramp), no edge may be changed twice, and a reopen needs a closed edge. StreetMend builds three states from the immutable baseline:
+* **baseline**: today's network;
+* **proposed**: baseline + proposal;
+* **fixed**: proposed + mitigation interventions.
+
+**Travel profiles** read the same graph differently:
+* **Step-free**: an edge is usable only when traversable (or repaired). A missing or failed curb ramp is a barrier.
+* **Walking**: additionally passes a ramp edge whose barrier is a missing or failed ramp. This is a *curb step*, recorded on the route.
+* **Both**: a closure, a missing sidewalk or a leg with no usable crossing stops both profiles.
+
+**Requirements** are configurable planning checks:
+
+| Kind | Holds when |
+|---|---|
+| `route` | a route from origin to destination within `max_m` exists for the profile |
+| `detour` | that route is at most `max_ratio` × its baseline length |
+| `category` | some destination of the category is within `max_m` |
+| `share` | at least `min_share` of the origin-destination pairs connected in the baseline stay connected |
+
+Each requirement is evaluated twice, with unknown links excluded (conservative) and included (optimistic):
+* **PASS** if the conservative evaluation holds;
+* **FAIL** if even the optimistic one does not;
+* **INCONCLUSIVE** otherwise.
+
+A **regression** is a requirement that passes on the baseline and not on the proposed state.
+
+**Counterexample.** For a route-type regression StreetMend reports:
+* the baseline route, and the edges on it that the proposed state no longer allows for that profile (with the change that caused it);
+* the shortest walking route and its curb steps, when the profile is step-free;
+* the shortest same-profile alternative at any distance;
+* the assumptions in force: unknown-link handling, hypothetical settings, the curb-step assumption and the threshold.
+
+**Minimal fix.** The search runs over the scenario's mitigation catalog, excluding anything that would undo the proposal itself. It enumerates sets by increasing size up to `max_size` (default 3). A set is accepted only if, on the recomputed fixed state, every regressed requirement passes and every requirement that passed on the proposed state still passes. The first size with an accepted set is minimal for the catalog. Ties are broken by cost units, then by the step-free length of the focus journey.
+
+The result reports:
+* every candidate tested alone, which is how "why not fewer" is explained;
+* the number of sets evaluated;
+* whether the search was exhaustive.
+
+**Intervention model.** Each catalog intervention specifies:
+
+| Field | Meaning |
+|---|---|
+| `id` | stable identifier |
+| `kind` | for example `temporary_curb_ramp`, `temporary_accessible_crossing`, `reconstruct_curb_ramp` |
+| `label` | plain-language name |
+| `edge_ids` | the existing edges it makes usable |
+| `profiles` | the travel profiles it changes |
+| `duration` | temporary or permanent |
+| `cost_units` | cost used to break ties |
+| evidence | hypothetical or recorded |
+| location | where it sits on the map |
+
+Kinds that change an edge's usability without new geometry fit this model directly. New alignments (a new temporary path) would need an explicit new-edge operation, which is not implemented, so no invented paths enter the graph.
+
+**Demo case.** The settings (`data/scenarios/charlotte_preflight.json`) are:
+* the proposal: closing crossing `X:172578423:1`;
+* missing curb ramps at both ends of the other East 7th Street crossing at the same intersection (`X:172578423:3`);
+* no usable crossing on either East 7th Street leg at Park Drive.
+
+They were chosen by closing the crossing and listing the real graph's detours ([`scripts/scenarios/explore_preflight.py`](scripts/scenarios/explore_preflight.py)). All are hypothetical; the streets are real. The 5 requirements and the 5-item catalog are in the same file.
+

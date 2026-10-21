@@ -49,11 +49,11 @@ async function markerPoint(page: Page, key: string) {
 }
 
 async function open(page: Page, { panel = true } = {}) {
-  await page.goto('/?intro=0') // the opening has its own tests below
+  await page.goto('/?intro=0&scenario=guided') // the opening and the change check have their own tests below
   await expect(page.locator('.maplibregl-canvas')).toBeVisible()
   await expect(page.getByTestId('data-status')).toContainText('Modeled scenario · Real Charlotte geography')
   if (panel) await expect(status(page)).toContainText('Disconnected')
-  await page.waitForFunction('(window.__sm?.layer.index?.ids.length ?? 0) > 5000', null, { timeout: 30_000 })
+  await page.waitForFunction('(window.__sm?.layer.index?.ids.length ?? 0) > 5000', null, { timeout: 60_000 }) // CPU-rendered CI is slow to build the city
 }
 
 test('guided flow: 3D city, two dependent repairs, evidence, undo, explorer and back', async ({ page, request }) => {
@@ -182,9 +182,73 @@ test('guided flow: 3D city, two dependent repairs, evidence, undo, explorer and 
   await expect.poll(() => page.evaluate(`JSON.stringify(window.__sm.map.getFilter('rec-selected'))`)).toContain(String(rec.OBJECTID))
 
   // 20. Back to the guided simulation.
-  await radio(page, 'data-mode', 'Guided scenario').click()
+  await radio(page, 'data-mode', 'Repair planner').click()
   await expect(page.getByTestId('data-status')).toContainText('Modeled scenario')
   await expect(status(page)).toContainText('Both curb ramps')
+})
+
+test('change check: propose, test, find the breakage, fix, verify (every state from the engine)', async ({ page, request }) => {
+  test.setTimeout(120_000)
+  await page.goto('/?intro=0')
+  await expect(page.getByTestId('check-chip')).toContainText('Route available in model')
+  await page.waitForFunction('(window.__sm?.layer.index?.ids.length ?? 0) > 5000', null, { timeout: 60_000 }) // CPU-rendered CI is slow to build the city
+  const sc = await (await request.get(`${API}/scenarios/preflight`)).json()
+  const prop = sc.context.verify.proposals[0].changes
+  const ref = await (await request.post(`${API}/scenarios/preflight/verify`, { data: { proposal: prop } })).json()
+  expect(ref.baseline.summary.FAIL).toBe(0)
+
+  // Act 1: today's network works
+  await expect(page.getByTestId('check-title')).toContainText(`${Math.round(ref.baseline.step_free_route.length_m)} m step-free route`)
+  // Act 2: the planner proposes a closure (a separate proposed network)
+  await page.getByTestId('propose-P1').click()
+  await expect(page.getByTestId('draft')).toContainText('Temporary closure')
+  await expect(page.getByTestId('check-chip')).toContainText('Route available in model')
+  // Act 3: run the checks; the regression and its counterexample come from the engine
+  await page.getByTestId('run-checks').click()
+  await expect(banner(page)).toHaveText('ACCESS REGRESSION DETECTED')
+  for (const c of ref.proposed.checks) await expect(page.getByTestId(`check-${c.id}`)).toHaveAttribute('data-status', c.status)
+  const ce = ref.proposed.checks.find((c: { id: string }) => c.id === 'R1').counterexample
+  await expect(page.getByTestId('counterexample')).toContainText(`${ce.walking_route.steps.length} curb steps`)
+  await expect(page.getByTestId('counterexample')).toContainText(`${Math.round(ce.best_alternative.length_m)} m detour`)
+  // Act 4: the minimal fix is found by search, with why fewer fails
+  const fix = await (await request.post(`${API}/scenarios/preflight/verify/fix`, { data: { proposal: prop } })).json()
+  await page.getByTestId('find-fix').click()
+  await expect(page.getByTestId('fix-title')).toHaveText('Two coordinated interventions restore the required journey.')
+  for (const id of fix.interventions) await expect(page.getByTestId(`fix-${id}`)).toBeVisible()
+  await expect(page.getByTestId('why-not')).toContainText('A alone: still no step-free route')
+  await expect(page.getByTestId('why-not')).toContainText('C alone: restores a')
+  // Act 5: apply and verify
+  await page.getByTestId('apply-fix').click()
+  await expect(banner(page)).toHaveText('ACCESS RESTORED — CHECK PASSED', { timeout: 20_000 })
+  await expect(page.getByTestId('check-chip')).toContainText('Check passed')
+  const fixed = await (await request.post(`${API}/scenarios/preflight/verify`, { data: { proposal: prop, mitigations: fix.interventions } })).json()
+  await expect(page.getByTestId('metrics')).toContainText(`${fixed.fixed.summary.PASS}/${fixed.fixed.checks.length}`)
+  await expect.poll(() => page.evaluate('!!window.__sm.layer.networks.after.route')).toBe(true)
+  // Act 6: state-dependent, not pre-recorded
+  await page.getByTestId('toggle-B').click()
+  await expect(banner(page)).toHaveText('ACCESS REGRESSION DETECTED')
+  await expect(page.getByTestId('check-R1')).toHaveAttribute('data-status', 'FAIL')
+  await page.getByTestId('toggle-B').click()
+  await expect(banner(page)).toHaveText('ACCESS RESTORED — CHECK PASSED')
+  await expect(page.getByTestId('check-R1')).toHaveAttribute('data-status', 'PASS')
+})
+
+test('change check presentation walks the six acts', async ({ page }) => {
+  test.setTimeout(150_000)
+  await page.goto('/?intro=0')
+  await expect(page.getByTestId('check-chip')).toBeVisible()
+  await page.getByTestId('present').click()
+  const titles = ['A city that works', 'A planner proposes a change', 'StreetMend finds a regression', 'StreetMend finds a fix', 'Apply and verify', 'The engine is real']
+  for (const [i, title] of titles.entries()) {
+    await expect(page.getByTestId('scene-title')).toHaveText(title)
+    if (i < titles.length - 1) await expect(page.getByTestId('scene-next')).toBeEnabled({ timeout: 25_000 })
+    if (i === 1) await expect(page.getByTestId('draft')).toBeVisible()
+    if (i === 2) await expect(banner(page)).toHaveText('ACCESS REGRESSION DETECTED')
+    if (i === 3) await expect(page.getByTestId('fix-title')).toBeVisible()
+    if (i === 4) await expect(banner(page)).toHaveText('ACCESS RESTORED — CHECK PASSED')
+    if (i === 5) await expect(page.getByTestId('check-R1')).toHaveAttribute('data-status', 'FAIL', { timeout: 25_000 })
+    if (i < titles.length - 1) await page.getByTestId('scene-next').click()
+  }
 })
 
 test('3D city layer is pixel-aligned with the basemap at any camera', async ({ page }) => {
@@ -403,8 +467,8 @@ test.describe('opening animation', () => {
     expect(Math.abs(cam.lng + 80.826)).toBeLessThan(0.02)
     expect(Math.abs(cam.lat - 35.211)).toBeLessThan(0.02)
     await expectAligned(page)
-    await expect(page.getByTestId('journey-card')).toBeVisible()
-    await expect(status(page)).toContainText('Disconnected')
+    await expect(page.getByTestId('check-header')).toBeVisible()
+    await expect(page.getByTestId('check-chip')).toContainText('Route available in model')
     const stats = (await page.evaluate('window.__introStats')) as { kind: string; frames: number; totalMs: number; skipped: boolean }
     expect(stats.kind).toBe('full')
     expect(stats.skipped).toBe(false)
@@ -416,7 +480,7 @@ test.describe('opening animation', () => {
     await page.goto('/?intro=1')
     await page.getByTestId('intro-skip').click()
     await expect(page.getByTestId('intro')).toHaveCount(0, { timeout: 12_000 })
-    await expect(page.getByTestId('journey-card')).toBeVisible()
+    await expect(page.getByTestId('check-header')).toBeVisible()
     await page.getByTestId('more-menu').click()
     await page.getByTestId('replay-intro').click()
     await expect(page.getByTestId('intro')).toBeVisible()
@@ -439,6 +503,6 @@ test.describe('opening animation', () => {
     await expect(page.getByTestId('intro')).toHaveCount(0, { timeout: 12_000 })
     const stats = (await page.evaluate('window.__introStats')) as { kind: string }
     expect(stats.kind).toBe('none')
-    await expect(status(page)).toContainText('Disconnected')
+    await expect(page.getByTestId('check-chip')).toContainText('Route available in model')
   })
 })

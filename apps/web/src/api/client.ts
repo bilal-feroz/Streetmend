@@ -1,11 +1,4 @@
-import type {
-  AssistantResponse,
-  EvaluateResponse,
-  HealthOut,
-  OptimizeResponse,
-  ScenarioOut,
-  Weights,
-} from './types'
+import type { AssistantResponse, EvaluateResponse, HealthOut, OptimizeResponse, ScenarioOut, Weights, ChangeIn, VerifyResponse, FixResponse } from './types'
 
 export class ApiError extends Error {
   status: number
@@ -50,8 +43,12 @@ const post = <T>(path: string, body: unknown, extra?: { timeoutMs?: number; text
 export const api = {
   health: () => request<HealthOut>('/api/health', { timeoutMs: 5000 }),
   scenario: (id: string) => request<ScenarioOut>(`/api/scenarios/${id}`),
-  evaluate: (id: string, body: { applied: string[]; origin?: string; destination?: string; weights?: Weights; cutoff_m?: number | null; alternatives?: number }) =>
+  evaluate: (id: string, body: { applied: string[]; changes?: ChangeIn[]; origin?: string; destination?: string; weights?: Weights; cutoff_m?: number | null; alternatives?: number }) =>
     post<EvaluateResponse>(`/api/scenarios/${id}/evaluate`, body),
+  verify: (id: string, body: { proposal: ChangeIn[]; mitigations?: string[]; origin?: string; destination?: string }) =>
+    post<VerifyResponse>(`/api/scenarios/${id}/verify`, body, { timeoutMs: 30_000 }),
+  verifyFix: (id: string, body: { proposal: ChangeIn[]; origin?: string; destination?: string; max_size?: number }) =>
+    post<FixResponse>(`/api/scenarios/${id}/verify/fix`, body, { timeoutMs: 60_000 }),
   optimize: (id: string, body: { budget: number; weights: Weights; cutoff_m?: number | null }) =>
     post<OptimizeResponse>(`/api/scenarios/${id}/optimize`, body, { timeoutMs: 60_000 }),
   report: (id: string, applied: string[], body: { budget: number; weights: Weights; cutoff_m?: number | null }) =>
