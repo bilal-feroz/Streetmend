@@ -234,6 +234,7 @@ Follow [DEMO_SCRIPT.md](DEMO_SCRIPT.md).
 ```bash
 cd services/api && uv run pytest          # 170 tests (see below)
 cd apps/web && npx playwright test        # 19 end-to-end tests against the real API
+cd apps/web && GPU=1 npx playwright test  # the same, rendering the 3D city on the real GPU (faster; the software renderer can time out on a busy machine)
 uv run --project services/api python scripts/benchmarks/run_evaluation.py   # regenerates docs/EVALUATION.md
 uv run --project services/api python scripts/benchmarks/run_benchmark.py    # regenerates docs/BENCHMARK.md (repair planner)
 ```

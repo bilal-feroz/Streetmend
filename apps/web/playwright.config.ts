@@ -15,6 +15,10 @@ export default defineConfig({
     viewport: { width: 1440, height: 900 },
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
+    // GPU=1 renders the 3D city on the real GPU (as a viewer's browser does). Without it Chromium
+    // falls back to the software renderer, whose one-time shader compile can take tens of seconds
+    // on a loaded machine.
+    launchOptions: process.env.GPU ? { args: ['--use-angle=d3d11', '--enable-gpu', '--ignore-gpu-blocklist'] } : {},
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } } }],
   webServer: [
