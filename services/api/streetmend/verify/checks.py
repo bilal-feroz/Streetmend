@@ -50,8 +50,19 @@ class Requirement:
     min_share: float | None = None
 
 
-_HAS_UNKNOWN: dict[int, bool] = {}
-_INDEX: dict[int, dict[str, int]] = {}
+def _graph_facts(pg) -> tuple[dict[str, int], bool]:
+    """Node index and whether any edge is of unknown condition, cached on the graph object.
+
+    Cached on the object, never keyed by id(): ids are reused after garbage
+    collection, and a stale "no unknown links" answer would turn INCONCLUSIVE
+    into FAIL. Graphs are not modified after construction (changes copy them).
+    """
+
+    facts = getattr(pg, "_verify_facts", None)
+    if facts is None or facts[2] is not pg.edges:
+        facts = ({n: i for i, n in enumerate(pg.nodes)}, any(e.state == Passability.UNKNOWN for e in pg.edges.values()), pg.edges)
+        pg._verify_facts = facts
+    return facts[0], facts[1]
 
 
 class Dist:
@@ -91,15 +102,9 @@ class NetworkState:
         self._g: dict[tuple[Profile, bool], nx.MultiGraph] = {}
         self._csr: dict[tuple[Profile, bool], Any] = {}
         self._dist: dict[tuple[Profile, bool, str, float | None], Dist] = {}
-        ki = id(sc.graph.nodes)
-        if ki not in _INDEX:
-            _INDEX[ki] = {n: i for i, n in enumerate(sc.graph.nodes)}
-        self.idx = _INDEX[ki]
-        k = id(sc.graph.edges)
-        if k not in _HAS_UNKNOWN:
-            _HAS_UNKNOWN[k] = any(e.state == Passability.UNKNOWN for e in sc.graph.edges.values())
+        self.idx, unknown = _graph_facts(sc.graph)
         # without unknown links the optimistic and conservative networks are the same
-        self.has_unknown = _HAS_UNKNOWN[k]
+        self.has_unknown = unknown
 
     def graph(self, profile: Profile, optimistic: bool) -> nx.MultiGraph:
         k = (profile, optimistic and self.has_unknown)

@@ -1,0 +1,1073 @@
+{
+ "generated": "2026-10-21 11:56 UTC",
+ "machine": "Windows AMD64, Python 3.12.13",
+ "verification": {
+  "fixtures": [
+   {
+    "title": "Single bottleneck",
+    "claim": "A closure disconnects the only route; one intervention restores it.",
+    "id": "single_bottleneck",
+    "baseline": {
+     "R1": "PASS",
+     "R2": "PASS"
+    },
+    "proposed": {
+     "R1": "FAIL",
+     "R2": "FAIL"
+    },
+    "regressions": [
+     "R1",
+     "R2"
+    ],
+    "counterexamples": {
+     "R1": {
+      "valid": true,
+      "responsible": [
+       "P"
+      ],
+      "summary": "Proposed closure of crossing c1 cuts the only modeled step-free route from O to T. No walking route remains either. No step-free route remains at any distance in the modeled area."
+     },
+     "R2": {
+      "valid": true,
+      "responsible": [
+       "P"
+      ],
+      "summary": "Proposed closure of crossing c1 cuts the only modeled walking route from O to T. No walking route remains at any distance in the modeled area."
+     }
+    },
+    "exact": {
+     "status": "found",
+     "ids": [
+      "M1"
+     ],
+     "size": 1,
+     "evaluated": 4,
+     "runtime_ms": 5.7,
+     "alternatives": [],
+     "after": {
+      "PASS": 2,
+      "FAIL": 0,
+      "INCONCLUSIVE": 0
+     },
+     "undo_regresses": true,
+     "over_budget": []
+    },
+    "greedy": {
+     "ids": [
+      "M1"
+     ],
+     "passes": true,
+     "minimal": true
+    },
+    "proximity": {
+     "ids": [
+      "M1"
+     ],
+     "passes": true,
+     "minimal": true
+    },
+    "inconclusive": 0,
+    "checks": {
+     "regressions": true,
+     "proposed": true,
+     "fix": true,
+     "counterexamples": true,
+     "responsible": true,
+     "reverified": true,
+     "undo_regresses": true
+    },
+    "correct": true
+   },
+   {
+    "title": "Two-repair dependency",
+    "claim": "Neither ramp alone restores the step-free route; both together do. Walkers keep a route.",
+    "id": "two_repair_dependency",
+    "baseline": {
+     "R1": "PASS",
+     "R2": "PASS"
+    },
+    "proposed": {
+     "R1": "FAIL",
+     "R2": "PASS"
+    },
+    "regressions": [
+     "R1"
+    ],
+    "counterexamples": {
+     "R1": {
+      "valid": true,
+      "responsible": [
+       "P"
+      ],
+      "summary": "Proposed closure of crossing c1 cuts the only modeled step-free route from O to T. A walking route of 501 m still exists, but it uses 2 curb steps (R:c2:a and more), so it does not meet the step-free requirement. No step-free route remains at any distance in the modeled area."
+     }
+    },
+    "exact": {
+     "status": "found",
+     "ids": [
+      "A",
+      "B"
+     ],
+     "size": 2,
+     "evaluated": 9,
+     "runtime_ms": 8.7,
+     "alternatives": [],
+     "after": {
+      "PASS": 2,
+      "FAIL": 0,
+      "INCONCLUSIVE": 0
+     },
+     "undo_regresses": true,
+     "over_budget": []
+    },
+    "greedy": {
+     "ids": [],
+     "passes": false,
+     "minimal": false
+    },
+    "proximity": {
+     "ids": [
+      "B",
+      "A"
+     ],
+     "passes": true,
+     "minimal": true
+    },
+    "inconclusive": 0,
+    "checks": {
+     "regressions": true,
+     "proposed": true,
+     "fix": true,
+     "counterexamples": true,
+     "responsible": true,
+     "reverified": true,
+     "singles_fail": true,
+     "undo_regresses": true
+    },
+    "correct": true
+   },
+   {
+    "title": "Existing alternative route",
+    "claim": "The closure leaves a step-free route within the threshold: nothing to fix.",
+    "id": "alternative_route",
+    "baseline": {
+     "R1": "PASS"
+    },
+    "proposed": {
+     "R1": "PASS"
+    },
+    "regressions": [],
+    "counterexamples": {},
+    "exact": {
+     "status": "nothing_to_fix",
+     "ids": [],
+     "size": 0,
+     "evaluated": 1,
+     "runtime_ms": 1.1,
+     "alternatives": [],
+     "after": null,
+     "undo_regresses": null,
+     "over_budget": []
+    },
+    "greedy": {
+     "ids": [],
+     "passes": true,
+     "minimal": true
+    },
+    "proximity": {
+     "ids": [],
+     "passes": true,
+     "minimal": true
+    },
+    "inconclusive": 0,
+    "checks": {
+     "regressions": true,
+     "proposed": true,
+     "fix": true,
+     "counterexamples": true,
+     "responsible": true,
+     "reverified": true
+    },
+    "correct": true
+   },
+   {
+    "title": "Multiple destinations",
+    "claim": "Clinic access regresses; bus-stop access does not and is not flagged.",
+    "id": "multiple_destinations",
+    "baseline": {
+     "R1": "PASS",
+     "R3": "PASS"
+    },
+    "proposed": {
+     "R1": "FAIL",
+     "R3": "PASS"
+    },
+    "regressions": [
+     "R1"
+    ],
+    "counterexamples": {
+     "R1": {
+      "valid": true,
+      "responsible": [
+       "P"
+      ],
+      "summary": "Proposed closure of crossing c1 cuts the only modeled step-free route from O to T. No walking route remains either. No step-free route remains at any distance in the modeled area."
+     }
+    },
+    "exact": {
+     "status": "found",
+     "ids": [
+      "M1"
+     ],
+     "size": 1,
+     "evaluated": 2,
+     "runtime_ms": 2.7,
+     "alternatives": [],
+     "after": {
+      "PASS": 2,
+      "FAIL": 0,
+      "INCONCLUSIVE": 0
+     },
+     "undo_regresses": true,
+     "over_budget": []
+    },
+    "greedy": {
+     "ids": [
+      "M1"
+     ],
+     "passes": true,
+     "minimal": true
+    },
+    "proximity": {
+     "ids": [
+      "M1"
+     ],
+     "passes": true,
+     "minimal": true
+    },
+    "inconclusive": 0,
+    "checks": {
+     "regressions": true,
+     "proposed": true,
+     "fix": true,
+     "counterexamples": true,
+     "responsible": true,
+     "reverified": true,
+     "undo_regresses": true
+    },
+    "correct": true
+   },
+   {
+    "title": "Infeasible budget",
+    "claim": "No fix fits the budget: the engine reports infeasibility and the fix it excludes.",
+    "id": "infeasible_budget",
+    "baseline": {
+     "R1": "PASS"
+    },
+    "proposed": {
+     "R1": "FAIL"
+    },
+    "regressions": [
+     "R1"
+    ],
+    "counterexamples": {
+     "R1": {
+      "valid": true,
+      "responsible": [
+       "P"
+      ],
+      "summary": "Proposed closure of crossing c1 cuts the only modeled step-free route from O to T. A walking route of 501 m still exists, but it uses 2 curb steps (R:c2:a and more), so it does not meet the step-free requirement. No step-free route remains at any distance in the modeled area."
+     }
+    },
+    "exact": {
+     "status": "over_budget",
+     "ids": [],
+     "size": 0,
+     "evaluated": 5,
+     "runtime_ms": 2.5,
+     "alternatives": [],
+     "after": null,
+     "undo_regresses": null,
+     "over_budget": [
+      {
+       "ids": [
+        "A",
+        "B"
+       ],
+       "cost_units": 2
+      }
+     ]
+    },
+    "greedy": {
+     "ids": [],
+     "passes": false,
+     "minimal": false
+    },
+    "proximity": {
+     "ids": [
+      "B"
+     ],
+     "passes": false,
+     "minimal": false
+    },
+    "inconclusive": 0,
+    "checks": {
+     "regressions": true,
+     "proposed": true,
+     "fix": true,
+     "counterexamples": true,
+     "responsible": true,
+     "reverified": true,
+     "over_budget": true
+    },
+    "correct": true
+   },
+   {
+    "title": "Unknown accessibility state",
+    "claim": "Unknown data makes the check INCONCLUSIVE, never PASS.",
+    "id": "unknown_state",
+    "baseline": {
+     "R1": "PASS"
+    },
+    "proposed": {
+     "R1": "INCONCLUSIVE"
+    },
+    "regressions": [
+     "R1"
+    ],
+    "counterexamples": {
+     "R1": {
+      "valid": true,
+      "responsible": [
+       "P"
+      ],
+      "summary": "Proposed closure of crossing c1 cuts the only modeled step-free route from O to T. No walking route remains either. No step-free route remains at any distance in the modeled area."
+     }
+    },
+    "exact": {
+     "status": "found",
+     "ids": [
+      "M1"
+     ],
+     "size": 1,
+     "evaluated": 2,
+     "runtime_ms": 3.9,
+     "alternatives": [],
+     "after": {
+      "PASS": 1,
+      "FAIL": 0,
+      "INCONCLUSIVE": 0
+     },
+     "undo_regresses": true,
+     "over_budget": []
+    },
+    "greedy": {
+     "ids": [
+      "M1"
+     ],
+     "passes": true,
+     "minimal": true
+    },
+    "proximity": {
+     "ids": [
+      "M1"
+     ],
+     "passes": true,
+     "minimal": true
+    },
+    "inconclusive": 1,
+    "checks": {
+     "regressions": true,
+     "proposed": true,
+     "fix": true,
+     "counterexamples": true,
+     "responsible": true,
+     "reverified": true,
+     "undo_regresses": true
+    },
+    "correct": true
+   },
+   {
+    "title": "Two requirements, two repairs",
+    "claim": "Each regressed journey needs its own repair; greedy does as well as exact here.",
+    "id": "two_requirements",
+    "baseline": {
+     "R1": "PASS",
+     "R2": "PASS"
+    },
+    "proposed": {
+     "R1": "FAIL",
+     "R2": "FAIL"
+    },
+    "regressions": [
+     "R1",
+     "R2"
+    ],
+    "counterexamples": {
+     "R1": {
+      "valid": true,
+      "responsible": [
+       "P"
+      ],
+      "summary": "Proposed closure of crossing c1 cuts the only modeled step-free route from O to T. No walking route remains either. No step-free route remains at any distance in the modeled area."
+     },
+     "R2": {
+      "valid": true,
+      "responsible": [
+       "P2"
+      ],
+      "summary": "Proposed closure of crossing c3 cuts the only modeled step-free route from O2 to T2. No walking route remains either. No step-free route remains at any distance in the modeled area."
+     }
+    },
+    "exact": {
+     "status": "found",
+     "ids": [
+      "A",
+      "B"
+     ],
+     "size": 2,
+     "evaluated": 5,
+     "runtime_ms": 7.1,
+     "alternatives": [],
+     "after": {
+      "PASS": 2,
+      "FAIL": 0,
+      "INCONCLUSIVE": 0
+     },
+     "undo_regresses": true,
+     "over_budget": []
+    },
+    "greedy": {
+     "ids": [
+      "A",
+      "B"
+     ],
+     "passes": true,
+     "minimal": true
+    },
+    "proximity": {
+     "ids": [
+      "A",
+      "B"
+     ],
+     "passes": true,
+     "minimal": true
+    },
+    "inconclusive": 0,
+    "checks": {
+     "regressions": true,
+     "proposed": true,
+     "fix": true,
+     "counterexamples": true,
+     "responsible": true,
+     "reverified": true,
+     "undo_regresses": true
+    },
+    "correct": true
+   },
+   {
+    "title": "Redundant candidates",
+    "claim": "Two single fixes exist; deterministic ranking picks the cheaper and lists the other.",
+    "id": "redundant_candidates",
+    "baseline": {
+     "R1": "PASS"
+    },
+    "proposed": {
+     "R1": "FAIL"
+    },
+    "regressions": [
+     "R1"
+    ],
+    "counterexamples": {
+     "R1": {
+      "valid": true,
+      "responsible": [
+       "P"
+      ],
+      "summary": "Proposed closure of crossing c1 cuts the only modeled step-free route from O to T. No walking route remains either. No step-free route remains at any distance in the modeled area."
+     }
+    },
+    "exact": {
+     "status": "found",
+     "ids": [
+      "M2"
+     ],
+     "size": 1,
+     "evaluated": 4,
+     "runtime_ms": 3.3,
+     "alternatives": [
+      [
+       "M1"
+      ]
+     ],
+     "after": {
+      "PASS": 1,
+      "FAIL": 0,
+      "INCONCLUSIVE": 0
+     },
+     "undo_regresses": true,
+     "over_budget": []
+    },
+    "greedy": {
+     "ids": [
+      "M2"
+     ],
+     "passes": true,
+     "minimal": true
+    },
+    "proximity": {
+     "ids": [
+      "M1"
+     ],
+     "passes": true,
+     "minimal": true
+    },
+    "inconclusive": 0,
+    "checks": {
+     "regressions": true,
+     "proposed": true,
+     "fix": true,
+     "counterexamples": true,
+     "responsible": true,
+     "reverified": true,
+     "alternatives": true,
+     "undo_regresses": true
+    },
+    "correct": true
+   },
+   {
+    "title": "No feasible mitigation",
+    "claim": "Nothing in the catalog restores access: reported as none, not faked.",
+    "id": "no_mitigation",
+    "baseline": {
+     "R1": "PASS"
+    },
+    "proposed": {
+     "R1": "FAIL"
+    },
+    "regressions": [
+     "R1"
+    ],
+    "counterexamples": {
+     "R1": {
+      "valid": true,
+      "responsible": [
+       "P"
+      ],
+      "summary": "Proposed closure of crossing c1 cuts the only modeled step-free route from O to T. No walking route remains either. No step-free route remains at any distance in the modeled area."
+     }
+    },
+    "exact": {
+     "status": "none",
+     "ids": [],
+     "size": 0,
+     "evaluated": 2,
+     "runtime_ms": 1.8,
+     "alternatives": [],
+     "after": null,
+     "undo_regresses": null,
+     "over_budget": []
+    },
+    "greedy": {
+     "ids": [],
+     "passes": false,
+     "minimal": false
+    },
+    "proximity": {
+     "ids": [
+      "Dz"
+     ],
+     "passes": false,
+     "minimal": false
+    },
+    "inconclusive": 0,
+    "checks": {
+     "regressions": true,
+     "proposed": true,
+     "fix": true,
+     "counterexamples": true,
+     "responsible": true,
+     "reverified": true
+    },
+    "correct": true
+   },
+   {
+    "title": "Detour limit",
+    "claim": "The route survives within 600 m but is 60% longer; a nearby temporary crossing keeps it within +15%.",
+    "id": "detour_limit",
+    "baseline": {
+     "R1": "PASS",
+     "R2": "PASS"
+    },
+    "proposed": {
+     "R1": "PASS",
+     "R2": "FAIL"
+    },
+    "regressions": [
+     "R2"
+    ],
+    "counterexamples": {
+     "R2": {
+      "valid": true,
+      "responsible": [
+       "P"
+      ],
+      "summary": "Proposed closure of crossing c1 interrupts today's step-free route. The step-free alternative is 501 m, 67% longer than today's 300 m."
+     }
+    },
+    "exact": {
+     "status": "found",
+     "ids": [
+      "M3"
+     ],
+     "size": 1,
+     "evaluated": 2,
+     "runtime_ms": 2.7,
+     "alternatives": [],
+     "after": {
+      "PASS": 2,
+      "FAIL": 0,
+      "INCONCLUSIVE": 0
+     },
+     "undo_regresses": true,
+     "over_budget": []
+    },
+    "greedy": {
+     "ids": [
+      "M3"
+     ],
+     "passes": true,
+     "minimal": true
+    },
+    "proximity": {
+     "ids": [
+      "M3"
+     ],
+     "passes": true,
+     "minimal": true
+    },
+    "inconclusive": 0,
+    "checks": {
+     "regressions": true,
+     "proposed": true,
+     "fix": true,
+     "counterexamples": true,
+     "responsible": true,
+     "reverified": true,
+     "undo_regresses": true
+    },
+    "correct": true
+   }
+  ],
+  "real": {
+   "id": "charlotte_preflight",
+   "baseline": {
+    "R1": "PASS",
+    "R2": "PASS",
+    "R3": "PASS",
+    "R4": "PASS",
+    "R5": "PASS"
+   },
+   "proposed": {
+    "R1": "FAIL",
+    "R2": "FAIL",
+    "R3": "PASS",
+    "R4": "PASS",
+    "R5": "FAIL"
+   },
+   "regressions": [
+    "R1",
+    "R2",
+    "R5"
+   ],
+   "counterexamples": {
+    "R1": {
+     "valid": true,
+     "responsible": [
+      "P1-close"
+     ],
+     "summary": "Temporary closure of the East 7th Street crossing at Hawthorne Lane cuts the only modeled step-free route from Homes along Hawthorne Lane to Novant Health Presbyterian Medical Center. A walking route of 648 m still exists, but it uses 2 curb steps (N ramp, East 7th Street & Hawthorne Lane and more), so it does not meet the step-free requirement. The shortest step-free alternative is 868 m, beyond the 800 m threshold."
+    },
+    "R2": {
+     "valid": true,
+     "responsible": [
+      "P1-close"
+     ],
+     "summary": "Temporary closure of the East 7th Street crossing at Hawthorne Lane interrupts today's step-free route. A walking route of 648 m still exists, but it uses 2 curb steps (N ramp, East 7th Street & Hawthorne Lane and more), so it does not meet the step-free requirement. The step-free alternative is 868 m, 34% longer than today's 648 m."
+    },
+    "R5": {
+     "valid": null,
+     "responsible": [],
+     "summary": null
+    }
+   },
+   "exact": {
+    "status": "found",
+    "ids": [
+     "A",
+     "B"
+    ],
+    "size": 2,
+    "evaluated": 20,
+    "runtime_ms": 403.2,
+    "alternatives": [],
+    "after": {
+     "PASS": 5,
+     "FAIL": 0,
+     "INCONCLUSIVE": 0
+    },
+    "undo_regresses": true,
+    "over_budget": []
+   },
+   "greedy": {
+    "ids": [
+     "C"
+    ],
+    "passes": false,
+    "minimal": false
+   },
+   "proximity": {
+    "ids": [
+     "B",
+     "A"
+    ],
+    "passes": true,
+    "minimal": true
+   },
+   "inconclusive": 0,
+   "title": "Charlotte, Elizabeth (real streets, hypothetical settings)",
+   "claim": "Closure of the East 7th Street crossing at Hawthorne Lane."
+  }
+ },
+ "network_vs_straight": [
+  {
+   "category": "healthcare",
+   "profile": "pedestrian",
+   "threshold_m": 1500.0,
+   "homes": 951,
+   "with_route": 895,
+   "median_ratio": 1.72,
+   "p90_ratio": 2.81,
+   "straight_within": 951,
+   "network_within": 895,
+   "overstated": 56
+  },
+  {
+   "category": "healthcare",
+   "profile": "step_free",
+   "threshold_m": 1500.0,
+   "homes": 951,
+   "with_route": 895,
+   "median_ratio": 1.95,
+   "p90_ratio": 3.19,
+   "straight_within": 951,
+   "network_within": 895,
+   "overstated": 56
+  },
+  {
+   "category": "education",
+   "profile": "pedestrian",
+   "threshold_m": 1200.0,
+   "homes": 951,
+   "with_route": 895,
+   "median_ratio": 1.81,
+   "p90_ratio": 2.95,
+   "straight_within": 951,
+   "network_within": 555,
+   "overstated": 396
+  },
+  {
+   "category": "education",
+   "profile": "step_free",
+   "threshold_m": 1200.0,
+   "homes": 951,
+   "with_route": 895,
+   "median_ratio": 2.07,
+   "p90_ratio": 3.73,
+   "straight_within": 951,
+   "network_within": 429,
+   "overstated": 522
+  },
+  {
+   "category": "grocery",
+   "profile": "pedestrian",
+   "threshold_m": 800.0,
+   "homes": 951,
+   "with_route": 0,
+   "median_ratio": null,
+   "p90_ratio": null,
+   "straight_within": 0,
+   "network_within": 0,
+   "overstated": 0
+  },
+  {
+   "category": "grocery",
+   "profile": "step_free",
+   "threshold_m": 800.0,
+   "homes": 951,
+   "with_route": 0,
+   "median_ratio": null,
+   "p90_ratio": null,
+   "straight_within": 0,
+   "network_within": 0,
+   "overstated": 0
+  },
+  {
+   "category": "transit",
+   "profile": "pedestrian",
+   "threshold_m": 600.0,
+   "homes": 951,
+   "with_route": 895,
+   "median_ratio": 1.53,
+   "p90_ratio": 2.3,
+   "straight_within": 857,
+   "network_within": 632,
+   "overstated": 225
+  },
+  {
+   "category": "transit",
+   "profile": "step_free",
+   "threshold_m": 600.0,
+   "homes": 951,
+   "with_route": 895,
+   "median_ratio": 1.7,
+   "p90_ratio": 2.74,
+   "straight_within": 857,
+   "network_within": 578,
+   "overstated": 279
+  },
+  {
+   "category": "parks",
+   "profile": "pedestrian",
+   "threshold_m": 1000.0,
+   "homes": 951,
+   "with_route": 895,
+   "median_ratio": 1.64,
+   "p90_ratio": 2.72,
+   "straight_within": 951,
+   "network_within": 813,
+   "overstated": 138
+  },
+  {
+   "category": "parks",
+   "profile": "step_free",
+   "threshold_m": 1000.0,
+   "homes": 951,
+   "with_route": 895,
+   "median_ratio": 1.75,
+   "p90_ratio": 3.05,
+   "straight_within": 951,
+   "network_within": 752,
+   "overstated": 199
+  },
+  {
+   "category": "services",
+   "profile": "pedestrian",
+   "threshold_m": 1000.0,
+   "homes": 951,
+   "with_route": 895,
+   "median_ratio": 1.66,
+   "p90_ratio": 2.3,
+   "straight_within": 951,
+   "network_within": 846,
+   "overstated": 105
+  },
+  {
+   "category": "services",
+   "profile": "step_free",
+   "threshold_m": 1000.0,
+   "homes": 951,
+   "with_route": 895,
+   "median_ratio": 1.71,
+   "p90_ratio": 2.63,
+   "straight_within": 951,
+   "network_within": 830,
+   "overstated": 121
+  }
+ ],
+ "fix_or_build": [
+  {
+   "category": "education",
+   "cell": "8944d84d32fffff",
+   "budget": 1,
+   "homes": 51,
+   "baseline": 0,
+   "fix_gain": 32,
+   "fix": [
+    "SW:S:47:L"
+   ],
+   "fix_alone": [
+    32
+   ],
+   "fix_relevant": 40,
+   "fix_candidates": 92,
+   "fix_evaluated": 40,
+   "fix_exact": true,
+   "build_gain": 35,
+   "build_site": "Hypothetical education site: Providence Center (office building)",
+   "sites": 33,
+   "winner": "build",
+   "requirement_before": "FAIL",
+   "fix_after": "FAIL",
+   "build_after": "FAIL",
+   "runtime_ms": 323.8
+  },
+  {
+   "category": "education",
+   "cell": "8944d84d32fffff",
+   "budget": 2,
+   "homes": 51,
+   "baseline": 0,
+   "fix_gain": 42,
+   "fix": [
+    "SW:S:205:R",
+    "SW:S:47:L"
+   ],
+   "fix_alone": [
+    0,
+    32
+   ],
+   "fix_relevant": 40,
+   "fix_candidates": 92,
+   "fix_evaluated": 820,
+   "fix_exact": true,
+   "build_gain": 35,
+   "build_site": "Hypothetical education site: Providence Center (office building)",
+   "sites": 33,
+   "winner": "fix",
+   "requirement_before": "FAIL",
+   "fix_after": "INCONCLUSIVE",
+   "build_after": "FAIL",
+   "runtime_ms": 1436.9
+  },
+  {
+   "category": "education",
+   "cell": "8944d84d32fffff",
+   "budget": 3,
+   "homes": 51,
+   "baseline": 0,
+   "fix_gain": 49,
+   "fix": [
+    "SW:S:112:R",
+    "SW:S:205:R",
+    "SW:S:47:L"
+   ],
+   "fix_alone": [
+    0,
+    0,
+    32
+   ],
+   "fix_relevant": 40,
+   "fix_candidates": 92,
+   "fix_evaluated": 1470,
+   "fix_exact": false,
+   "build_gain": 35,
+   "build_site": "Hypothetical education site: Providence Center (office building)",
+   "sites": 33,
+   "winner": "fix",
+   "requirement_before": "FAIL",
+   "fix_after": "INCONCLUSIVE",
+   "build_after": "FAIL",
+   "runtime_ms": 2441.5
+  },
+  {
+   "category": "parks",
+   "cell": "8944dab2d8bffff",
+   "budget": 1,
+   "homes": 41,
+   "baseline": 8,
+   "fix_gain": 20,
+   "fix": [
+    "R20742"
+   ],
+   "fix_alone": [
+    20
+   ],
+   "fix_relevant": 53,
+   "fix_candidates": 92,
+   "fix_evaluated": 53,
+   "fix_exact": true,
+   "build_gain": 33,
+   "build_site": "Hypothetical parks site: Retail building",
+   "sites": 18,
+   "winner": "build",
+   "requirement_before": "FAIL",
+   "fix_after": "FAIL",
+   "build_after": "INCONCLUSIVE",
+   "runtime_ms": 317.2
+  },
+  {
+   "category": "parks",
+   "cell": "8944dab2d8bffff",
+   "budget": 2,
+   "homes": 41,
+   "baseline": 8,
+   "fix_gain": 33,
+   "fix": [
+    "R20742",
+    "SW:S:8:L"
+   ],
+   "fix_alone": [
+    20,
+    5
+   ],
+   "fix_relevant": 53,
+   "fix_candidates": 92,
+   "fix_evaluated": 1431,
+   "fix_exact": true,
+   "build_gain": 33,
+   "build_site": "Hypothetical parks site: Retail building",
+   "sites": 18,
+   "winner": "tie",
+   "requirement_before": "FAIL",
+   "fix_after": "INCONCLUSIVE",
+   "build_after": "INCONCLUSIVE",
+   "runtime_ms": 2786.8
+  },
+  {
+   "category": "grocery",
+   "cell": "8944dab2dd7ffff",
+   "budget": 2,
+   "homes": 81,
+   "baseline": 0,
+   "fix_gain": 0,
+   "fix": [],
+   "fix_alone": [],
+   "fix_relevant": 0,
+   "fix_candidates": 92,
+   "fix_evaluated": 0,
+   "fix_exact": true,
+   "build_gain": 42,
+   "build_site": "Hypothetical grocery site: Retail building",
+   "sites": 14,
+   "winner": "build",
+   "requirement_before": "FAIL",
+   "fix_after": null,
+   "build_after": "FAIL",
+   "runtime_ms": 139.5
+  },
+  {
+   "category": "transit",
+   "cell": "8944d84d32bffff",
+   "budget": 2,
+   "homes": 65,
+   "baseline": 42,
+   "fix_gain": 0,
+   "fix": [],
+   "fix_alone": [],
+   "fix_relevant": 0,
+   "fix_candidates": 92,
+   "fix_evaluated": 0,
+   "fix_exact": true,
+   "build_gain": 8,
+   "build_site": "Hypothetical public transport site: Providence Center (office building)",
+   "sites": 9,
+   "winner": "build",
+   "requirement_before": "FAIL",
+   "fix_after": null,
+   "build_after": "FAIL",
+   "runtime_ms": 153.2
+  }
+ ],
+ "runtime_s": 9.7
+}
