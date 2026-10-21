@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 760" width="1240" height="760" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 800" width="1240" height="800" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif">
   <defs>
     <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0 0 L10 5 L0 10 z" fill="#7aa2ff"/>
@@ -11,125 +11,129 @@
       .k{fill:#0f1a33;stroke:#5b8cff;stroke-width:1.6}
       .g{fill:#0f2b25;stroke:#34d399;stroke-width:1.4}
       .w{fill:#2b2410;stroke:#fbbf24;stroke-width:1.2}
+      .r{fill:#2b1416;stroke:#f87171;stroke-width:1.2}
       .l{stroke:#7aa2ff;stroke-width:1.6;fill:none;marker-end:url(#a)}
       .d{stroke:#566282;stroke-width:1.3;fill:none;stroke-dasharray:5 4;marker-end:url(#a)}
     </style>
   </defs>
-  <rect width="1240" height="760" rx="16" fill="#080c16"/>
+  <rect width="1240" height="800" rx="16" fill="#080c16"/>
   <text x="40" y="48" fill="#e8ecf4" font-size="22" font-weight="700" letter-spacing=".14em">STREETMEND · ARCHITECTURE</text>
-  <text x="40" y="72" class="s">Deterministic engine is the source of truth. The language model only selects allowlisted operations.</text>
+  <text x="40" y="72" class="s">One pedestrian graph and one usability rule feed every engine. The language model only selects allowlisted operations; the graph code computes every result.</text>
 
-  <!-- column labels -->
   <text x="40" y="112" class="h">SOURCES</text>
-  <text x="300" y="112" class="h">INGESTION &amp; NORMALIZATION</text>
-  <text x="560" y="112" class="h">PEDESTRIAN GRAPH</text>
-  <text x="820" y="112" class="h">OPTIMIZATION ENGINE</text>
-  <text x="1040" y="112" class="h">INTERFACES</text>
+  <text x="290" y="112" class="h">INGESTION</text>
+  <text x="520" y="112" class="h">ONE GRAPH</text>
+  <text x="760" y="112" class="h">ENGINES</text>
+  <text x="1030" y="112" class="h">INTERFACES</text>
 
   <!-- sources -->
-  <rect class="b" x="40" y="128" width="220" height="62" rx="10"/>
-  <text class="t" x="56" y="154">CDOT ADA Curb Ramps</text><text class="s" x="56" y="174">ArcGIS REST · EPSG:2264 · 320 in area</text>
-  <rect class="b" x="40" y="202" width="220" height="62" rx="10"/>
-  <text class="t" x="56" y="228">CDOT Sidewalk Inventory</text><text class="s" x="56" y="248">per-side polylines · 557 in area</text>
-  <rect class="b" x="40" y="276" width="220" height="62" rx="10"/>
-  <text class="t" x="56" y="302">CATS Bus Stops</text><text class="s" x="56" y="322">City of Charlotte · 19 in area</text>
-  <rect class="b" x="40" y="350" width="220" height="62" rx="10"/>
-  <text class="t" x="56" y="376">OpenStreetMap</text><text class="s" x="56" y="396">streets, POIs, 5,113 buildings</text>
-  <rect class="w" x="40" y="440" width="220" height="62" rx="10"/>
-  <text class="t" x="56" y="466">Guided scenario spec</text><text class="s" x="56" y="486">hypothetical barrier states</text>
+  <rect class="b" x="40" y="128" width="210" height="58" rx="10"/>
+  <text class="t" x="56" y="152">CDOT ADA Curb Ramps</text><text class="s" x="56" y="172">ArcGIS REST · 320 in area</text>
+  <rect class="b" x="40" y="196" width="210" height="58" rx="10"/>
+  <text class="t" x="56" y="220">CDOT Sidewalk Inventory</text><text class="s" x="56" y="240">per side · "No Sidewalk" gaps</text>
+  <rect class="b" x="40" y="264" width="210" height="58" rx="10"/>
+  <text class="t" x="56" y="288">CATS Bus Stops</text><text class="s" x="56" y="308">City of Charlotte</text>
+  <rect class="b" x="40" y="332" width="210" height="74" rx="10"/>
+  <text class="t" x="56" y="356">OpenStreetMap</text><text class="s" x="56" y="376">streets · 285 facilities in 6</text><text class="s" x="56" y="392">categories · 5,113 buildings</text>
+  <rect class="w" x="40" y="416" width="210" height="58" rx="10"/>
+  <text class="t" x="56" y="440">Scenario specs</text><text class="s" x="56" y="460">hypothetical settings, labeled</text>
 
   <!-- ingestion -->
-  <rect class="b" x="300" y="128" width="220" height="210" rx="10"/>
-  <text class="t" x="316" y="154">scripts/ingest</text>
-  <text class="s" x="316" y="178">• paginated queries + retries</text>
-  <text class="s" x="316" y="198">• pyproj 2264 → 4326, checked</text>
-  <text class="s" x="316" y="214">   vs server (max 0.82 m)</text>
-  <text class="s" x="316" y="234">• dedupe, missing-field stats</text>
-  <text class="s" x="316" y="254">• provenance + retrieval time</text>
-  <text class="s" x="316" y="274">• Overpass backoff → OSM API</text>
-  <text class="s" x="316" y="294">• cache (data/cache)</text>
-  <text class="s" x="316" y="318">→ data/samples/*.geojson</text>
-  <rect class="b" x="300" y="350" width="220" height="62" rx="10"/>
-  <text class="t" x="316" y="376">Unavailable source</text><text class="s" x="316" y="396">explicit status, never fabricated</text>
+  <rect class="b" x="290" y="128" width="200" height="278" rx="10"/>
+  <text class="t" x="306" y="152">scripts/ingest</text>
+  <text class="s" x="306" y="176">• paginated ArcGIS + retries</text>
+  <text class="s" x="306" y="196">• pyproj 2264 → 4326</text>
+  <text class="s" x="306" y="216">• Overpass: facilities,</text>
+  <text class="s" x="306" y="232">   buildings, canopy</text>
+  <text class="s" x="306" y="252">• provenance + retrieval time</text>
+  <text class="s" x="306" y="272">• dedupe, quality stats</text>
+  <text class="s" x="306" y="300">→ data/samples (committed:</text>
+  <text class="s" x="306" y="316">   engine runs offline)</text>
+  <text class="s" x="306" y="344">municipal/build.py</text>
+  <text class="s" x="306" y="364">corners · ramps · crossings</text>
+  <text class="s" x="306" y="380">no record → UNKNOWN</text>
 
   <!-- graph -->
-  <rect class="k" x="560" y="128" width="220" height="150" rx="10"/>
-  <text class="t" x="576" y="154">municipal/build.py</text>
-  <text class="s" x="576" y="178">OSM intersections → corners</text>
-  <text class="s" x="576" y="198">ramps → corner → crossing</text>
-  <text class="s" x="576" y="218">inventory → sidewalk side</text>
-  <text class="s" x="576" y="238">3 passability policies</text>
-  <text class="s" x="576" y="258">no record → UNKNOWN</text>
-  <rect class="k" x="560" y="290" width="220" height="122" rx="10"/>
-  <text class="t" x="576" y="316">PedGraph</text>
-  <text class="s" x="576" y="340">corner · curb · crossing · ramp</text>
-  <text class="s" x="576" y="360">state: traversable / blocked /</text>
-  <text class="s" x="576" y="376">unknown · evidence label</text>
-  <text class="s" x="576" y="398">undirected (no vehicle rules)</text>
-  <rect class="w" x="560" y="440" width="220" height="62" rx="10"/>
-  <text class="t" x="576" y="466">scenario/guided.py</text><text class="s" x="576" y="486">real graph, hypothetical states</text>
+  <rect class="k" x="520" y="128" width="210" height="150" rx="10"/>
+  <text class="t" x="536" y="152">PedGraph</text>
+  <text class="s" x="536" y="174">sidewalk · crossing · ramp</text>
+  <text class="s" x="536" y="192">traversable / blocked / unknown</text>
+  <text class="s" x="536" y="210">+ evidence on every edge</text>
+  <text class="s" x="536" y="236">usable(edge, profile, policy)</text>
+  <text class="s" x="536" y="254">step-free · walking</text>
+  <text class="s" x="536" y="270">verified · possible · physical</text>
+  <rect class="b" x="520" y="292" width="210" height="114" rx="10"/>
+  <text class="t" x="536" y="316">Intervention model</text>
+  <text class="s" x="536" y="338">typed ops · targets · state</text>
+  <text class="s" x="536" y="354">change · preconditions · profiles</text>
+  <text class="s" x="536" y="370">cost · dependencies · provenance</text>
+  <text class="s" x="536" y="388">record-backed or simulated</text>
 
-  <!-- engine -->
-  <rect class="g" x="820" y="128" width="190" height="96" rx="10"/>
-  <text class="t" x="836" y="154">Evaluator</text>
-  <text class="s" x="836" y="176">scipy Dijkstra (CSR)</text>
-  <text class="s" x="836" y="194">exact key-node min-plus</text>
-  <text class="s" x="836" y="212">batched, sound pruning</text>
-  <rect class="g" x="820" y="236" width="190" height="96" rx="10"/>
-  <text class="t" x="836" y="262">Solvers</text>
-  <text class="s" x="836" y="284">exact enumeration</text>
-  <text class="s" x="836" y="302">greedy · individual · nearest</text>
-  <text class="s" x="836" y="320">beam (labeled approx.)</text>
-  <rect class="g" x="820" y="344" width="190" height="96" rx="10"/>
-  <text class="t" x="836" y="370">Analysis</text>
-  <text class="s" x="836" y="392">synergy · leave-one-out</text>
-  <text class="s" x="836" y="410">new O-D pairs · routes</text>
-  <text class="s" x="836" y="428">unknown-edge sensitivity</text>
+  <!-- engines -->
+  <rect class="g" x="760" y="128" width="240" height="132" rx="10"/>
+  <text class="t" x="776" y="152">verify: change check</text>
+  <text class="s" x="776" y="174">baseline → proposed → fixed</text>
+  <text class="s" x="776" y="192">checks PASS / FAIL / INCONCLUSIVE</text>
+  <text class="s" x="776" y="210">counterexample per regression</text>
+  <text class="s" x="776" y="228">minimal fix: exact by size,</text>
+  <text class="s" x="776" y="244">budget + dependencies, re-verified</text>
+  <rect class="g" x="760" y="270" width="240" height="132" rx="10"/>
+  <text class="t" x="776" y="294">access: gaps → fix or build</text>
+  <text class="s" x="776" y="316">951 homes · multi-source Dijkstra</text>
+  <text class="s" x="776" y="334">diagnosis: barrier / detour /</text>
+  <text class="s" x="776" y="350">no facility / unknown · E2SFCA supply</text>
+  <text class="s" x="776" y="368">repairs (ellipse-pruned exact)</text>
+  <text class="s" x="776" y="384">vs hypothetical site · re-verified</text>
+  <rect class="b" x="760" y="412" width="240" height="62" rx="10"/>
+  <text class="t" x="776" y="436">optimize: repair planner</text>
+  <text class="s" x="776" y="456">exact · greedy · individual · beam</text>
+  <rect class="b" x="760" y="484" width="240" height="62" rx="10"/>
+  <text class="t" x="776" y="508">evaluation</text>
+  <text class="s" x="776" y="528">10 fixtures · greedy · nearest-first</text>
 
   <!-- interfaces -->
-  <rect class="k" x="1040" y="128" width="170" height="96" rx="10"/>
-  <text class="t" x="1056" y="154">FastAPI</text>
-  <text class="s" x="1056" y="176">Pydantic contracts</text>
-  <text class="s" x="1056" y="194">evaluate · optimize</text>
-  <text class="s" x="1056" y="212">report · records</text>
-  <rect class="k" x="1040" y="236" width="170" height="122" rx="10"/>
-  <text class="t" x="1056" y="262">Web app</text>
-  <text class="s" x="1056" y="284">React · MapLibre · three.js</text>
-  <text class="s" x="1056" y="302">3D city · guided · explorer</text>
-  <text class="s" x="1056" y="320">route / reach animation</text>
-  <text class="s" x="1056" y="338">text alternative lists</text>
-  <rect class="b" x="1040" y="370" width="170" height="132" rx="10"/>
-  <text class="t" x="1056" y="396">Assistant</text>
-  <text class="s" x="1056" y="418">rule parser (offline)</text>
-  <text class="s" x="1056" y="436">→ local qwen3:4b (Ollama)</text>
-  <text class="s" x="1056" y="454">→ Pydantic allowlist</text>
-  <text class="s" x="1056" y="472">→ engine executes</text>
-  <text class="s" x="1056" y="490">numbers checked vs facts</text>
+  <rect class="b" x="1030" y="128" width="170" height="92" rx="10"/>
+  <text class="t" x="1046" y="152">FastAPI</text>
+  <text class="s" x="1046" y="174">verify · verify/fix</text>
+  <text class="s" x="1046" y="190">access · compare</text>
+  <text class="s" x="1046" y="206">assistant · evaluation</text>
+  <rect class="k" x="1030" y="232" width="170" height="134" rx="10"/>
+  <text class="t" x="1046" y="256">Web app</text>
+  <text class="s" x="1046" y="278">React · MapLibre ·</text>
+  <text class="s" x="1046" y="294">three.js 3D city</text>
+  <text class="s" x="1046" y="316">Change check</text>
+  <text class="s" x="1046" y="332">Access gaps</text>
+  <text class="s" x="1046" y="348">Planner · Explorer</text>
+  <rect class="r" x="1030" y="378" width="170" height="114" rx="10"/>
+  <text class="t" x="1046" y="402">Assistant</text>
+  <text class="s" x="1046" y="424">rules → local Qwen</text>
+  <text class="s" x="1046" y="440">→ 18 allowlisted ops</text>
+  <text class="s" x="1046" y="456">→ graph tools</text>
+  <text class="s" x="1046" y="476">no exec, no SQL</text>
 
   <!-- arrows -->
-  <path class="l" d="M260 159 H300"/>
-  <path class="l" d="M260 233 H300"/>
-  <path class="l" d="M260 307 H300"/>
-  <path class="l" d="M260 381 H280 V300 H300"/>
-  <path class="d" d="M410 338 V350"/>
-  <path class="l" d="M520 200 H560"/>
-  <path class="l" d="M670 278 V290"/>
-  <path class="l" d="M260 471 H560"/>
-  <path class="l" d="M670 440 V412"/>
-  <path class="l" d="M780 330 H800 V176 H820"/>
-  <path class="l" d="M915 224 V236"/>
-  <path class="l" d="M915 332 V344"/>
-  <path class="l" d="M1010 392 H1025 V176 H1040"/>
-  <path class="l" d="M1125 224 V236"/>
-  <path class="l" d="M1125 370 V358"/>
-  <path class="d" d="M1040 436 H1020 V300 H1010"/>
+  <path class="l" d="M250 157 H290"/>
+  <path class="l" d="M250 225 H290"/>
+  <path class="l" d="M250 293 H290"/>
+  <path class="l" d="M250 369 H290"/>
+  <path class="l" d="M490 203 H520"/>
+  <path class="d" d="M250 445 C 400 445, 470 430, 520 380"/>
+  <path class="l" d="M730 190 H760"/>
+  <path class="l" d="M730 250 C 745 260, 745 300, 760 320"/>
+  <path class="l" d="M730 350 C 745 330, 745 220, 760 220"/>
+  <path class="l" d="M730 380 C 745 400, 745 440, 760 443"/>
+  <path class="l" d="M1000 175 H1030"/>
+  <path class="l" d="M1000 330 C 1015 300, 1015 200, 1030 200"/>
+  <path class="l" d="M1115 220 V232"/>
+  <path class="d" d="M1115 378 V366"/>
 
-  <!-- footer band -->
-  <rect x="40" y="540" width="1170" height="186" rx="12" fill="#0b111e" stroke="#1f2a44"/>
-  <text x="60" y="572" class="h">OBJECTIVE</text>
-  <text x="60" y="600" fill="#e8ecf4" font-size="16" font-family="JetBrains Mono, Consolas, monospace">Score(S) = Σₒ Σ_d  wₒ · w_cat(d) · w_d · 1[ dist_S(o, d) ≤ L ]</text>
-  <text x="60" y="626" class="s">dist_S: shortest traversable network distance with repairs S applied · L: access threshold · weights are priorities, not population</text>
-  <text x="60" y="664" class="h">VERIFICATION</text>
-  <text x="60" y="690" class="s">121 pytest (brute-force + NetworkX cross-checks, fast-vs-full evaluator equivalence, guided-scenario claims, builder invariants, ingestion) · 11 Playwright E2E (20-step flow, 3D alignment, axe)</text>
-  <text x="60" y="710" class="s">Benchmark: scripts/benchmarks/run_benchmark.py → docs/BENCHMARK.md (guided, synthetic district, 40 randomized districts, 40 random grids, Charlotte × 3 policies)</text>
+  <!-- principles -->
+  <rect class="b" x="40" y="580" width="1160" height="186" rx="12"/>
+  <text x="60" y="608" class="h">PRINCIPLES</text>
+  <text class="s" x="60" y="634">1. The baseline is never mutated. Typed changes build separate proposed and fixed states; repairs and new facilities are recomputed, never painted on.</text>
+  <text class="s" x="60" y="658">2. Unknown never becomes PASS. Every check and every home is evaluated with unknown links excluded and included: PASS / INCONCLUSIVE / FAIL.</text>
+  <text class="s" x="60" y="682">3. Nothing is fixed until the graph says so. Each mitigation, repair set or facility site is re-verified on the recomputed network; minimality is checked by removing each member.</text>
+  <text class="s" x="60" y="706">4. One usability rule. Access analysis and change checks read the same edges through the same function (verify.profiles.usable), so their answers cannot disagree.</text>
+  <text class="s" x="60" y="730">5. Real records stay labeled real; scenario settings, hypothetical sites and proxies (homes are buildings, not people) are labeled where they are shown.</text>
+  <text class="s" x="60" y="754">6. The language model chooses an operation; it never computes a number, edits the graph, runs code or queries a database.</text>
 </svg>
