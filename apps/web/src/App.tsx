@@ -5,11 +5,13 @@ import { Dialogs } from './components/dialogs/Dialogs'
 import { DataModeSwitch, Header } from './components/Header'
 import { Inspector } from './components/map/Inspector'
 import { Banner, Legend, MapToolbar, PresentationBar, ScenarioBadge } from './components/map/MapChrome'
+import { AccessPanel } from './components/panel/AccessPanel'
 import { ChangeCheckPanel } from './components/panel/ChangeCheck'
 import { ExplorerPanel, GuidedPanel } from './components/panel/Panels'
 import { MapView } from './map/MapView'
 import { useMediaQuery } from './lib/useMediaQuery'
-import { GUIDED_ID, PREFLIGHT_ID, useApp } from './state/store'
+import { useAccess } from './state/access'
+import { EXPLORER_ID, GUIDED_ID, PREFLIGHT_ID, useApp } from './state/store'
 
 const EASE = [0.22, 1, 0.36, 1] as const
 
@@ -35,6 +37,7 @@ export default function App() {
   const wide = useMediaQuery('(min-width: 1024px)')
   const phone = useMediaQuery('(max-width: 639px)') // the inspector mounts once: left column, or bottom card on phones
   const guided = scenarioId === GUIDED_ID
+  const access = useAccess((s) => s.on) && scenarioId === EXPLORER_ID
 
   useEffect(() => {
     void init()
@@ -48,7 +51,7 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  const panel = scenarioId === PREFLIGHT_ID ? <ChangeCheckPanel /> : guided ? <GuidedPanel /> : <ExplorerPanel />
+  const panel = scenarioId === PREFLIGHT_ID ? <ChangeCheckPanel /> : guided ? <GuidedPanel /> : access ? <AccessPanel /> : <ExplorerPanel />
   return (
     <div className="flex h-full flex-col bg-canvas">
       <a href="#planning" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-ink focus:px-3 focus:py-1 focus:text-white">

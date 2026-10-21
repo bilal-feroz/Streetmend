@@ -233,6 +233,52 @@ test('change check: propose, test, find the breakage, fix, verify (every state f
   await expect(page.getByTestId('check-R1')).toHaveAttribute('data-status', 'PASS')
 })
 
+test('access gaps: discover, diagnose, fix or build, verify (every number from the engine)', async ({ page, request }) => {
+  test.setTimeout(120_000)
+  await page.goto('/?intro=0')
+  await expect(page.getByTestId('check-chip')).toBeVisible()
+  await radio(page, 'data-mode', 'Access gaps').click()
+  await expect(page.getByTestId('data-status')).toContainText('Real records')
+  // Discover: the headline count is the engine's
+  const edu = await (await request.get(`${API}/access/education`)).json()
+  await expect(page.getByTestId('access-title')).toContainText(`${edu.summary.failing} homes cannot reach education`)
+  await expect.poll(() => page.evaluate("window.__sm.map.getLayoutProperty('access-fill', 'visibility')")).toBe('visible')
+  // Diagnose the worst cell
+  const worst = edu.ranking[0]
+  await page.getByTestId(`cell-${worst}`).click()
+  const d = await (await request.get(`${API}/access/education/cells/${worst}`)).json()
+  expect(d.primary_factor).toBe('barrier')
+  await expect(page.getByTestId('diagnose')).toContainText('Connectivity barrier')
+  await expect(page.getByTestId('distances')).toContainText(`${Math.round(d.representative.step_free_possible_m).toLocaleString('en-US')} m`)
+  await expect(page.getByTestId('barriers')).toContainText(d.representative.barriers[0].reason.slice(0, 30))
+  // Fix or build, budget two: fixing wins, with a repair that is worth nothing alone
+  await page.getByTestId('run-compare').click()
+  const two = await (await request.post(`${API}/access/compare`, { data: { category: 'education', cells: [worst], budget: 2 } })).json()
+  await expect(page.getByTestId('gain-fix')).toHaveText(`+${two.fix.gain}`)
+  await expect(page.getByTestId('gain-build')).toHaveText(`+${two.build.gain}`)
+  await expect(page.getByTestId('option-fix')).toContainText('Wins')
+  await expect(page.getByTestId('intervene')).toContainText('one is worth nothing on its own')
+  // budget one: the answer flips to building
+  await radio(page, 'access-budget', '1 repair').click()
+  const one = await (await request.post(`${API}/access/compare`, { data: { category: 'education', cells: [worst], budget: 1 } })).json()
+  expect(one.winner).toBe('build')
+  await expect(page.getByTestId('gain-fix')).toHaveText(`+${one.fix.gain}`)
+  await expect(page.getByTestId('option-build')).toContainText('Wins')
+  // Verify: the option re-run on the full network
+  await page.getByTestId('show-build').click()
+  await expect(page.getByTestId('access-title')).toContainText(`Re-verified: ${one.build.after.possible} of ${one.homes} homes`)
+  await expect(page.getByTestId('access-verify').locator('[data-status]').nth(2)).toHaveAttribute('data-status', one.build.after.status)
+  // Grocery: no store in the modeled network, so repairs cannot help
+  await page.getByTestId('cat-grocery').click()
+  const gro = await (await request.get(`${API}/access/grocery`)).json()
+  await expect(page.getByTestId('access-title')).toContainText(`${gro.summary.failing} homes cannot reach grocery`)
+  await page.getByTestId(`cell-${gro.ranking[0]}`).click()
+  await expect(page.getByTestId('diagnose')).toContainText('No facility in reach')
+  await page.getByTestId('run-compare').click()
+  await expect(page.getByTestId('option-fix')).toContainText('No repair within reach helps')
+  await expect(page.getByTestId('option-build')).toContainText('Wins')
+})
+
 test('change check presentation walks the six acts', async ({ page }) => {
   test.setTimeout(150_000)
   await page.goto('/?intro=0')

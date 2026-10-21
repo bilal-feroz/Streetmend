@@ -21,6 +21,8 @@ import type { EdgeGeom, NetCategory } from './three/network'
 import { baseStyle, FIRST_LABEL_LAYER } from './style'
 import { panelInset } from './inset'
 import { MapLabels } from './MapLabels'
+import { AccessLayers } from './AccessLayers'
+import { useAccess } from '../state/access'
 import { CompareSlider } from './CompareSlider'
 import { GeographicIntro } from '../intro/GeographicIntro'
 import { US_BOUNDS, introPadding } from '../intro/geo'
@@ -143,6 +145,7 @@ export function MapView() {
   const verifyRes = useApp((s) => s.verify)
   const records = useApp((s) => s.records)
   const scenarioId = useApp((s) => s.scenarioId)
+  const accessOn = useAccess((s) => s.on)
 
   // ---- map + city layer --------------------------------------------------------
   useEffect(() => {
@@ -256,14 +259,15 @@ export function MapView() {
   useEffect(() => {
     if (!handle || !scenario) return
     const selEdge = selected?.type === 'edge' ? selected.id : null
-    handle.layer.setNetwork('after', layers.network ? networkByCategory(scenario, evaluation, selEdge, nearby) : {})
-    handle.layer.setNetwork('before', layers.network ? networkByCategory(scenario, initialEval, selEdge, nearby) : {})
+    const showNet = layers.network && !accessOn
+    handle.layer.setNetwork('after', showNet ? networkByCategory(scenario, evaluation, selEdge, nearby) : {})
+    handle.layer.setNetwork('before', showNet ? networkByCategory(scenario, initialEval, selEdge, nearby) : {})
     for (const [side, ev] of [['after', evaluation], ['before', initialEval]] as [Side, EvaluateResponse | null][]) {
       const j = ev?.journey
       const net = handle.layer.networks[side]
-      net.setPotential(layers.network && j && !j.route.found && j.potential_route ? (j.potential_route.geometry as [number, number][]) : null)
+      net.setPotential(showNet && j && !j.route.found && j.potential_route ? (j.potential_route.geometry as [number, number][]) : null)
     }
-  }, [handle, scenario, evaluation, initialEval, selected, layers.network, nearby])
+  }, [handle, scenario, evaluation, initialEval, selected, layers.network, nearby, accessOn])
 
   // ---- route + reach-wave animation (engine geometry only) ----------------------------
   useEffect(() => {
@@ -272,7 +276,7 @@ export function MapView() {
     for (const [side, ev] of [['after', evaluation], ['before', initialEval]] as [Side, EvaluateResponse | null][]) {
       const net = layer.networks[side]
       const j = ev?.journey
-      if (!layers.network) {
+      if (!layers.network || accessOn) {
         net.setRoute(null)
         net.clearWave()
         continue
@@ -288,7 +292,7 @@ export function MapView() {
       const len = j.route.length_m ?? 300
       layer.animate(`route-${side}`, Math.min(1900, 900 + len * 1.1), (k) => net.revealRoute(k))
     }
-  }, [handle, scenario, evaluation, initialEval, traceNonce, reduced, layers.network])
+  }, [handle, scenario, evaluation, initialEval, traceNonce, reduced, layers.network, accessOn])
 
   // ---- change check: the proposed closure as a barricade; today's route as a ghost once it breaks ----
   useEffect(() => {
@@ -328,6 +332,10 @@ export function MapView() {
     const onJourney = new Set(evaluation?.journey && !evaluation.journey.route.found ? evaluation.journey.potential_blockers : [])
     for (const [side, ev, app] of [['after', evaluation, applied], ['before', initialEval, [] as string[]]] as [Side, EvaluateResponse | null, string[]][]) {
       const specs: MarkerSpec[] = []
+      if (accessOn) {
+        handle.layer.setMarkers(side, specs)
+        continue
+      }
       if (layers.candidates) {
         for (const iv of scenario.interventions) {
           const isRec = recommended.has(iv.id) || hl.has(iv.id)
@@ -360,7 +368,7 @@ export function MapView() {
       }
       handle.layer.setMarkers(side, specs)
     }
-  }, [handle, scenario, evaluation, initialEval, applied, analysis, highlight, selected, journey, layers.candidates, layers.places, zoom])
+  }, [handle, scenario, evaluation, initialEval, applied, analysis, highlight, selected, journey, layers.candidates, layers.places, zoom, accessOn])
 
   // ---- tree canopy: loaded once, only when the layer is on and the GPU can carry it ----------
   const treesLoad = useRef<'idle' | 'loading' | 'done'>('idle')
@@ -457,6 +465,11 @@ export function MapView() {
     }
     const onClick = (e: MapMouseEvent) => {
       const st = useApp.getState()
+      if (useAccess.getState().on) {
+        const hit = map.getLayer('access-fill') ? map.queryRenderedFeatures(e.point, { layers: ['access-fill'] })[0] : undefined
+        if (hit) void useAccess.getState().selectCell(String(hit.properties?.id))
+        return
+      }
       const k = layer.pickMarker(side(), e.point.x, e.point.y)
       if (k) {
         const [kind, id] = [k.slice(0, k.indexOf(':')), k.slice(k.indexOf(':') + 1)]
@@ -548,6 +561,14 @@ export function MapView() {
         // the proposal in its street context: close enough to read, wide enough to see the journey
         if (camera.lonlat) map.easeTo({ center: camera.lonlat, zoom: three ? 17.5 : 17.9, pitch: three ? 56 : 0, offset, duration: reduced ? 0 : 1300, essential: true })
         break
+      case 'fit':
+        // frame the evidence (a cell with its barriers, facility or option), looking north-east
+        if (camera.points?.length) go(fitCam(map, camera.points, three ? 46 : 0, three ? -24 : 0, -0.15))
+        break
+      case 'cell':
+        // one H3 cell (about 350 m across) with its surroundings
+        if (camera.lonlat) map.easeTo({ center: camera.lonlat, zoom: three ? 16.4 : 16.6, pitch: three ? 52 : 0, offset, duration: reduced ? 0 : 1300, essential: true })
+        break
       case 'point':
         if (camera.lonlat) map.easeTo({ center: camera.lonlat, zoom: three ? 18.4 : 18.8, pitch: three ? 60 : 0, offset, duration: reduced ? 0 : 1100, essential: true })
         break
@@ -566,6 +587,7 @@ export function MapView() {
     <div className="absolute inset-0">
       <div ref={ref} className="h-full w-full" data-testid="map" role="region" aria-label="Map" />
       {handle && introPhase === 'done' && <MapLabels handle={handle} />}
+      {handle && <AccessLayers handle={handle} />}
       {handle && compare === 'split' && <CompareSlider />}
       <GeographicIntro handle={handle} target={introTarget} />
       {!basemapOk && (

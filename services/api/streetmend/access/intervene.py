@@ -133,6 +133,29 @@ def _req_status(verified: int, possible: int, n: int) -> str:
     return "INCONCLUSIVE" if possible / n >= REQUIRED_SHARE else "FAIL"
 
 
+def representative(model: AccessModel, category: str, profile: Profile, T: float, cell_homes: list[Home]) -> Home | None:
+    """The diagnosis's typical home: the median snapped home by possible distance (ties by id)."""
+
+    st = home_status(model, category, profile, T, homes=cell_homes)
+    idx = [k for k, h in enumerate(cell_homes) if h.snap is not None]
+    if not idx:
+        return None
+    order = sorted(idx, key=lambda k: (st["possible"][k] if np.isfinite(st["possible"][k]) else 1e12, cell_homes[k].id))
+    return cell_homes[order[len(order) // 2]]
+
+
+def route_for(model: AccessModel, category: str, profile: Profile, home: Home, enabled=frozenset(), extra=None) -> dict[str, Any]:
+    """The engine's best route (unknown links allowed) from one home to the category in one network state."""
+
+    net = model.net
+    key = state_key(profile, "possible")
+    m = net.mask(key, frozenset(enabled))
+    snaps = [f.snap for f in model.fac(category, extra) if f.snap is not None]
+    d, pred = net.node_dist(snaps, m, predecessors=True)
+    length = float(net.point_dist(d, [home.snap], m, snaps)[0])
+    return {"home": home.id, "length_m": None if not np.isfinite(length) else round(length, 1), "edge_ids": net.path_edges(pred, d, home.snap, m)}
+
+
 def _verify(model: AccessModel, category: str, profile: Profile, T: float, homes: list[Home], enabled=frozenset(), extra=None) -> dict[str, Any]:
     """Independent recomputation of one network state (all homes, both policies)."""
 
@@ -258,12 +281,17 @@ def compare(model: AccessModel, category: str, cells: list[str], profile: Profil
 
     # ---- independent re-verification ----
     before = _verify(model, category, profile, T, homes)
+    rep = representative(model, category, profile, T, [h for h in model.homes if h.cell in set(cells)])
+    if rep is not None:
+        before["route"] = route_for(model, category, profile, rep)
     fix_out = {"status": "none", "repairs": [], "candidates": len(reps), "screened": screened, "relevant": len(live), "searched": len(pool), "evaluated": evaluated,
                "exact": exact, "budget": budget, "singles": singles[:8]}
     if best_fix is not None:
         ids = list(best_fix[3])
         en = frozenset(e for i in ids for e in by_id[i].edge_ids)
         after = _verify(model, category, profile, T, homes, enabled=en)
+        if rep is not None:
+            after["route"] = route_for(model, category, profile, rep, enabled=en)
         alone = {s["id"]: s["gain"] for s in singles}
         fix_out.update({
             "status": "found", "gain": -best_fix[0],
@@ -276,6 +304,8 @@ def compare(model: AccessModel, category: str, cells: list[str], profile: Profil
     if best_build is not None:
         s = next(x for x in near if x.id == best_build[2])
         after = _verify(model, category, profile, T, homes, extra=[s])
+        if rep is not None:
+            after["route"] = route_for(model, category, profile, rep, extra=[s])
         build_out.update({"status": "found", "gain": -best_build[0], "site": {"id": s.id, "label": s.name, "lon": s.lon, "lat": s.lat, "kind": s.kind,
                                                                             "hypothetical": True}, "after": after})
 
@@ -286,11 +316,11 @@ def compare(model: AccessModel, category: str, cells: list[str], profile: Profil
     if fg == 0 and bg == 0:
         winner, why = "neither", f"Neither option brings more of these homes within {T:.0f} m of {cat} under the modeled conditions ({pol})."
     elif fg > bg:
-        winner, why = "fix", f"Repairing {len(fix_out['repairs'])} connection{'s' if len(fix_out['repairs']) > 1 else ''} brings {fg} of {len(homes)} homes within {T:.0f} m of existing {cat}; the best new site brings {bg}."
+        winner, why = "fix", f"Repairing {len(fix_out['repairs'])} connection{'s' if len(fix_out['repairs']) > 1 else ''} brings {fg} of {len(homes)} homes within {T:,.0f} m of existing {cat} facilities; the best new site brings {bg}."
     elif bg > fg:
-        winner, why = "build", f"A new {cat} facility at the best hypothetical site brings {bg} of {len(homes)} homes within {T:.0f} m; the best {budget} repair{'s' if budget > 1 else ''} bring {fg}."
+        winner, why = "build", f"A new {cat} facility at the best hypothetical site brings {bg} of {len(homes)} homes within {T:,.0f} m; the best {budget} repair{'s' if budget > 1 else ''} bring {fg}."
     else:
-        winner, why = "tie", f"Both options bring {fg} of {len(homes)} homes within {T:.0f} m. The model cannot separate them on access alone; cost and feasibility decide, and neither is modeled here."
+        winner, why = "tie", f"Both options bring {fg} of {len(homes)} homes within {T:,.0f} m. The model cannot separate them on access alone; cost and feasibility decide, and neither is modeled here."
     return {
         "category": category, "label": CATEGORY_LABEL[category], "cells": cells, "profile": Profile(profile).value, "policy": policy,
         "threshold_m": T, "homes": len(homes), "baseline": base, "before": before,

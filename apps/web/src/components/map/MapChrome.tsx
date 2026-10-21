@@ -1,15 +1,39 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { ArrowLeft, ArrowRight, Crosshair, Layers, LocateFixed, Map as MapIcon, Minus, Plus, Route, Scan, X } from 'lucide-react'
 import { useState } from 'react'
+import { useAccess } from '../../state/access'
 import { scenesFor, useApp, type CameraPreset, type Layers as LayerState } from '../../state/store'
 import { Tip } from '../ui'
 
 /** Always-visible honesty indicator: what is real, what is modeled. */
 export function ScenarioBadge() {
   const sc = useApp((s) => s.scenario)
+  const access = useAccess((s) => s.on)
   const [open, setOpen] = useState(false)
   if (!sc) return null
   const hypo = sc.mode === 'hypothetical'
+  if (access && !hypo) {
+    return (
+      <div className="pointer-events-auto relative">
+        <button onClick={() => setOpen(!open)} aria-expanded={open} data-testid="data-status" className="surface flex items-center gap-2 rounded-full px-3 py-1.5 text-[12px] font-semibold text-ink">
+          <span className="h-2 w-2 rounded-full bg-sel" aria-hidden />
+          Real records <span className="font-medium text-ink-3">·</span> <span className="font-medium text-ink-2">CDOT + OpenStreetMap</span>
+        </button>
+        {open && (
+          <div className="surface absolute left-0 top-10 z-40 w-[330px] p-3.5 text-[12.5px] leading-relaxed text-ink">
+            <p className="font-bold">What is real here</p>
+            <p className="mt-1 text-ink-2">
+              The pedestrian network and its barriers come from CDOT ramp and sidewalk records (mostly 2017–2019 surveys). Facilities are OpenStreetMap places and CATS bus stops. Homes are OSM residential buildings, a proxy and not a population count.
+              Links without a record are <b className="text-ink">unknown</b>: they can make a result inconclusive, never a pass. New-facility sites are <b className="text-ink">hypothetical</b>.
+            </p>
+            <button className="btn-ghost mt-1 -ml-2 text-sel-ink" onClick={() => { setOpen(false); useApp.getState().setDialog('methods') }}>
+              Sources & methods →
+            </button>
+          </div>
+        )}
+      </div>
+    )
+  }
   return (
     <div className="pointer-events-auto relative">
       <button onClick={() => setOpen(!open)} aria-expanded={open} data-testid="data-status" className="surface flex items-center gap-2 rounded-full px-3 py-1.5 text-[12px] font-semibold text-ink">
@@ -160,6 +184,8 @@ function Swatch({ kind }: { kind: string }) {
 export function Legend() {
   const [open, setOpen] = useState(false)
   const hypo = useApp((s) => s.scenario?.mode === 'hypothetical')
+  const access = useAccess((s) => s.on)
+  if (access && !hypo) return <AccessLegend />
   const items: [string, string][] = [
     ['route', 'Connected route (computed)'],
     ['journey', 'Selected journey, still broken'],
@@ -190,6 +216,29 @@ export function Legend() {
             <span className="flex items-center gap-1.5"><Dot cls="border-white bg-unk" glyph="?" glyphCls="text-white" /> Uncertain</span>
           </div>
           <p className="pt-1 text-[10.5px] leading-snug text-ink-3">Building heights: OSM tags where present, otherwise estimated by type. Trees: canopy amount per area from the City's 2022 assessment; positions illustrative except OSM-mapped trees. Visual only.</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function AccessLegend() {
+  const [open, setOpen] = useState(true)
+  const hex = (c: string) => <span className="h-3.5 w-4" style={{ background: c, clipPath: 'polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)' }} />
+  return (
+    <div className="surface pointer-events-auto">
+      <button className="flex w-full items-center gap-2 px-3 py-1.5 text-[12px] font-semibold text-ink-2 hover:text-ink" aria-expanded={open} onClick={() => setOpen(!open)} data-testid="legend">
+        <MapIcon size={13} aria-hidden /> Map legend
+      </button>
+      {open && (
+        <div className="space-y-1 px-3 pb-3 text-[11.5px] text-ink">
+          <div className="flex items-center gap-2.5">{hex('#10916f')} Most homes pass (known links)</div>
+          <div className="flex items-center gap-2.5">{hex('#d99a2b')} Inconclusive: depends on unknown links</div>
+          <div className="flex items-center gap-2.5">{hex('#d85e51')} Homes fail in the model</div>
+          <div className="flex items-center gap-2.5"><span className="flex w-4 justify-center"><span className="h-2.5 w-2.5 rounded-full border-2 border-white bg-ink" /></span> Facility (routable)</div>
+          <div className="flex items-center gap-2.5"><span className="flex w-4 justify-center"><span className="h-2.5 w-2.5 rounded-full border-2 border-ink bg-white" /></span> Facility outside the network</div>
+          <div className="flex items-center gap-2.5"><span className="flex w-4 justify-center"><span className="h-[4px] w-4 rounded bg-bad" /></span> Recorded barrier on the route</div>
+          <p className="pt-1 text-[10.5px] leading-snug text-ink-3">Colour strength: share of homes affected. Click a hexagon to diagnose it.</p>
         </div>
       )}
     </div>

@@ -35,7 +35,7 @@ export type CheckStage = 'baseline' | 'drafted' | 'checked' | 'fixed'
 export const EXPLORER_ID = 'charlotte-elizabeth'
 
 export type Selection = { type: 'intervention' | 'edge' | 'place' | 'record' | 'building'; id: string } | null
-export type CameraPreset = 'overview' | 'journey' | 'street' | 'network' | 'top' | 'route' | 'point' | 'intervention' | 'closure'
+export type CameraPreset = 'overview' | 'journey' | 'street' | 'network' | 'top' | 'route' | 'point' | 'intervention' | 'closure' | 'cell' | 'fit'
 
 export type IntroKind = 'full' | 'short' | 'none'
 const INTRO_SEEN = 'streetmend.introSeen'
@@ -78,6 +78,7 @@ export interface CameraRequest {
   preset: CameraPreset
   id?: string
   lonlat?: [number, number]
+  points?: [number, number][]
   nonce: number
 }
 

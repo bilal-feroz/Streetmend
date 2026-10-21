@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react'
+import { useAccess } from '../state/access'
 import { useApp } from '../state/store'
 import { panelInset } from './inset'
 import type { MapHandle } from './MapView'
@@ -10,7 +11,7 @@ interface Anchor {
   alt: number
   text: string
   sub?: string
-  tone: 'origin' | 'dest-ok' | 'dest-bad' | 'tip' | 'gap' | 'closure'
+  tone: 'origin' | 'dest-ok' | 'dest-bad' | 'tip' | 'gap' | 'closure' | 'fix' | 'site'
   dy: number
   side?: boolean // place beside the marker instead of above it
   burst?: boolean // a ground-level ring, not a text label
@@ -24,6 +25,8 @@ const TONE: Record<Anchor['tone'], string> = {
   tip: 'border-line text-ink',
   gap: 'border-bad border-[1.5px] text-bad-ink',
   closure: 'border-[#e0742a] border-[1.5px] text-[#9a4a12]',
+  fix: 'border-ok border-[1.5px] text-ok-ink',
+  site: 'border-sel border-[1.5px] text-sel-ink',
 }
 
 /** DOM labels pinned to geographic points; positions are written every frame
@@ -35,6 +38,11 @@ export function MapLabels({ handle }: { handle: MapHandle }) {
   const applied = useApp((s) => s.applied)
   const ev = useApp((s) => (s.compare === 'before' ? s.initialEval : s.evaluation))
   const draft = useApp((s) => s.draft)
+  const accessOn = useAccess((s) => s.on)
+  const diagnosis = useAccess((s) => s.diagnosis)
+  const accessData = useAccess((s) => s.data)
+  const compare = useAccess((s) => s.compare)
+  const show = useAccess((s) => s.show)
   const lines = useRef(new Map<string, SVGLineElement>())
   const found = ev?.journey?.route.found ?? false
   const refs = useRef(new Map<string, HTMLDivElement>())
@@ -42,6 +50,37 @@ export function MapLabels({ handle }: { handle: MapHandle }) {
   const anchors = useMemo<Anchor[]>(() => {
     if (!scenario) return []
     const out: Anchor[] = []
+    if (accessOn) {
+      // the access view labels only what the engine reported for the diagnosed cell
+      if (!diagnosis) return out
+      const r = diagnosis.representative
+      const sf = diagnosis.profile === 'step_free'
+      const best = sf ? r.step_free_possible_m : r.walking_possible_m
+      const T = diagnosis.threshold_m
+      if (show === 'none') {
+        out.push({ key: 'origin', lng: r.lon, lat: r.lat, alt: 4, text: 'A typical home here', sub: best === null ? `No ${sf ? 'step-free ' : ''}route in the model` : `${Math.round(best)} m ${sf ? 'step-free' : 'walk'} · limit ${Math.round(T)} m`, tone: best !== null && best <= T ? 'origin' : 'dest-bad', dy: 0, side: true })
+        const f = accessData?.facilities.find((x) => x.id === r.nearest_facility?.id)
+        if (f) out.push({ key: 'dest', lng: f.lon, lat: f.lat, alt: 4, text: f.name, sub: f.in_network ? 'Nearest by straight line' : 'Outside the modeled network', tone: 'tip', dy: 0, side: true })
+        const b = r.barriers[0] && scenario.edges.find((e) => e.id === r.barriers[0].id)
+        if (b && (best === null || best > T)) {
+          const [lng, lat] = b.geometry[Math.floor(b.geometry.length / 2)]
+          out.push({ key: 'gap', lng, lat, alt: 6, text: 'Recorded barrier', sub: r.barriers[0].reason.replace('CDOT Sidewalk Inventory: ', 'CDOT inventory: ').replace(/ \(CDOT survey.*$/, '').slice(0, 60), tone: 'gap', dy: -54 })
+          out.push({ key: 'burst', lng, lat, alt: 0.5, text: '', tone: 'gap', dy: 0, burst: true })
+        }
+      }
+      const after = show === 'fix' ? compare?.fix.after : show === 'build' ? compare?.build.after : undefined
+      if (after?.route) {
+        const l = after.route.length_m
+        out.push({ key: 'origin', lng: r.lon, lat: r.lat, alt: 4, text: 'The same home', sub: l === null ? 'Still no route' : `Now ${Math.round(l)} m ${sf ? 'step-free' : 'walk'} · limit ${Math.round(T)} m`, tone: l !== null && l <= T ? 'dest-ok' : 'dest-bad', dy: 0, side: true })
+      }
+      if (show === 'fix' && compare?.fix.status === 'found') {
+        compare.fix.repairs.forEach((x, i) => out.push({ key: `fix${i}`, lng: x.lon, lat: x.lat, alt: 5, text: x.kind === 'build_sidewalk' ? 'Build missing sidewalk' : 'Repair curb ramp', sub: `${x.id} · alone +${x.alone_gain} homes`, tone: 'fix', dy: -44 - i * 6, dx: i % 2 ? 70 : -70 }))
+      } else if (show === 'build' && compare?.build.site) {
+        const st = compare.build.site
+        out.push({ key: 'site', lng: st.lon, lat: st.lat, alt: 5, text: `Hypothetical new ${diagnosis.label.toLowerCase()} site`, sub: 'Land, zoning and cost not assessed', tone: 'site', dy: -44 })
+      }
+      return out
+    }
     const places = [...scenario.origins, ...scenario.destinations]
     const o = places.find((p) => p.id === journey?.origin)
     const d = places.find((p) => p.id === journey?.destination)
@@ -93,7 +132,7 @@ export function MapLabels({ handle }: { handle: MapHandle }) {
       }
     }
     return out
-  }, [scenario, journey, hovered, found, applied, ev, draft])
+  }, [scenario, journey, hovered, found, applied, ev, draft, accessOn, diagnosis, accessData, compare, show])
 
   useEffect(() => {
     const { layer } = handle
@@ -146,7 +185,7 @@ export function MapLabels({ handle }: { handle: MapHandle }) {
       }
       // Labels never overlap: when the view is small, lower-priority labels step aside.
       const kept: [number, number, number, number][] = []
-      for (const k of ['tip', 'gap', 'closure', 'dest', 'origin']) {
+      for (const k of ['tip', 'gap', 'closure', 'site', 'fix0', 'fix1', 'fix2', 'dest', 'origin']) {
         const b = boxes.get(k)
         const el = refs.current.get(k)
         if (!b || !el) continue
@@ -169,7 +208,7 @@ export function MapLabels({ handle }: { handle: MapHandle }) {
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
       <svg className="absolute inset-0 h-full w-full overflow-visible">
         {anchors
-          .filter((a) => a.tone === 'gap' || a.tone === 'closure')
+          .filter((a) => a.tone === 'gap' || a.tone === 'closure' || a.tone === 'fix')
           .filter((a) => !a.burst)
           .map((a) => (
             <line
@@ -178,7 +217,7 @@ export function MapLabels({ handle }: { handle: MapHandle }) {
                 if (el) lines.current.set(a.key, el)
                 else lines.current.delete(a.key)
               }}
-              stroke={a.tone === 'gap' ? '#da5a50' : '#e0742a'}
+              stroke={a.tone === 'gap' ? '#da5a50' : a.tone === 'fix' ? '#10916f' : '#e0742a'}
               strokeWidth={1.5}
             />
           ))}

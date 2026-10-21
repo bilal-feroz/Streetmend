@@ -272,13 +272,14 @@ def analyze(model: AccessModel, category: str, profile: Profile = Profile.STEP_F
     score_v = access_score(st["verified"], T)
     score_p = access_score(st["possible"], T)
     for k, h in enumerate(model.homes):
-        c = cells.setdefault(h.cell, {"id": h.cell, "homes": 0, "factors": {f: 0 for f in FACTOR_LABEL}, "_dv": [], "_dp": [], "_ds": [],
+        c = cells.setdefault(h.cell, {"id": h.cell, "homes": 0, "factors": {f: 0 for f in FACTOR_LABEL}, "_dv": [], "_dp": [], "_ds": [], "_do": [],
                                       "_sv": 0.0, "_sp": 0.0, "walk_pass": 0})
         c["homes"] += 1
         c["factors"][st["factor"][k]] += 1
         c["_dv"].append(st["verified"][k])
         c["_dp"].append(st["possible"][k])
         c["_ds"].append(st["straight"][k])
+        c["_do"].append(st["straight_outside"][k])
         c["_sv"] += score_v[k]
         c["_sp"] += score_p[k]
         if walk is not None and walk["factor"][k] == "served":
@@ -302,6 +303,7 @@ def analyze(model: AccessModel, category: str, profile: Profile = Profile.STEP_F
             "status": status, "primary_factor": primary, "factors": f,
             "score_verified": round(c["_sv"] / n, 1), "score_possible": round(c["_sp"] / n, 1),
             "median_network_m": _r(float(np.median(c["_dp"]))), "median_straight_m": _r(float(np.median(c["_ds"]))),
+            "median_outside_m": _r(float(np.median(c["_do"]))),
             "unmet_homes": n - passed - uncertain,
         })
     out_cells.sort(key=lambda c: (-c["unmet_homes"], -c["uncertain"], c["id"]))
@@ -362,13 +364,15 @@ def diagnose(model: AccessModel, cell: str, category: str, profile: Profile = Pr
     counts = {f: st["factor"].count(f) for f in FACTOR_LABEL}
     failing = {k: v for k, v in counts.items() if STATUS_OF[k] == "FAIL" and v}
     primary = max(failing, key=lambda k: (failing[k], k)) if failing else max(counts, key=lambda k: (counts[k], k))
+    noun = CATEGORY_LABEL[category].lower()
+    an = "An" if noun[0] in "aeiou" else "A"
     sentence = {
-        "served": f"Most homes here reach {CATEGORY_LABEL[category].lower()} within {T:.0f} m on links of known condition.",
-        "unknown_links": f"Homes here reach {CATEGORY_LABEL[category].lower()} within {T:.0f} m only if links of unknown condition are passable. The access gap is a data gap: verify these links before acting.",
+        "served": f"Most homes here reach {noun} within {T:,.0f} m on links of known condition.",
+        "unknown_links": f"Homes here reach {noun} within {T:,.0f} m only if links of unknown condition are passable. The access gap is a data gap: verify these links before acting.",
         "outside_area": f"The nearest {CATEGORY_LABEL[category].lower()} facility is outside the modeled network; access cannot be verified here.",
-        "barrier": f"A {CATEGORY_LABEL[category].lower()} facility is within {T:.0f} m along the street network, but recorded barriers cut the {('step-free ' if profile == Profile.STEP_FREE else '')}route. Repairing connections could restore access; a new facility is not required for these homes.",
-        "detour": f"A {CATEGORY_LABEL[category].lower()} facility is within {T:.0f} m as the crow flies, but the walk along the network is longer even with every modeled link open.",
-        "distance": f"No {CATEGORY_LABEL[category].lower()} facility lies within {T:.0f} m, even in a straight line. Repairs cannot close this gap; it is a service-availability problem.",
+        "barrier": f"{an} {noun} facility is within {T:,.0f} m along the street network, but recorded barriers cut the {('step-free ' if profile == Profile.STEP_FREE else '')}route. Repairing connections could restore access; a new facility is not required for these homes.",
+        "detour": f"{an} {noun} facility is within {T:,.0f} m as the crow flies, but the walk along the network is longer even with every modeled link open.",
+        "distance": f"No {noun} facility lies within {T:,.0f} m, even in a straight line. Repairs cannot close this gap; it is a service-availability problem.",
     }[primary]
     return {
         "cell": cell, "category": category, "label": CATEGORY_LABEL[category], "profile": Profile(profile).value, "threshold_m": T,

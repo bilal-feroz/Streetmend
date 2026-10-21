@@ -1,5 +1,6 @@
 import { BookOpen, ChevronDown, CircleHelp, Ellipsis, MapPin, PanelRight, Play, Presentation, RotateCcw, Settings } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { useAccess } from '../state/access'
 import { EXPLORER_ID, GUIDED_ID, PREFLIGHT_ID, useApp } from '../state/store'
 import { Segmented } from './ui'
 
@@ -54,7 +55,8 @@ export function DataModeSwitch({ testId = 'data-mode' }: { testId?: string }) {
   const scenarioId = useApp((s) => s.scenarioId)
   const health = useApp((s) => s.health)
   const loadScenario = useApp((s) => s.loadScenario)
-  const mode = scenarioId === PREFLIGHT_ID ? 'check' : scenarioId === GUIDED_ID ? 'guided' : 'explorer'
+  const accessOn = useAccess((s) => s.on)
+  const mode = scenarioId === PREFLIGHT_ID ? 'check' : scenarioId === GUIDED_ID ? 'guided' : accessOn ? 'access' : 'explorer'
   const municipalAvailable = health?.scenarios.some((s) => s.id === EXPLORER_ID && s.available) ?? true
   return (
     <Segmented
@@ -64,12 +66,21 @@ export function DataModeSwitch({ testId = 'data-mode' }: { testId?: string }) {
       testId={testId}
       onChange={(v) => {
         if (v === mode) return
+        if (v === 'access') {
+          if (municipalAvailable) void useAccess.getState().open()
+          return
+        }
+        useAccess.getState().close()
         if (v === 'check') void loadScenario(PREFLIGHT_ID)
         if (v === 'guided') void loadScenario(GUIDED_ID)
-        if (v === 'explorer' && municipalAvailable) void loadScenario(EXPLORER_ID)
+        if (v === 'explorer' && municipalAvailable) {
+          if (scenarioId !== EXPLORER_ID) void loadScenario(EXPLORER_ID)
+          else useApp.getState().cameraTo({ preset: 'overview' })
+        }
       }}
       options={[
         { value: 'check', label: 'Change check', title: 'Test a proposed street change before it is made' },
+        { value: 'access', label: 'Access gaps', title: 'Where access to essential services fails, why, and whether to fix the network or build (real records)' },
         { value: 'guided', label: 'Repair planner', title: 'Find the repairs that reconnect the most journeys (hypothetical barriers on real streets)' },
         { value: 'explorer', label: 'Data explorer', title: 'Real CDOT municipal records' },
       ]}
