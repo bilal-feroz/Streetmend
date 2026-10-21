@@ -20,6 +20,10 @@ from streetmend.optimize.objective import PRIORITY_PRESETS, CategoryWeights
 from streetmend.scenario.evaluate import evaluate_state
 from streetmend.scenario.model import Scenario
 from streetmend.scenario.state import StateError
+from streetmend.verify import Change, ChangeError, Profile, Requirement, apply_changes
+from streetmend.verify import synthesize as run_synthesize
+from streetmend.verify import verify as run_verify
+from streetmend.verify.defaults import default_requirements
 
 from . import schemas as S
 from .registry import registry
@@ -108,8 +112,65 @@ def evaluate(sid: str, req: S.EvaluateRequest):
         if nid is not None and nid not in sc.graph.nodes:
             raise HTTPException(422, detail=f"unknown node '{nid}'")
     try:
-        return evaluate_state(sc, req.applied, req.origin, req.destination, _weights(req.weights), req.cutoff_m, req.alternatives)
-    except StateError as exc:
+        state_sc = apply_changes(sc, [_change(c) for c in req.changes]) if req.changes else sc
+        return evaluate_state(state_sc, req.applied, req.origin, req.destination, _weights(req.weights), req.cutoff_m, req.alternatives)
+    except (StateError, ChangeError) as exc:
+        raise HTTPException(422, detail=str(exc)) from exc
+
+
+# ---- change verification (preflight) -------------------------------------------------
+def _change(c: S.ChangeIn) -> Change:
+    return Change(id=c.id, op=c.op, edge_id=c.edge_id, label=c.label, reason=c.reason, temporary=c.temporary, hypothetical=c.hypothetical)
+
+
+def _requirements(sc: Scenario, reqs: list[S.RequirementIn] | None, origin: str, destination: str) -> list[Requirement]:
+    if reqs is None:
+        return default_requirements(sc, origin, destination)
+    out = []
+    for r in reqs:
+        for nid in (r.origin, r.destination):
+            if nid is not None and nid not in sc.graph.nodes:
+                raise HTTPException(422, detail=f"requirement {r.id}: unknown node '{nid}'")
+        if r.kind in ("route", "detour") and not (r.origin and r.destination):
+            raise HTTPException(422, detail=f"requirement {r.id}: {r.kind} needs an origin and a destination")
+        if r.kind == "category" and not (r.origin and r.category):
+            raise HTTPException(422, detail=f"requirement {r.id}: category needs an origin and a category")
+        out.append(Requirement(r.id, r.kind, r.label, Profile(r.profile), r.origin, r.destination, r.category, r.max_m, r.max_ratio, r.min_share))
+    return out
+
+
+def _journey(sc: Scenario, origin: str | None, destination: str | None) -> tuple[str, str]:
+    o = origin or (sc.default_journey or (None, None))[0]
+    d = destination or (sc.default_journey or (None, None))[1]
+    if not o or not d or o not in sc.graph.nodes or d not in sc.graph.nodes:
+        raise HTTPException(422, detail="verification needs a valid origin and destination")
+    return o, d
+
+
+@app.post("/api/scenarios/{sid}/verify")
+def verify_change(sid: str, req: S.VerifyRequest):
+    """Baseline, proposed (and fixed, if mitigations are given) network states, every requirement
+    checked on each (PASS / FAIL / INCONCLUSIVE), with graph counterexamples for regressions."""
+
+    sc = _scenario(sid)
+    _check_ids(sc, req.mitigations, "mitigations")
+    o, d = _journey(sc, req.origin, req.destination)
+    try:
+        return run_verify(sc, [_change(c) for c in req.proposal], req.mitigations, _requirements(sc, req.requirements, o, d), (o, d))
+    except ChangeError as exc:
+        raise HTTPException(422, detail=str(exc)) from exc
+
+
+@app.post("/api/scenarios/{sid}/verify/fix")
+def verify_fix(sid: str, req: S.FixRequest):
+    """Smallest set of catalog mitigations that makes every regressed requirement pass again,
+    found by exact search by increasing size and verified on the recomputed network."""
+
+    sc = _scenario(sid)
+    o, d = _journey(sc, req.origin, req.destination)
+    try:
+        return run_synthesize(sc, [_change(c) for c in req.proposal], _requirements(sc, req.requirements, o, d), (o, d), max_size=req.max_size)
+    except ChangeError as exc:
         raise HTTPException(422, detail=str(exc)) from exc
 
 

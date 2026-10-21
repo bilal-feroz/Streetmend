@@ -1,0 +1,183 @@
+{
+ "description": "Hypothetical change check on real Elizabeth streets: a planner proposes a temporary construction closure of the East 7th Street crossing at Hawthorne Lane. StreetMend checks what it breaks before it happens. All barriers and proposals are scenario settings.",
+ "max_distance_m": 800,
+ "default_journey": [
+  "O:S:300:R",
+  "D:osm:way/466001923"
+ ],
+ "origins": [
+  "O:S:163:L",
+  "O:S:202:R",
+  "O:S:194:R",
+  "O:S:192:R",
+  "O:S:302:R",
+  "O:S:194:L",
+  "O:S:250:R",
+  "O:S:233:L",
+  "O:S:300:R",
+  "O:S:11:R",
+  "O:S:128:R",
+  "O:S:183:L",
+  "O:S:193:L",
+  "O:S:193:R"
+ ],
+ "destinations": [
+  "D:osm:way/466001923",
+  "D:osm:way/835896170",
+  "D:osm:way/785966394",
+  "D:cats:07930",
+  "D:cats:07980",
+  "D:osm:way/369316283"
+ ],
+ "existing": [
+  {
+   "edge": "R:172578423:2:3",
+   "barrier": "missing_ramp",
+   "reason": "Hypothetical: no curb ramp at this end of the other East 7th Street crossing at Hawthorne Lane (scenario setting, not a survey finding)."
+  },
+  {
+   "edge": "R:172578423:3:3",
+   "barrier": "missing_ramp",
+   "reason": "Hypothetical: no curb ramp at the far end of the other East 7th Street crossing at Hawthorne Lane (scenario setting, not a survey finding)."
+  },
+  {
+   "edge": "X:172728480:1",
+   "barrier": "no_crossing",
+   "reason": "Hypothetical: no usable crossing of East 7th Street on this leg at Park Drive (scenario setting)."
+  },
+  {
+   "edge": "X:172728480:2",
+   "barrier": "no_crossing",
+   "reason": "Hypothetical: no usable crossing of East 7th Street on this leg at Park Drive (scenario setting)."
+  },
+  {
+   "edge": "R:5788949543:0:1",
+   "barrier": "missing_ramp",
+   "reason": "Hypothetical: damaged curb ramp on Hawthorne Lane (scenario setting, not a survey finding)."
+  },
+  {
+   "edge": "R:5788949543:0:0",
+   "barrier": "missing_ramp",
+   "reason": "Hypothetical: damaged curb ramp on Hawthorne Lane (scenario setting, not a survey finding)."
+  }
+ ],
+ "catalog": [
+  {
+   "id": "A",
+   "kind": "temporary_curb_ramp",
+   "edge": "R:172578423:2:3",
+   "crossing": "X:172578423:3",
+   "pair": "B",
+   "duration": "temporary",
+   "profiles": [
+    "step_free"
+   ],
+   "label": "Temporary curb ramp, west end of the other East 7th Street crossing at Hawthorne Lane"
+  },
+  {
+   "id": "B",
+   "kind": "temporary_curb_ramp",
+   "edge": "R:172578423:3:3",
+   "crossing": "X:172578423:3",
+   "pair": "A",
+   "duration": "temporary",
+   "profiles": [
+    "step_free"
+   ],
+   "label": "Temporary curb ramp, east end of the other East 7th Street crossing at Hawthorne Lane"
+  },
+  {
+   "id": "C",
+   "kind": "temporary_accessible_crossing",
+   "edge": "X:172728480:2",
+   "duration": "temporary",
+   "profiles": [
+    "step_free",
+    "pedestrian"
+   ],
+   "label": "Temporary accessible crossing of East 7th Street at Park Drive"
+  },
+  {
+   "id": "D",
+   "kind": "reconstruct_curb_ramp",
+   "edge": "R:5788949543:0:1",
+   "duration": "permanent",
+   "profiles": [
+    "step_free"
+   ],
+   "label": "Reconstruct curb ramp on Hawthorne Lane (north)"
+  },
+  {
+   "id": "E",
+   "kind": "reconstruct_curb_ramp",
+   "edge": "R:5788949543:0:0",
+   "duration": "permanent",
+   "profiles": [
+    "step_free"
+   ],
+   "label": "Reconstruct curb ramp on Hawthorne Lane (south)"
+  }
+ ],
+ "proposals": [
+  {
+   "id": "P1",
+   "label": "Temporary closure: East 7th Street crossing at Hawthorne Lane",
+   "reason": "Hypothetical construction work closes this crossing for several weeks.",
+   "changes": [
+    {
+     "id": "P1-close",
+     "op": "close",
+     "edge_id": "X:172578423:1",
+     "label": "Temporary closure of the East 7th Street crossing at Hawthorne Lane",
+     "reason": "Proposed (hypothetical): construction closes this crossing."
+    }
+   ]
+  }
+ ],
+ "requirements": [
+  {
+   "id": "R1",
+   "kind": "route",
+   "profile": "step_free",
+   "origin": "O:S:300:R",
+   "destination": "D:osm:way/466001923",
+   "max_m": 800,
+   "label": "Step-free route from Hawthorne Lane to Novant Health Presbyterian within 800 m"
+  },
+  {
+   "id": "R2",
+   "kind": "detour",
+   "profile": "step_free",
+   "origin": "O:S:300:R",
+   "destination": "D:osm:way/466001923",
+   "max_ratio": 1.15,
+   "label": "That step-free route grows by no more than 15%"
+  },
+  {
+   "id": "R3",
+   "kind": "route",
+   "profile": "pedestrian",
+   "origin": "O:S:300:R",
+   "destination": "D:osm:way/466001923",
+   "max_m": 800,
+   "label": "Walking route from Hawthorne Lane to Novant Health Presbyterian within 800 m"
+  },
+  {
+   "id": "R4",
+   "kind": "category",
+   "profile": "step_free",
+   "origin": "O:S:300:R",
+   "category": "transit",
+   "max_m": 800,
+   "label": "Step-free route from Hawthorne Lane to a bus stop within 800 m"
+  },
+  {
+   "id": "R5",
+   "kind": "share",
+   "profile": "step_free",
+   "max_m": 800,
+   "min_share": 0.9,
+   "label": "Keep at least 90% of today's step-free essential journeys in the area"
+  }
+ ]
+}

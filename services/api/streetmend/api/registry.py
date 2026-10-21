@@ -39,6 +39,10 @@ class Registry:
 
                 guided = load_guided_scenario()
                 self.scenarios[guided.id] = guided
+                from streetmend.scenario.preflight import load_preflight_scenario
+
+                pre = load_preflight_scenario()
+                self.scenarios[pre.id] = pre
             except FileNotFoundError as exc:
                 self.unavailable["charlotte-elizabeth"] = Unavailable(
                     "charlotte-elizabeth", "Charlotte Data Explorer - Elizabeth", "municipal",

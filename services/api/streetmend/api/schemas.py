@@ -15,8 +15,50 @@ class WeightsIn(BaseModel):
     education: float = Field(1.0, ge=0, le=10)
 
 
+class ChangeIn(BaseModel):
+    """A typed change to the modeled network (proposal or mitigation)."""
+
+    id: str = Field(min_length=1, max_length=64)
+    op: Literal["close", "reopen"]
+    edge_id: str = Field(min_length=1, max_length=128)
+    label: str = Field("", max_length=200)
+    reason: str = Field("", max_length=400)
+    temporary: bool = True
+    hypothetical: bool = True
+
+
+class RequirementIn(BaseModel):
+    id: str = Field(min_length=1, max_length=32)
+    kind: Literal["route", "category", "share", "detour"]
+    label: str = Field(min_length=1, max_length=200)
+    profile: Literal["step_free", "pedestrian"] = "step_free"
+    origin: str | None = None
+    destination: str | None = None
+    category: Literal["healthcare", "transit", "education"] | None = None
+    max_m: float | None = Field(None, gt=0, le=10_000)
+    max_ratio: float | None = Field(None, ge=1.0, le=10.0)
+    min_share: float | None = Field(None, ge=0.0, le=1.0)
+
+
+class VerifyRequest(BaseModel):
+    proposal: list[ChangeIn] = Field(default_factory=list, max_length=32)
+    mitigations: list[str] = Field(default_factory=list, max_length=16)
+    requirements: list[RequirementIn] | None = Field(None, max_length=16)
+    origin: str | None = None
+    destination: str | None = None
+
+
+class FixRequest(BaseModel):
+    proposal: list[ChangeIn] = Field(default_factory=list, max_length=32)
+    requirements: list[RequirementIn] | None = Field(None, max_length=16)
+    origin: str | None = None
+    destination: str | None = None
+    max_size: int = Field(3, ge=1, le=4)
+
+
 class EvaluateRequest(BaseModel):
     applied: list[str] = Field(default_factory=list, max_length=64)
+    changes: list[ChangeIn] = Field(default_factory=list, max_length=32)
     origin: str | None = None
     destination: str | None = None
     weights: WeightsIn | None = None
