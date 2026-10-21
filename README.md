@@ -52,9 +52,9 @@ The opening flies from the United States to North Carolina, Charlotte and the El
 | **Repair B: route reconnected** | **Before / after on one view** | **Presentation mode** |
 | ![](screenshots/07-repair-b.png) | ![](screenshots/08-before-after.png) | ![](screenshots/09-presentation.png) |
 
-More: [Elizabeth and Uptown in 3D](screenshots/10-city-wide.png) · [a real CDOT record](screenshots/11-explorer-record.png) · [data quality](screenshots/12-explorer-quality.png) · [phone](screenshots/13-mobile.png) · [phone case sheet](screenshots/14-mobile-case.png) · [before/after the redesign](docs/media/redesign-before-after.png)
+More: [the heal effect when a repair lands](screenshots/15-heal.png) · [Elizabeth and Uptown in 3D](screenshots/10-city-wide.png) · [a real CDOT record](screenshots/11-explorer-record.png) · [data quality](screenshots/12-explorer-quality.png) · [phone](screenshots/13-mobile.png) · [phone case sheet](screenshots/14-mobile-case.png) · [before/after the redesign](docs/media/redesign-before-after.png)
 
-A 95-second screen capture of the working app is in [docs/media/streetmend-demo.mp4](docs/media/streetmend-demo.mp4); the opening alone is [docs/media/streetmend-intro.mp4](docs/media/streetmend-intro.mp4). Both were recorded with Playwright driving the real UI against the real engine (no mock data), rendered on the laptop GPU, on a cold first visit (tile downloads included).
+A 100-second screen capture of the working app is in [docs/media/streetmend-demo.mp4](docs/media/streetmend-demo.mp4); the opening alone is [docs/media/streetmend-intro.mp4](docs/media/streetmend-intro.mp4). Both were recorded with Playwright driving the real UI against the real engine (no mock data), rendered on the laptop GPU, on a cold first visit (tile downloads included).
 
 ## Architecture
 
