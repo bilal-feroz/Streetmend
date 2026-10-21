@@ -3,7 +3,7 @@
 **Tagline:** Understand the gap. Test the change. Restore access.
 **Category:** Urban access intelligence and infrastructure decision verification
 **Track:** Geospatial Intelligence for Action · **Theme:** Beyond 2030: Build the World You Want to Live In
-**Repo:** https://github.com/bilal-feroz/Streetmend · **Video:** `docs/media/streetmend-demo.mp4` (screen capture of the working app)
+**Repo:** https://github.com/bilal-feroz/Streetmend · **Video:** `docs/media/streetmend-pitch.mp4` (2.5 min narrated pitch with real app footage; plain screen capture in `docs/media/streetmend-demo.mp4`)
 
 ## Inspiration
 Cities usually know where their infrastructure is. Knowing which physical change will actually improve someone's access to a clinic, a school or a bus stop is harder. It depends on how facilities, routes and barriers interact across the whole network.

@@ -153,7 +153,9 @@ StreetMend will not call the inconclusive ones served.
 
 More: [repair planner](screenshots/05-recommendation.png) · [a real CDOT record](screenshots/11-explorer-record.png) · [3D city](screenshots/04-city-3d.png) · [heal effect](screenshots/15-heal.png) · [phone](screenshots/13-mobile.png)
 
-The demo video is in [docs/media/](docs/media/): Playwright drives the real UI and engine, GPU-rendered.
+**Pitch video (2.5 min, narrated, subtitled):** [docs/media/streetmend-pitch.mp4](docs/media/streetmend-pitch.mp4). It covers the hook, the problem (Geospatial Intelligence for Action), the change check and access gaps shown on the real app, and the evidence. The app footage is a real capture driven by Playwright; the narration is generated locally (Kokoro).
+
+Screen-capture demo: [docs/media/streetmend-demo.mp4](docs/media/streetmend-demo.mp4).
 
 ## Architecture
 
