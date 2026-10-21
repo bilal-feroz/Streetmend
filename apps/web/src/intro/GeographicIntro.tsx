@@ -424,7 +424,7 @@ export function GeographicIntro({ handle, target }: { handle: MapHandle | null; 
           </div>
           {geo && geo !== 'failed' && <Insets g={geo} boxRef={lbl.insets} />}
           <div ref={lbl.mark} className="pointer-events-none absolute bottom-8 left-8 opacity-0" aria-hidden>
-            <div className="display text-[30px] text-ink">Fix the missing links.</div>
+            <div className="display text-[30px] text-ink">Test the city before you change it.</div>
             <div className="mt-1 text-[12px] font-semibold tracking-[0.24em] text-ink-2">STREETMEND · CHARLOTTE, NC</div>
           </div>
         </>

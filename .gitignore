@@ -36,3 +36,6 @@ Thumbs.db
 .vscode/
 *.log
 apps/web/public/maplibre-gl-worker.mjs
+
+# Video production workspace (renders, footage, scratch)
+kanban-motion-output/
