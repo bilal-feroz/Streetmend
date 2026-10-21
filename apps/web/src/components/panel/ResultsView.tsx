@@ -62,14 +62,14 @@ function Metric({ label, before, after, unit, note, testId }: { label: string; b
       <div className="mt-1 flex items-baseline gap-1 tnum">
         {before !== undefined && (
           <>
-            <span className="text-[13px] font-semibold text-ink-3">{before}</span>
+            <span className={`font-semibold text-ink-3 ${String(before).length > 4 ? 'text-[11.5px]' : 'text-[13px]'}`}>{before}</span>
             <span className="text-[12px] text-ink-3" aria-hidden>
               →
             </span>
             <span className="sr-only">to</span>
           </>
         )}
-        <span className="text-[22px] leading-none font-bold tracking-[-0.02em] text-ink">{after}</span>
+        <span className={`leading-none font-bold tracking-[-0.02em] text-ink ${String(after).length > 4 || String(before ?? '').length > 4 ? 'text-[17px]' : 'text-[22px]'}`}>{after}</span>
         {unit && <span className="text-[12px] font-semibold text-ink-2">{unit}</span>}
       </div>
       {note && <div className="mt-1 text-[11px] font-semibold text-ok-ink">{note}</div>}

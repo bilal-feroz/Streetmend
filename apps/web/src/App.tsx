@@ -29,8 +29,10 @@ export default function App() {
   const panelOpen = useApp((s) => s.panelOpen)
   const setPanelOpen = useApp((s) => s.setPanelOpen)
   const ready = useApp((s) => s.intro.phase === 'done')
+  const presenting = useApp((s) => s.presenting)
   // the panel mounts once: floating over the map from lg up, as a bottom sheet below
   const wide = useMediaQuery('(min-width: 1024px)')
+  const phone = useMediaQuery('(max-width: 639px)') // the inspector mounts once: left column, or bottom card on phones
   const guided = scenarioId === GUIDED_ID
 
   useEffect(() => {
@@ -61,22 +63,28 @@ export default function App() {
           <div className="absolute top-4 bottom-24 left-4 flex w-[min(440px,calc(100%-var(--inset)-96px))] flex-col items-start gap-2.5 max-sm:w-[calc(100%-32px)]">
             <ScenarioBadge />
             <Banner />
-            <div className="flex min-h-0 flex-1 flex-col max-sm:hidden">
-              <SelectedBuilding />
-            </div>
+            {!phone && (
+              <div className="flex min-h-0 flex-1 flex-col">
+                <SelectedBuilding />
+              </div>
+            )}
           </div>
           <div className="absolute top-4 right-[calc(var(--inset)+16px)] max-sm:top-auto max-sm:right-auto max-sm:bottom-16 max-sm:left-4">
             <MapToolbar />
           </div>
-          <div className="absolute bottom-[68px] left-4 max-md:hidden">
-            <Legend />
-          </div>
+          {!presenting && (
+            <div className="absolute bottom-[68px] left-4 max-md:hidden">
+              <Legend />
+            </div>
+          )}
           <div className="absolute bottom-10 left-[calc((100%-var(--inset))/2)] -translate-x-1/2 max-lg:bottom-20">
             <PresentationBar />
           </div>
-          <div className="absolute inset-x-4 bottom-16 hidden max-sm:block">
-            <SelectedBuilding />
-          </div>
+          {phone && (
+            <div className="absolute inset-x-4 bottom-16">
+              <SelectedBuilding />
+            </div>
+          )}
         </motion.div>
         {loading && ready && (
           <div className="absolute inset-0 z-20 grid place-items-center bg-canvas/60">

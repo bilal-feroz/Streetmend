@@ -349,7 +349,9 @@ export function MapView() {
   // ---- compare ---------------------------------------------------------------------------
   useEffect(() => {
     if (!handle) return
-    handle.layer.setView(compare === 'split' ? { split } : compare === 'before' ? 'before' : 'after')
+    // the split position is a fraction of the visible map (left of the floating panel)
+    const W = handle.map.getCanvas().clientWidth || 1
+    handle.layer.setView(compare === 'split' ? { split: (split * (W - panelInset())) / W } : compare === 'before' ? 'before' : 'after')
   }, [handle, compare, split])
 
   // ---- municipal records ----------------------------------------------------------------------

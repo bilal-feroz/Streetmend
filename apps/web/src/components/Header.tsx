@@ -128,9 +128,11 @@ export function Header() {
       <div className="mx-1 hidden h-5 w-px bg-line-2 md:block" />
       <StudyArea />
       <div className="flex-1" />
-      <div className="hidden lg:block">
-        <DataModeSwitch />
-      </div>
+      {!presenting && (
+        <div className="hidden lg:block">
+          <DataModeSwitch />
+        </div>
+      )}
       {!explorer && (
         <button
           className={`hidden items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[13px] font-semibold transition-colors md:inline-flex ${presenting ? 'bg-ink text-white hover:bg-[#0f211d]' : 'text-ink hover:bg-wash'}`}

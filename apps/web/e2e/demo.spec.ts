@@ -49,9 +49,9 @@ async function markerPoint(page: Page, key: string) {
 }
 
 async function open(page: Page, { panel = true } = {}) {
-  await page.goto('/')
+  await page.goto('/?intro=0') // the opening has its own tests below
   await expect(page.locator('.maplibregl-canvas')).toBeVisible()
-  await expect(page.getByTestId('data-status')).toContainText('Hypothetical barriers · real Charlotte streets')
+  await expect(page.getByTestId('data-status')).toContainText('Modeled scenario · Real Charlotte geography')
   if (panel) await expect(status(page)).toContainText('Disconnected')
   await page.waitForFunction('(window.__sm?.layer.index?.ids.length ?? 0) > 5000', null, { timeout: 30_000 })
 }
@@ -87,6 +87,7 @@ test('guided flow: 3D city, two dependent repairs, evidence, undo, explorer and 
   const sc = await (await request.get(`${API}/scenarios/${GUIDED}`)).json()
   const [origin, destination] = sc.default_journey as [string, string]
   const other = (sc.destinations as { id: string }[]).find((d) => d.id !== destination)!.id
+  await page.getByTestId('change-journey').click()
   await page.getByTestId('destination-select').selectOption(other)
   await expect(page.getByTestId('destination-select')).toHaveValue(other)
   await page.getByTestId('origin-select').selectOption(origin)
@@ -109,7 +110,7 @@ test('guided flow: 3D city, two dependent repairs, evidence, undo, explorer and 
   await radio(page, 'budget', '2').click()
   await radio(page, 'priority', 'Healthcare').click()
   await page.getByTestId('analyze').click()
-  await expect(page.getByTestId('solver-meta')).toContainText('exact search over 10 combinations')
+  await expect(page.getByTestId('solver-meta')).toContainText('Exact search over 10 combinations')
   await expect(page.getByTestId('rec-A')).toBeVisible()
   await expect(page.getByTestId('rec-B')).toBeVisible()
   await expect(page.getByTestId('headline')).toContainText('the East 7th Street crossing at Hawthorne Lane')
@@ -182,7 +183,7 @@ test('guided flow: 3D city, two dependent repairs, evidence, undo, explorer and 
 
   // 20. Back to the guided simulation.
   await radio(page, 'data-mode', 'Guided scenario').click()
-  await expect(page.getByTestId('data-status')).toContainText('Hypothetical barriers')
+  await expect(page.getByTestId('data-status')).toContainText('Modeled scenario')
   await expect(status(page)).toContainText('Both curb ramps')
 })
 
@@ -192,8 +193,10 @@ test('3D city layer is pixel-aligned with the basemap at any camera', async ({ p
     await page.evaluate(`window.__sm.map.jumpTo({ pitch: ${pitch}, bearing: ${bearing}, zoom: ${zoom} })`)
     await expectAligned(page)
   }
-  await page.getByTestId('cam-top').click()
+  await radio(page, 'map-mode', '2D').click()
   await expect.poll(() => page.evaluate('window.__sm.map.getPitch()')).toBeLessThan(0.5)
+  await expectAligned(page)
+  await radio(page, 'map-mode', '3D').click()
   await page.getByTestId('cam-street').click()
   await expect.poll(() => page.evaluate('window.__sm.map.getZoom()')).toBeGreaterThan(18)
   await expectAligned(page)
@@ -224,7 +227,7 @@ test('map inspector applies and removes a repair', async ({ page }) => {
 test('presentation mode walks through the seven scenes', async ({ page }) => {
   await open(page)
   await page.getByTestId('present').click()
-  const titles = ['Real city context', 'Inspect the problem', 'Find repairs', 'Apply the first repair', 'Apply the second repair', 'Prove the value', 'Test it yourself']
+  const titles = ['The city', 'The disconnected journey', 'The repair recommendation', 'The first intervention', 'The second intervention', 'The measured result']
   for (const [i, title] of titles.entries()) {
     await expect(page.getByTestId('scene-title')).toHaveText(title)
     if (i === 1) await expect(page.getByTestId('inspector')).toContainText('Repair A')
@@ -275,9 +278,11 @@ test('sources, help and settings; diagnostics stay out of the main UI', async ({
   await expect(m).toContainText('ADA compliance determination')
   await page.keyboard.press('Escape')
   await expect(m).not.toBeVisible()
+  await page.getByTestId('more-menu').click()
   await page.getByTestId('open-help').click()
   await expect(page.getByTestId('help')).toBeVisible()
   await page.keyboard.press('Escape')
+  await page.getByTestId('more-menu').click()
   await page.getByTestId('open-settings').click()
   const s = page.getByTestId('settings')
   await expect(s).toContainText('Diagnostics')
@@ -303,7 +308,7 @@ test('Charlotte data explorer plans on real records', async ({ page }) => {
   // Real-data dependency: two recorded ramps block the default home -> hospital journey.
   await expect(status(page)).toContainText('(R112391, R20741)')
   await page.getByTestId('analyze').click()
-  await expect(page.getByTestId('solver-meta')).toContainText('exact search', { timeout: 30_000 })
+  await expect(page.getByTestId('solver-meta')).toContainText('Exact search', { timeout: 30_000 })
   await page.getByTestId('toggle-candidates').click()
   await page.getByTestId('list-apply-R112391').click()
   await expect(status(page)).toContainText('(R20741)')
@@ -353,5 +358,63 @@ test.describe('phone layout', () => {
     await expect(status(page)).toContainText('Connected')
     await page.getByRole('button', { name: 'Close planning panel' }).click()
     await expect(banner(page)).toHaveText('TWO REPAIRS. ONE RECONNECTED JOURNEY.')
+  })
+})
+
+test.describe('opening animation', () => {
+  test('flies from the United States to the Charlotte study area and hands over cleanly', async ({ page }) => {
+    test.setTimeout(60_000)
+    await page.goto('/?intro=1')
+    const intro = page.getByTestId('intro')
+    await expect(intro).toHaveAttribute('data-stage', 'usa')
+    // the highlighted state is North Carolina: it contains Charlotte and Raleigh, not Columbia SC or Richmond VA
+    await expect.poll(() => page.evaluate('window.__introCheck')).toEqual({ charlotte: true, raleigh: true, columbiaSC: false, richmondVA: false })
+    await expect(intro).toHaveAttribute('data-stage', 'nc', { timeout: 5_000 })
+    await expect(intro).toHaveAttribute('data-stage', /charlotte|city/, { timeout: 15_000 })
+    await expect(intro).toHaveCount(0, { timeout: 15_000 })
+    // landed on the study area, in 3D, with the city aligned and the case on screen
+    const cam = (await page.evaluate('({ z: window.__sm.map.getZoom(), p: window.__sm.map.getPitch(), lng: window.__sm.map.getCenter().lng, lat: window.__sm.map.getCenter().lat })')) as { z: number; p: number; lng: number; lat: number }
+    expect(cam.z).toBeGreaterThan(14.5)
+    expect(cam.p).toBeGreaterThan(40)
+    expect(Math.abs(cam.lng + 80.826)).toBeLessThan(0.02)
+    expect(Math.abs(cam.lat - 35.211)).toBeLessThan(0.02)
+    await expectAligned(page)
+    await expect(page.getByTestId('journey-card')).toBeVisible()
+    await expect(status(page)).toContainText('Disconnected')
+    const stats = (await page.evaluate('window.__introStats')) as { kind: string; frames: number; totalMs: number; skipped: boolean }
+    expect(stats.kind).toBe('full')
+    expect(stats.skipped).toBe(false)
+    expect(stats.frames).toBeGreaterThan(60)
+    expect(stats.totalMs).toBeLessThan(12_000)
+  })
+
+  test('can be skipped, and replayed from the menu', async ({ page }) => {
+    await page.goto('/?intro=1')
+    await page.getByTestId('intro-skip').click()
+    await expect(page.getByTestId('intro')).toHaveCount(0, { timeout: 12_000 })
+    await expect(page.getByTestId('journey-card')).toBeVisible()
+    await page.getByTestId('more-menu').click()
+    await page.getByTestId('replay-intro').click()
+    await expect(page.getByTestId('intro')).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(page.getByTestId('intro')).toHaveCount(0, { timeout: 12_000 })
+    await expect.poll(() => page.evaluate('window.__introStats.skipped')).toBe(true)
+  })
+
+  test('is shortened on a return visit', async ({ page }) => {
+    await page.addInitScript(() => window.localStorage.setItem('streetmend.introSeen', '1'))
+    await page.goto('/')
+    await expect(page.getByTestId('intro')).toHaveCount(0, { timeout: 12_000 })
+    const stats = (await page.evaluate('window.__introStats')) as { kind: string; totalMs: number }
+    expect(stats.kind).toBe('short')
+  })
+
+  test('respects reduced motion', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.goto('/')
+    await expect(page.getByTestId('intro')).toHaveCount(0, { timeout: 12_000 })
+    const stats = (await page.evaluate('window.__introStats')) as { kind: string }
+    expect(stats.kind).toBe('none')
+    await expect(status(page)).toContainText('Disconnected')
   })
 })

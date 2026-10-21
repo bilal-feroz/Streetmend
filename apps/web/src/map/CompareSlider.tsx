@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { panelInset } from './inset'
 import { useApp } from '../state/store'
 
 /** Before/after split: the left side renders the unrepaired network, the right
@@ -16,9 +17,9 @@ export function CompareSlider() {
     if (r) setSplit((clientX - r.left) / r.width)
   }
   return (
-    <div ref={box} className="pointer-events-none absolute inset-0" data-testid="compare">
+    <div ref={box} className="pointer-events-none absolute inset-y-0 left-0" style={{ right: panelInset() }} data-testid="compare">
       <div className="absolute inset-y-0 w-0" style={{ left: `${split * 100}%` }}>
-        <div className="absolute inset-y-0 -left-px w-0.5 bg-white shadow-[0_0_0_1px_rgba(34,52,45,0.25)]" />
+        <div className="absolute inset-y-0 -left-px w-0.5 bg-white shadow-[0_0_0_1px_rgba(25,44,40,0.22)]" />
         <button
           type="button"
           role="slider"
@@ -26,7 +27,7 @@ export function CompareSlider() {
           aria-valuemin={5}
           aria-valuemax={95}
           aria-valuenow={Math.round(split * 100)}
-          className="pointer-events-auto absolute top-1/2 -left-4 grid h-8 w-8 -translate-y-1/2 cursor-ew-resize place-items-center rounded-full border border-line bg-white text-ink-2 shadow-md"
+          className="pointer-events-auto absolute top-1/2 -left-[18px] grid h-9 w-9 -translate-y-1/2 cursor-ew-resize place-items-center rounded-full bg-ink text-white shadow-[0_4px_14px_rgba(25,44,40,0.35)]"
           onPointerDown={(e) => {
             e.currentTarget.setPointerCapture(e.pointerId)
             drag(e.clientX)
@@ -43,13 +44,17 @@ export function CompareSlider() {
         </button>
         {/* side captions travel with the divider near its foot (above the presentation bar when it is up),
             leaving the map centre and the chrome in the corners clear */}
-        <div className={`absolute right-3 whitespace-nowrap ${presenting ? 'bottom-[184px]' : 'bottom-12'} rounded-md border border-line bg-white/95 px-2.5 py-1.5 text-right text-[11.5px] shadow-sm`} data-testid="compare-before">
-          <div className="font-semibold text-ink">Before repairs</div>
-          <div className="text-ink-2">{before ? `${before.connected_pairs} of ${before.total_pairs} journeys connected` : '—'}</div>
+        <div className={`surface absolute right-4 px-3.5 py-2.5 text-right whitespace-nowrap ${presenting ? 'bottom-[236px]' : 'bottom-14'}`} data-testid="compare-before">
+          <div className="eyebrow">Before repairs</div>
+          <div className="mt-0.5 text-[13px] text-ink-2 tnum">
+            <b className="text-[17px] text-ink">{before ? before.connected_pairs : '—'}</b> of {before?.total_pairs ?? '—'} journeys connected
+          </div>
         </div>
-        <div className={`absolute left-3 whitespace-nowrap ${presenting ? 'bottom-[184px]' : 'bottom-12'} rounded-md border border-ok/40 bg-white/95 px-2.5 py-1.5 text-[11.5px] shadow-sm`} data-testid="compare-after">
-          <div className="font-semibold text-ink">After {applied.length ? applied.join(' + ') : 'no repairs'}</div>
-          <div className="text-ok-ink">{after ? `${after.connected_pairs} of ${after.total_pairs} journeys connected` : '—'}</div>
+        <div className={`surface absolute left-4 border-ok/40 px-3.5 py-2.5 whitespace-nowrap ${presenting ? 'bottom-[236px]' : 'bottom-14'}`} data-testid="compare-after">
+          <div className="eyebrow !text-ok-ink">After {applied.length ? applied.join(' + ') : 'no repairs'}</div>
+          <div className="mt-0.5 text-[13px] text-ink-2 tnum">
+            <b className="text-[17px] text-ok-ink">{after ? after.connected_pairs : '—'}</b> of {after?.total_pairs ?? '—'} journeys connected
+          </div>
         </div>
       </div>
     </div>

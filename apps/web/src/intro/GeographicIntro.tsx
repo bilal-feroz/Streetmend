@@ -64,6 +64,21 @@ export function GeographicIntro({ handle, target }: { handle: MapHandle | null; 
     getGeo().then(setGeo, () => setGeo('failed'))
   }, [wantsGeo, geo])
 
+  // Self-check of the national geometry, read by the E2E suite: the highlighted
+  // state must contain Charlotte and Raleigh and not Columbia, SC.
+  useEffect(() => {
+    if (!geo || geo === 'failed') return
+    const ctx = document.createElement('canvas').getContext('2d')
+    if (!ctx) return
+    const inNC = ([lng, lat]: [number, number]) => ctx.isPointInPath(geo.nc, mx(lng), my(lat))
+    ;(window as unknown as { __introCheck?: object }).__introCheck = {
+      charlotte: inNC(CHARLOTTE),
+      raleigh: inNC([-78.6382, 35.7796]),
+      columbiaSC: inNC([-81.0348, 34.0007]),
+      richmondVA: inNC([-77.436, 37.5407]),
+    }
+  }, [geo])
+
   useEffect(() => {
     if (intro.phase !== 'running') return
     skip.current = false
