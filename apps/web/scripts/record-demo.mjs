@@ -14,57 +14,73 @@ const orbit = (deg, ms) => page.evaluate(([d, t]) => { const m = window.__sm.map
 // The opening: United States -> North Carolina -> Charlotte -> Elizabeth (a first visit)
 await page.goto('http://localhost:5173/?intro=1')
 await page.getByTestId('intro').waitFor({ state: 'detached', timeout: 20000 })
-await pause(3000)
+await pause(2500)
 
-// The change check, act by act, on the live engine
+// ---- Primary demo: the change check, act by act, on the live engine ----
 const act = async () => {
   await page.getByTestId('scene-next').click()
   await page.waitForFunction(() => !document.querySelector('[data-testid=scene-next]')?.hasAttribute('disabled') || document.querySelector('[data-testid=scene-title]')?.textContent === 'The engine is real', null, { timeout: 30000 })
 }
 await page.getByTestId('present').click()
-await pause(2500)
-await orbit(20, 4500) // 1 a city that works
-await pause(4000)
+await pause(2000)
+await orbit(18, 4000) // 1 a city that works
+await pause(3500)
 await act() // 2 the planner proposes a change
-await pause(5000)
+await pause(4500)
 await act() // 3 StreetMend finds a regression
-await pause(7500)
+await pause(5000)
+// the same change, two travel profiles
+await page.getByTestId('profile-walking').click()
+await pause(3800)
+await page.getByTestId('profile-step_free').click()
+await pause(3800)
+await page.getByTestId('profile-step_free').click()
+await pause(800)
 await act() // 4 StreetMend finds a fix
-await pause(7500)
+await pause(6500)
 await act() // 5 apply and verify
-await pause(8000)
-await act() // 6 the engine is real: B off
-await pause(4500)
-await page.getByTestId('toggle-B').click() // and back on
-await pause(5000)
-await page.getByTestId('present').click()
-await pause(1500)
-
-// Any crossing can be proposed: the same engine, a different change
-await page.getByTestId('reset-check').click()
-await pause(3000)
-
-// The original tools: repair planner and real municipal records
-await page.getByTestId('data-mode').getByRole('radio', { name: 'Repair planner' }).click()
-await page.getByTestId('journey-card').waitFor()
-await pause(3500)
-await page.getByTestId('analyze').click()
-await pause(4000)
-await page.getByTestId('apply-all').click()
 await pause(7000)
-// Real municipal records
-await page.getByTestId('data-mode').getByRole('radio', { name: 'Data explorer' }).click()
-await page.getByTestId('data-status').filter({ hasText: 'Municipal records' }).waitFor()
-await pause(4500)
-await page.getByTestId('tab-records').click()
-await pause(1500)
-await page.getByLabel('Filter records').pressSequentially('225', { delay: 120 })
-await page.getByTestId('record-list').locator('button').first().click()
-await pause(5000)
-await page.getByTestId('tab-quality').click()
+await act() // 6 the engine is real: B off
 await pause(4000)
-await page.getByTestId('data-mode').getByRole('radio', { name: 'Change check' }).click()
-await pause(3500)
+await page.getByTestId('toggle-B').click() // and back on
+await pause(4000)
+await page.getByTestId('present').click()
+await pause(1200)
+
+// ---- Secondary demo: access gaps, fix or build, on real records ----
+await page.getByTestId('data-mode').getByRole('radio', { name: 'Access gaps' }).click()
+await page.getByTestId('access-title').waitFor()
+await pause(4500)
+await page.getByTestId('cell-8944d84d32fffff').click() // diagnose the worst cell
+await page.getByTestId('diagnose').waitFor()
+await pause(5500)
+await page.getByTestId('run-compare').click() // fix or build, budget two
+await page.getByTestId('intervene').waitFor()
+await pause(5000)
+await page.getByTestId('show-fix').click()
+await pause(4500)
+await page.getByTestId('access-budget').getByRole('radio', { name: '1 repair' }).click() // the answer flips
+await page.waitForFunction(() => document.querySelector('[data-testid=option-build]')?.textContent?.includes('Wins'), null, { timeout: 20000 })
+await pause(3000)
+await page.getByTestId('show-build').click()
+await pause(4500)
+await page.getByTestId('cat-grocery').click() // when no store exists, repairs cannot help
+await pause(4000)
+
+// ---- Ask in plain English: the question drives the map ----
+await page.getByTestId('ask-toggle').click()
+await page.getByTestId('ask-input').pressSequentially('Which neighborhood has the poorest access to groceries?', { delay: 28 })
+await page.keyboard.press('Enter')
+await page.getByTestId('assistant-response').waitFor({ timeout: 30000 })
+await pause(5000)
+
+// ---- Evidence: the reproducible evaluation ----
+await page.getByTestId('more-menu').click()
+await page.getByTestId('open-evidence').click()
+await page.getByTestId('evidence-score').waitFor()
+await pause(5500)
+await page.keyboard.press('Escape')
+await pause(800)
 
 await ctx.close()
 await browser.close()
