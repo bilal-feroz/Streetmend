@@ -4,11 +4,13 @@ import { useEffect } from 'react'
 import { Dialogs } from './components/dialogs/Dialogs'
 import { DataModeSwitch, Header } from './components/Header'
 import { Inspector } from './components/map/Inspector'
-import { Banner, CameraToolbar, Legend, PresentationBar, ScenarioBadge } from './components/map/MapChrome'
+import { Banner, Legend, MapToolbar, PresentationBar, ScenarioBadge } from './components/map/MapChrome'
 import { ExplorerPanel, GuidedPanel } from './components/panel/Panels'
 import { MapView } from './map/MapView'
 import { useMediaQuery } from './lib/useMediaQuery'
 import { GUIDED_ID, useApp } from './state/store'
+
+const EASE = [0.22, 1, 0.36, 1] as const
 
 function SelectedBuilding() {
   const selected = useApp((s) => s.selected)
@@ -26,8 +28,8 @@ export default function App() {
   const scenarioId = useApp((s) => s.scenarioId)
   const panelOpen = useApp((s) => s.panelOpen)
   const setPanelOpen = useApp((s) => s.setPanelOpen)
-  const presenting = useApp((s) => s.presenting)
-  // the panel mounts once: docked beside the map from lg up, as a bottom sheet below
+  const ready = useApp((s) => s.intro.phase === 'done')
+  // the panel mounts once: floating over the map from lg up, as a bottom sheet below
   const wide = useMediaQuery('(min-width: 1024px)')
   const guided = scenarioId === GUIDED_ID
 
@@ -46,57 +48,72 @@ export default function App() {
   const panel = guided ? <GuidedPanel /> : <ExplorerPanel />
   return (
     <div className="flex h-full flex-col bg-canvas">
-      <a href="#planning" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-sel focus:px-3 focus:py-1 focus:text-white">
+      <a href="#planning" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-ink focus:px-3 focus:py-1 focus:text-white">
         Skip to planning panel
       </a>
-      <Header />
-      <main className="relative flex min-h-0 flex-1">
-        <div className="relative min-w-0 flex-1">
-          <MapView />
-          <div className="pointer-events-none absolute inset-0 z-10">
-            {/* data status first, narration directly beneath it: they never collide */}
-            <div className="absolute left-3 top-3 flex w-[min(520px,calc(100%-224px))] flex-col items-start gap-2 max-sm:w-[calc(100%-24px)]">
-              <ScenarioBadge />
-              <Banner />
-            </div>
-            {/* phones: camera tools move to the lower left, clear of the narration */}
-            <div className="absolute right-3 top-3 max-sm:top-auto max-sm:right-auto max-sm:left-3 max-sm:bottom-14">
-              <CameraToolbar />
-            </div>
-            <div className="absolute bottom-9 left-3 max-md:hidden">
-              <Legend />
-            </div>
-            {/* sits above the attribution line, which stays readable */}
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 max-lg:bottom-16">
-              <PresentationBar />
-            </div>
-            {/* details dock under the camera toolbar, leaving the bottom to the presentation bar */}
-            <div className={`absolute right-3 top-[150px] flex flex-col max-sm:inset-x-3 max-sm:top-auto max-sm:bottom-16 ${presenting ? 'bottom-[164px]' : 'bottom-[120px]'}`}>
+      <motion.div initial={false} animate={{ opacity: ready ? 1 : 0, y: ready ? 0 : -8 }} transition={{ duration: 0.5, ease: EASE }}>
+        <Header />
+      </motion.div>
+      {/* --inset: the width the floating panel takes from the map; chrome is placed against the visible map */}
+      <main className="relative min-h-0 flex-1 [--inset:0px] lg:[--inset:calc(clamp(340px,25vw,430px)+28px)]">
+        <MapView />
+        <motion.div className="pointer-events-none absolute inset-0 z-10" initial={false} animate={{ opacity: ready ? 1 : 0 }} transition={{ duration: 0.5, delay: ready ? 0.25 : 0 }}>
+          <div className="absolute top-4 bottom-24 left-4 flex w-[min(440px,calc(100%-var(--inset)-96px))] flex-col items-start gap-2.5 max-sm:w-[calc(100%-32px)]">
+            <ScenarioBadge />
+            <Banner />
+            <div className="flex min-h-0 flex-1 flex-col max-sm:hidden">
               <SelectedBuilding />
             </div>
           </div>
-          {loading && (
-            <div className="absolute inset-0 z-20 grid place-items-center bg-canvas/60">
-              <div className="flex items-center gap-2 text-sm text-ink-2">
-                <LoaderCircle size={16} className="animate-spin" /> Loading network…
-              </div>
+          <div className="absolute top-4 right-[calc(var(--inset)+16px)] max-sm:top-auto max-sm:right-auto max-sm:bottom-16 max-sm:left-4">
+            <MapToolbar />
+          </div>
+          <div className="absolute bottom-[68px] left-4 max-md:hidden">
+            <Legend />
+          </div>
+          <div className="absolute bottom-10 left-[calc((100%-var(--inset))/2)] -translate-x-1/2 max-lg:bottom-20">
+            <PresentationBar />
+          </div>
+          <div className="absolute inset-x-4 bottom-16 hidden max-sm:block">
+            <SelectedBuilding />
+          </div>
+        </motion.div>
+        {loading && ready && (
+          <div className="absolute inset-0 z-20 grid place-items-center bg-canvas/60">
+            <div className="flex items-center gap-2 text-sm text-ink-2">
+              <LoaderCircle size={16} className="animate-spin" /> Loading network…
             </div>
-          )}
-          {error && (
-            <div className="absolute left-1/2 top-16 z-30 flex max-w-md -translate-x-1/2 items-start gap-2 rounded-lg border border-bad/40 bg-paper px-3 py-2 text-[13px] text-bad-ink shadow-xl" role="alert">
-              <TriangleAlert size={15} className="mt-0.5 shrink-0" /> {error}
-            </div>
-          )}
-        </div>
+          </div>
+        )}
+        {error && (
+          <div className="absolute left-1/2 top-16 z-30 flex max-w-md -translate-x-1/2 items-start gap-2 rounded-xl border border-bad/40 bg-paper px-3 py-2 text-[13px] text-bad-ink shadow-xl" role="alert">
+            <TriangleAlert size={15} className="mt-0.5 shrink-0" /> {error}
+          </div>
+        )}
         {wide && (
-          <aside id="planning" aria-label="Planning workspace" className="relative z-20 w-[clamp(360px,26vw,480px)] shrink-0 border-l border-line bg-paper">
+          <motion.aside
+            id="planning"
+            data-floating-panel
+            aria-label="Planning workspace"
+            className="absolute top-1 right-4 bottom-4 z-20 w-[clamp(340px,25vw,430px)] overflow-hidden rounded-2xl border border-black/[0.06] bg-paper shadow-[0_1px_2px_rgba(25,44,40,0.06),0_24px_48px_-24px_rgba(25,44,40,0.35)]"
+            initial={false}
+            animate={{ opacity: ready ? 1 : 0, x: ready ? 0 : 32 }}
+            transition={{ duration: 0.65, delay: ready ? 0.1 : 0, ease: EASE }}
+          >
             {panel}
-          </aside>
+          </motion.aside>
         )}
         <AnimatePresence>
           {!wide && panelOpen && (
-            <motion.aside initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'tween', duration: 0.25 }}
-              id="planning" className="absolute inset-x-0 bottom-0 z-40 h-[80%] rounded-t-xl border-t border-line bg-paper shadow-2xl" aria-label="Planning workspace">
+            <motion.aside
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'tween', duration: 0.3, ease: EASE }}
+              id="planning"
+              className="absolute inset-x-0 bottom-0 z-40 h-[82%] rounded-t-2xl border-t border-line bg-paper shadow-2xl"
+              aria-label="Planning workspace"
+            >
               <div className="flex items-center justify-between gap-2 border-b border-line px-3 py-2">
                 <DataModeSwitch testId="data-mode-sheet" />
                 <button className="rounded p-1.5 text-ink-3" onClick={() => setPanelOpen(false)} aria-label="Close planning panel">
@@ -107,9 +124,9 @@ export default function App() {
             </motion.aside>
           )}
         </AnimatePresence>
-        {!wide && !panelOpen && (
-          <button className="btn-primary absolute bottom-3 left-1/2 z-30 -translate-x-1/2 shadow-lg" onClick={() => setPanelOpen(true)} data-testid="open-panel">
-            Open planning panel
+        {!wide && !panelOpen && ready && (
+          <button className="btn-primary absolute bottom-4 left-1/2 z-30 -translate-x-1/2 shadow-lg" onClick={() => setPanelOpen(true)} data-testid="open-panel">
+            Open the case
           </button>
         )}
       </main>

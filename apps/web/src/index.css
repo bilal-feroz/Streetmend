@@ -1,39 +1,45 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/inter';
+@import '@fontsource-variable/manrope';
+@import '@fontsource/instrument-serif/400.css';
+@import '@fontsource/instrument-serif/400-italic.css';
 @import '@fontsource-variable/jetbrains-mono';
 @import 'maplibre-gl/dist/maplibre-gl.css';
 
+/* StreetMend atlas palette: warm paper, deep ink, controlled accents.
+   Muted inks are tuned to >= 4.5:1 on white and on the warm canvas. */
 @theme {
-  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Instrument Serif', ui-serif, Georgia, serif;
   --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
 
-  --color-canvas: #f7f8f5;
+  --color-canvas: #f5f4ef;
   --color-paper: #ffffff;
-  --color-wash: #f1f3ef;
-  --color-ink: #22342d;
-  --color-ink-2: #5f6f67;
-  --color-ink-3: #606c66; /* meta text: >= 4.8:1 on white and on every tinted surface (WCAG AA) */
-  --color-line: #e4e9e3;
-  --color-line-2: #d3dbd3;
+  --color-wash: #f1f0ea;
+  --color-ink: #192c28;
+  --color-ink-2: #56655f;
+  --color-ink-3: #5f6c66;
+  --color-line: #e2e6df;
+  --color-line-2: #cfd5cc;
 
-  --color-ok: #198568;
-  --color-ok-ink: #12684f;
-  --color-ok-bg: #e7f3ee;
-  --color-bad: #d85e51;
-  --color-bad-ink: #a83f34;
-  --color-bad-bg: #fbecea;
-  --color-unk: #dca344;
-  --color-unk-ink: #805c10;
-  --color-unk-bg: #fbf3e1;
-  --color-sel: #3568c8;
-  --color-sel-ink: #2b56a6;
-  --color-sel-bg: #ebf1fb;
+  --color-ok: #087f63;
+  --color-ok-ink: #06664f;
+  --color-ok-bg: #e3f1eb;
+  --color-bad: #da5a50;
+  --color-bad-ink: #a5382f;
+  --color-bad-bg: #fbeae7;
+  --color-unk: #cf962b;
+  --color-unk-ink: #775210;
+  --color-unk-bg: #f9f0dd;
+  --color-sel: #355dd8;
+  --color-sel-ink: #2846aa;
+  --color-sel-bg: #ebeffc;
+
+  --ease-atlas: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 :root {
   color-scheme: light;
   font-family: var(--font-sans);
-  font-feature-settings: 'cv11', 'ss01', 'ss03';
   -webkit-font-smoothing: antialiased;
   background: var(--color-canvas);
   color: var(--color-ink);
@@ -106,7 +112,7 @@ input[type='range'].sm-range::-moz-range-thumb {
 
 /* MapLibre chrome, light */
 .maplibregl-ctrl-attrib {
-  background: rgba(255, 255, 255, 0.85) !important;
+  background: rgba(245, 244, 239, 0.85) !important;
   font-size: 10px !important;
   color: var(--color-ink-2) !important;
 }
@@ -127,17 +133,34 @@ input[type='range'].sm-range::-moz-range-thumb {
 }
 
 @layer components {
+  /* The confident action: deep ink with an emerald cue, not a stock blue button. */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-1.5 rounded-md bg-sel px-3 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-sel-ink disabled:cursor-not-allowed disabled:opacity-55;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-ink px-4 py-2.5 text-[14px] font-semibold tracking-[-0.005em] text-white shadow-[0_1px_0_rgba(255,255,255,0.08)_inset,0_6px_18px_-8px_rgba(25,44,40,0.55)] transition-[background-color,transform] duration-200 hover:bg-[#0f211d] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .btn-accent {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg bg-ok px-3 py-1.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-ok-ink disabled:cursor-not-allowed disabled:opacity-55;
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-1.5 rounded-md border border-line-2 bg-paper px-3 py-1.5 text-[13px] font-medium text-ink transition-colors hover:border-ink-3 hover:bg-wash disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg border border-line-2 bg-paper px-3 py-1.5 text-[13px] font-medium text-ink transition-colors hover:border-ink-3 hover:bg-wash disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[13px] font-medium text-ink-2 transition-colors hover:bg-wash hover:text-ink disabled:opacity-40;
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-[13px] font-medium text-ink-2 transition-colors hover:bg-wash hover:text-ink disabled:opacity-40;
   }
   .eyebrow {
-    @apply text-[11px] font-semibold tracking-[0.06em] text-ink-3 uppercase;
+    @apply text-[11px] font-semibold tracking-[0.08em] text-ink-3 uppercase;
+  }
+  .kicker {
+    @apply text-[12px] font-semibold text-ink-2;
+  }
+  .display {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.05;
+  }
+  /* Floating map surfaces: one consistent material. */
+  .surface {
+    @apply rounded-xl border border-black/[0.06] bg-paper/95 shadow-[0_1px_2px_rgba(25,44,40,0.06),0_8px_24px_-12px_rgba(25,44,40,0.28)] backdrop-blur-sm;
   }
 }
 

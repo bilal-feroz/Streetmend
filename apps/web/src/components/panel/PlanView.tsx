@@ -1,4 +1,4 @@
-import { Bus, GraduationCap, Info, LoaderCircle, Search, Stethoscope } from 'lucide-react'
+import { ArrowRight, Bus, GraduationCap, Info, LoaderCircle, Stethoscope } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { Category, Priority } from '../../api/types'
 import { useApp } from '../../state/store'
@@ -77,9 +77,11 @@ export function AnalyzeButton() {
   }, [analyzing])
   return (
     <div>
-      <button className="btn-primary w-full py-2.5 text-[14px]" onClick={() => void analyze()} disabled={analyzing} data-testid="analyze">
-        {analyzing ? <LoaderCircle size={16} className="animate-spin" aria-hidden /> : <Search size={15} aria-hidden />}
-        {analyzing ? `Evaluating combinations${elapsed >= 1 ? ` · ${elapsed.toFixed(0)} s` : '…'}` : 'Find best repairs'}
+      <button className="btn-primary group w-full justify-between py-3 pl-5 pr-4 text-[14.5px]" onClick={() => void analyze()} disabled={analyzing} data-testid="analyze">
+        <span>{analyzing ? `Evaluating combinations${elapsed >= 1 ? ` · ${elapsed.toFixed(0)} s` : '…'}` : 'Find the best repairs'}</span>
+        <span className="grid h-7 w-7 place-items-center rounded-full bg-ok text-white transition-transform duration-300 group-hover:translate-x-0.5" aria-hidden>
+          {analyzing ? <LoaderCircle size={15} className="animate-spin" /> : <ArrowRight size={15} strokeWidth={2.4} />}
+        </span>
       </button>
       {err && (
         <p className="mt-2 text-[12px] text-bad-ink" role="alert">
@@ -96,22 +98,22 @@ export function PlanView() {
   const analysis = useApp((s) => s.analysis)
   const { setBudget, setPriority, setPanelView } = useApp.getState()
   return (
-    <section aria-labelledby="plan-h" className="border-t border-line px-4 pt-3.5 pb-2">
-      <h2 id="plan-h" className="eyebrow">
-        Plan repairs
+    <section aria-labelledby="plan-h" className="border-t border-line px-6 pt-5 pb-3">
+      <h2 id="plan-h" className="display text-[24px] text-ink">
+        What would you repair?
       </h2>
-      <p className="mt-1 text-[13px] leading-snug text-ink">Find the repairs that improve access to essential destinations.</p>
-      <div className="mt-3 space-y-3">
+      <p className="mt-1.5 text-[13px] leading-relaxed text-ink-2">StreetMend tests every combination of candidate repairs against access to essential destinations.</p>
+      <div className="mt-5 space-y-4">
         <div>
-          <div className="mb-1 flex items-baseline justify-between">
-            <span className="text-[12.5px] font-medium text-ink">Repair budget</span>
-            <span className="text-[11.5px] text-ink-3">number of repairs</span>
+          <div className="mb-1.5 flex items-baseline justify-between">
+            <span className="kicker">Repair budget</span>
+            <span className="text-[12px] text-ink-3">{budget > 4 ? budget : budget} repair{budget === 1 ? '' : 's'}</span>
           </div>
           <Segmented label="Repair budget" value={budget > 4 ? 4 : budget} onChange={setBudget} testId="budget"
-            options={[1, 2, 3, 4].map((n) => ({ value: n, label: <span className="font-mono">{n}</span>, title: `${n} repair${n === 1 ? '' : 's'}` }))} />
+            options={[1, 2, 3, 4].map((n) => ({ value: n, label: <span className="tnum">{n}</span>, title: `${n} repair${n === 1 ? '' : 's'}` }))} />
         </div>
         <div>
-          <div className="mb-1 text-[12.5px] font-medium text-ink">Destination priority</div>
+          <div className="mb-1.5 kicker">What matters most</div>
           <Segmented<Priority | 'custom'> label="Destination priority" value={priority} onChange={(p) => p !== 'custom' && setPriority(p)} testId="priority" size="sm"
             options={[
               { value: 'healthcare', label: 'Healthcare' },
@@ -119,17 +121,17 @@ export function PlanView() {
               { value: 'education', label: 'Education' },
               { value: 'balanced', label: 'Balanced' },
             ]} />
-          {priority === 'custom' && <p className="mt-1 text-[11.5px] text-ink-2">Custom weights (see advanced settings).</p>}
+          {priority === 'custom' && <p className="mt-1 text-[11.5px] text-ink-2">Custom weights (see Advanced).</p>}
         </div>
         <AnalyzeButton />
         {analysis && (
           <button className="btn-ghost w-full text-[12.5px]" onClick={() => setPanelView('results')}>
-            Back to the last results
+            Back to the last recommendation
           </button>
         )}
       </div>
-      <div className="mt-3">
-        <Disclosure title="Advanced settings" testId="toggle-advanced">
+      <div className="mt-4">
+        <Disclosure title="Advanced" testId="toggle-advanced">
           <AdvancedSettings />
         </Disclosure>
         <Disclosure title="Ask a planning question" testId="toggle-assistant">

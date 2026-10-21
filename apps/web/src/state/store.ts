@@ -21,7 +21,27 @@ export const GUIDED_ID = 'guided'
 export const EXPLORER_ID = 'charlotte-elizabeth'
 
 export type Selection = { type: 'intervention' | 'edge' | 'place' | 'record' | 'building'; id: string } | null
-export type CameraPreset = 'overview' | 'street' | 'network' | 'top' | 'route' | 'point' | 'intervention'
+export type CameraPreset = 'overview' | 'journey' | 'street' | 'network' | 'top' | 'route' | 'point' | 'intervention'
+
+export type IntroKind = 'full' | 'short' | 'none'
+const INTRO_SEEN = 'streetmend.introSeen'
+
+/** First visit: the full USA → Charlotte flight. Returning visits: a short
+ * arrival. ?intro=0|1|short overrides; reduced motion skips the movement. */
+function initialIntro(): IntroKind {
+  if (typeof window === 'undefined') return 'none'
+  const q = new URLSearchParams(window.location.search).get('intro')
+  if (q === '0' || q === 'skip' || q === 'off') return 'none'
+  if (q === '1' || q === 'full') return 'full'
+  if (q === 'short') return 'short'
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return 'none'
+  try {
+    if (window.localStorage.getItem(INTRO_SEEN)) return 'short'
+  } catch {
+    /* storage unavailable: treat as a first visit */
+  }
+  return 'full'
+}
 
 export interface Banner {
   kind: 'reconnected' | 'partial' | 'info'
@@ -86,6 +106,8 @@ interface AppState {
   scene: number
   sceneBusy: boolean
 
+  intro: { kind: IntroKind; phase: 'running' | 'done'; nonce: number }
+
   assistantPending: boolean
   assistantLast: AssistantResponse | null
   assistantError: string | null
@@ -126,6 +148,8 @@ interface AppState {
   setExplorerTab: (t: AppState['explorerTab']) => void
   startPresentation: () => void
   stopPresentation: () => void
+  replayIntro: () => void
+  finishIntro: () => void
   goToScene: (n: number) => Promise<void>
 }
 
@@ -140,13 +164,12 @@ const NUMBER_WORDS = ['ZERO', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEV
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 export const SCENES = [
-  { title: 'Real city context', caption: 'Real Charlotte streets and building footprints. The barriers in this scenario are hypothetical.' },
-  { title: 'Inspect the problem', caption: 'The modeled journey stops at one crossing of East 7th Street: both curb ramps are blocked.' },
-  { title: 'Find repairs', caption: 'Budget of two. The engine evaluates every combination of candidate repairs.' },
-  { title: 'Apply the first repair', caption: 'One ramp repaired. The engine recomputes: the crossing is still incomplete.' },
-  { title: 'Apply the second repair', caption: 'The second ramp completes the crossing. The engine recomputes a continuous route.' },
-  { title: 'Prove the value', caption: 'Computed before/after evidence and the baseline comparison.' },
-  { title: 'Test it yourself', caption: 'Remove a repair or change the budget. Every result is recomputed live.' },
+  { title: 'The city', caption: 'Elizabeth, Charlotte: real streets and real building footprints. The barriers in this scenario are hypothetical.' },
+  { title: 'The disconnected journey', caption: 'A short trip from Hawthorne Lane to the hospital stops at one crossing of East 7th Street, where both curb ramps are blocked.' },
+  { title: 'The repair recommendation', caption: 'With a budget of two, the engine evaluates every combination of candidate repairs and picks the pair that works together.' },
+  { title: 'The first intervention', caption: 'Repair A alone. The engine recomputes: one end of the crossing is fixed, but the journey is still broken.' },
+  { title: 'The second intervention', caption: 'Repair B completes the crossing. The new route is traced through the real street graph.' },
+  { title: 'The measured result', caption: 'Before and after on the same view: journeys connected, access gained, and how simple ranking compares.' },
 ] as const
 
 export const useApp = create<AppState>((set, get) => {
@@ -289,6 +312,7 @@ export const useApp = create<AppState>((set, get) => {
     presenting: false,
     scene: 0,
     sceneBusy: false,
+    intro: { kind: initialIntro(), phase: 'running', nonce: 0 },
     assistantPending: false,
     assistantLast: null,
     assistantError: null,
@@ -321,7 +345,7 @@ export const useApp = create<AppState>((set, get) => {
         const dj = sc.default_journey
         set({ scenario: sc, journey: dj ? { origin: dj[0], destination: dj[1] } : null, cutoff: sc.max_distance_m, loading: false })
         const ev = await evaluate()
-        set({ initialEval: ev, camera: { preset: 'overview', nonce: ++camSeq } })
+        set({ initialEval: ev, camera: { preset: sc.mode === 'municipal' ? 'overview' : 'journey', nonce: ++camSeq } })
       } catch (e) {
         set({ loading: false, error: errMsg(e) })
       }
@@ -452,6 +476,15 @@ export const useApp = create<AppState>((set, get) => {
       void get().goToScene(0)
     },
     stopPresentation: () => set({ presenting: false }),
+    replayIntro: () => set((s) => ({ intro: { kind: 'full', phase: 'running', nonce: s.intro.nonce + 1 }, presenting: false, compare: 'off', selected: null, banner: null })),
+    finishIntro: () => {
+      try {
+        window.localStorage.setItem(INTRO_SEEN, '1')
+      } catch {
+        /* not persisted; the next visit plays the intro again */
+      }
+      set((s) => ({ intro: { ...s.intro, phase: 'done' } }))
+    },
 
     /** Each scene sets up its state from scratch through the real engine. */
     goToScene: async (n) => {
@@ -465,6 +498,7 @@ export const useApp = create<AppState>((set, get) => {
           set({ journey: { origin: dj[0], destination: dj[1] } })
         }
         const needApplied = n <= 2 ? [] : n === 3 ? ['A'] : ['A', 'B']
+        set({ banner: null })
         const hasAB = sc.interventions.some((i) => i.id === 'A') && sc.interventions.some((i) => i.id === 'B')
         if (n >= 2 && (s.budget !== 2 || s.priority !== 'healthcare')) set({ budget: 2, weights: PRESETS.healthcare, priority: 'healthcare' })
         if (n === 0) {
@@ -479,7 +513,7 @@ export const useApp = create<AppState>((set, get) => {
           set({ applied: [], selected: null, compare: 'off' })
           await evaluate()
           await get().analyze()
-          get().cameraTo({ preset: 'network' })
+          get().cameraTo({ preset: 'journey' })
         } else if (n === 3 || n === 4) {
           if (!get().analysis) await get().analyze()
           const target = needApplied[needApplied.length - 1]
@@ -496,9 +530,7 @@ export const useApp = create<AppState>((set, get) => {
           }
           if (!get().analysis) await get().analyze()
           set({ panelView: 'results', compare: 'split', split: 0.5 })
-          get().cameraTo({ preset: 'route' })
-        } else if (n === 6) {
-          set({ compare: 'off' })
+          get().cameraTo({ preset: 'journey' })
         }
       } finally {
         set({ sceneBusy: false })

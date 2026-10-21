@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useApp } from '../state/store'
+import { panelInset } from './inset'
 import type { MapHandle } from './MapView'
 
 interface Anchor {
@@ -63,7 +64,7 @@ export function MapLabels({ handle }: { handle: MapHandle }) {
   useEffect(() => {
     const { layer } = handle
     const place = () => {
-      const w = handle.map.getCanvas().clientWidth
+      const w = handle.map.getCanvas().clientWidth - panelInset()
       const at = new Map(anchors.map((a) => [a.key, layer.project(a.lng, a.lat, a.alt)]))
       for (const a of anchors) {
         const el = refs.current.get(a.key)

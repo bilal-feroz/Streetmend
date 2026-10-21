@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { api } from '../../api/client'
 import type { OptimizeResponse, ScenarioOut } from '../../api/types'
 import { isAnalysisStale, useApp } from '../../state/store'
-import { Disclosure, Stat } from '../ui'
+import { Disclosure } from '../ui'
 import { Assistant } from './Assistant'
 import { crossingName } from './JourneyCard'
 
@@ -28,9 +28,53 @@ export function headline(a: OptimizeResponse, sc: ScenarioOut): string {
   const crossing = ivs.length === 2 && ivs[0]?.attrs?.crossing && ivs[0]?.attrs?.crossing === ivs[1]?.attrs?.crossing ? (ivs[0]!.attrs.crossing as string) : null
   const xl = crossing ? sc.edges.find((e) => e.id === crossing)?.label : null
   const allZero = a.contributions.every((c) => c.alone_gain === 0)
-  if (xl && a.synergy > 0) return `These two repairs complete a previously disconnected crossing: ${crossingName(xl)}. Together they reconnect ${pairs} journey${pairs === 1 ? '' : 's'}.`
+  if (xl && a.synergy > 0) return `Neither works alone. Together they complete ${crossingName(xl)} and reconnect ${pairs} journey${pairs === 1 ? '' : 's'}.`
   if (allZero && sel.length > 1 && a.synergy > 0) return `None of these repairs helps on its own; together they reconnect ${pairs} journey${pairs === 1 ? '' : 's'}.`
   return `These ${sel.length} repair${sel.length === 1 ? '' : 's'} reconnect ${pairs} journey${pairs === 1 ? '' : 's'} to essential destinations.`
+}
+
+/** The recommendation as a single instruction. */
+function recTitle(a: OptimizeResponse) {
+  const sel = a.recommendation.selected
+  if (!sel.length) return a.params.budget === 0 ? 'No budget, no repairs.' : 'No single repair helps here.'
+  const together = sel.length > 1 && a.synergy > 0 && a.contributions.every((c) => c.alone_gain === 0)
+  if (sel.length === 2) return together ? 'Repair these two connections together.' : 'Repair these two connections.'
+  if (sel.length === 1) return 'Repair this connection.'
+  return `Repair these ${sel.length} connections${together ? ' together' : ''}.`
+}
+
+/** "Install curb ramp at the East 7th Street crossing, East 7th Street & Hawthorne Lane (near side)"
+ *  -> action "Install curb ramp · near side", place "East 7th Street & Hawthorne Lane". */
+function splitLabel(label: string) {
+  const side = /\(([^)]+)\)\s*$/.exec(label)
+  const base = side ? label.slice(0, side.index).trim() : label
+  const i = base.indexOf(' at ')
+  if (i < 0) return { action: base + (side ? ` · ${side[1]}` : ''), place: '' }
+  const where = base.slice(i + 4)
+  const comma = where.lastIndexOf(', ')
+  return { action: base.slice(0, i) + (side ? ` · ${side[1]}` : ''), place: comma > 0 ? where.slice(comma + 2) : where }
+}
+
+function Metric({ label, before, after, unit, note, testId }: { label: string; before?: string | number; after: string | number; unit?: string; note?: string; testId?: string }) {
+  return (
+    <div className="bg-paper px-3 py-3" data-testid={testId}>
+      <div className="text-[11px] font-semibold text-ink-3">{label}</div>
+      <div className="mt-1 flex items-baseline gap-1 tnum">
+        {before !== undefined && (
+          <>
+            <span className="text-[13px] font-semibold text-ink-3">{before}</span>
+            <span className="text-[12px] text-ink-3" aria-hidden>
+              →
+            </span>
+            <span className="sr-only">to</span>
+          </>
+        )}
+        <span className="text-[22px] leading-none font-bold tracking-[-0.02em] text-ink">{after}</span>
+        {unit && <span className="text-[12px] font-semibold text-ink-2">{unit}</span>}
+      </div>
+      {note && <div className="mt-1 text-[11px] font-semibold text-ok-ink">{note}</div>}
+    </div>
+  )
 }
 
 export function ResultsView() {
@@ -50,6 +94,7 @@ export function ResultsView() {
   const route = ev?.journey?.route
   const best = Math.max(rec.gain, ...a.baselines.map((b) => b.gain), 1)
   const priorityLabel = st.priority === 'custom' ? 'custom weights' : `${st.priority} priority`
+  const allApplied = rec.selected.length > 0 && rec.selected.every((id) => applied.includes(id))
   const applyAll = async () => {
     setApplyingAll(true)
     try {
@@ -76,53 +121,92 @@ export function ResultsView() {
       setExporting(false)
     }
   }
+  // after the last repair the evidence leads; before it, the instructions do
+  const effectBlock = (
+    <>
+      <div className="mt-6 eyebrow">{allApplied ? 'Measured result' : 'Measured effect'}</div>
+      <div className="mt-2 grid grid-cols-3 gap-px overflow-hidden rounded-xl border border-line bg-line" data-testid="impact">
+        <Metric label="Journeys" before={o.connected_pairs_before} after={o.connected_pairs_after} note={`of ${o.total_pairs}`} testId="stat-pairs" />
+        <Metric label="Access score" before={n(o.before)} after={n(o.after)} note={o.relative_gain === null ? undefined : `+${Math.round(o.relative_gain * 100)}%`} testId="stat-objective" />
+        <Metric label="This route" after={route?.found ? `${Math.round(route.length_m ?? 0)}` : '—'} unit={route?.found ? 'm' : undefined} note={route?.found ? 'connected' : 'not yet'} testId="stat-route" />
+      </div>
+      <p className="mt-1.5 text-[11px] leading-snug text-ink-3">Journeys: origin–destination pairs reachable within the threshold. Access score: their priority-weighted sum.</p>
+
+      <button
+        className={`mt-4 flex w-full items-center justify-center gap-2 rounded-xl border py-2.5 text-[13.5px] font-semibold transition-colors ${compare === 'split' ? 'border-ink bg-ink text-white' : 'border-ink/20 bg-paper text-ink hover:border-ink/40'}`}
+        onClick={() => st.setCompare(compare === 'split' ? 'off' : 'split')}
+        data-testid="toggle-compare"
+        aria-pressed={compare === 'split'}
+      >
+        <Columns2 size={15} aria-hidden /> {compare === 'split' ? 'Exit before / after' : 'See before / after on the map'}
+      </button>
+
+    </>
+  )
   return (
-    <section aria-labelledby="res-h" className="border-t border-line px-4 pt-3.5 pb-4" data-testid="results">
+    <section aria-labelledby="res-h" className="border-t border-line px-6 pt-5 pb-5" data-testid="results">
       <div className="flex items-center justify-between">
-        <h2 id="res-h" className="eyebrow">
-          Recommended repairs
-        </h2>
-        <button className="btn-ghost px-1.5 py-0.5 text-[12px]" onClick={() => st.setPanelView('plan')} data-testid="edit-plan">
-          <ArrowLeft size={13} aria-hidden /> Edit plan
+        <div className="eyebrow">Recommendation</div>
+        <button className="btn-ghost -mr-2 px-2 py-1 text-[12.5px]" onClick={() => st.setPanelView('plan')} data-testid="edit-plan">
+          <ArrowLeft size={13} aria-hidden /> Adjust
         </button>
       </div>
-      <p className="mt-0.5 text-[11.5px] text-ink-3" data-testid="solver-meta">
-        Budget {a.params.budget} · {priorityLabel} · {rec.exact ? 'exact search' : 'beam search (approximate)'} over {n(rec.evaluations)} combinations · {rec.runtime_ms.toFixed(0)} ms
+      <h2 id="res-h" className="mt-1.5" data-testid="headline">
+        <span className="display block text-[27px] text-ink">{recTitle(a)}</span>
+        <span className="mt-2 block text-[13.5px] leading-relaxed text-ink-2">{headline(a, sc)}</span>
+      </h2>
+      <p className="mt-2 text-[11.5px] text-ink-3" data-testid="solver-meta">
+        {rec.exact ? 'Exact search' : 'Beam search (approximate)'} over {n(rec.evaluations)} combinations · {rec.runtime_ms.toFixed(0)} ms · budget {a.params.budget} · {priorityLabel}
         {analyzing && <LoaderCircle size={11} className="ml-1 inline animate-spin" aria-label="Recomputing" />}
         {stale && !analyzing && ' · parameters changed, recomputing'}
       </p>
-      <p className="mt-2 text-[14px] leading-snug font-semibold text-ink" data-testid="headline">
-        {headline(a, sc)}
-      </p>
+
+      {allApplied && effectBlock}
 
       {rec.selected.length > 0 && (
-        <ol className="mt-2.5 space-y-1.5" data-testid="recommendations">
+        <ol className="mt-4 space-y-2" data-testid="recommendations">
           {rec.selected.map((id, i) => {
             const iv = sc.interventions.find((x) => x.id === id)!
             const c = a.contributions.find((x) => x.id === id)
             const on = applied.includes(id)
+            const { action, place } = splitLabel(iv.label)
             return (
-              <motion.li key={id} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
-                className={`flex items-start gap-2.5 rounded-lg border p-2.5 ${on ? 'border-ok/40 bg-ok-bg/40' : 'border-line'}`} data-testid={`rec-${id}`}>
-                <button className={`grid h-6 min-w-6 shrink-0 place-items-center rounded-full px-1 text-[11.5px] font-bold ${on ? 'bg-ok text-white' : 'bg-sel text-white'}`}
-                  onClick={() => { st.select({ type: 'intervention', id }); st.cameraTo({ preset: 'intervention', id }) }} aria-label={`Show repair ${id} on the map`}>
-                  {on ? <Check size={12} strokeWidth={3} /> : id.length <= 2 ? id : i + 1}
+              <motion.li
+                key={id}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                className={`flex items-start gap-3 rounded-xl border p-3 transition-colors ${on ? 'border-ok/35 bg-ok-bg/60' : 'border-line bg-paper'}`}
+                data-testid={`rec-${id}`}
+              >
+                <button
+                  className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-[13px] font-extrabold ring-4 transition-colors ${on ? 'bg-ok text-white ring-ok/15' : 'bg-sel text-white ring-sel/15'}`}
+                  onClick={() => {
+                    st.select({ type: 'intervention', id })
+                    st.cameraTo({ preset: 'intervention', id })
+                  }}
+                  aria-label={`Show repair ${id} on the map`}
+                >
+                  {on ? <Check size={15} strokeWidth={3} /> : id.length <= 2 ? id : i + 1}
                 </button>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[12.5px] leading-snug font-medium text-ink">{iv.label}</div>
+                  <div className="text-[13.5px] leading-snug font-bold text-ink">{action}</div>
+                  {place && <div className="mt-0.5 text-[12.5px] leading-snug text-ink-2">{place}</div>}
                   {c && (
-                    <div className="mt-0.5 text-[11.5px] text-ink-2">
-                      Alone <span className="font-semibold tnum text-ink">+{n(c.alone_gain)}</span> · within the pair <span className="font-semibold tnum text-ok-ink">+{n(c.marginal_in_set)}</span>
+                    <div className="mt-1.5 text-[12px] text-ink-2 tnum">
+                      Alone <b className="text-ink">+{n(c.alone_gain)}</b>
+                      <span className="mx-1.5 text-ink-3">·</span>
+                      {rec.selected.length > 1 ? 'in the pair' : 'gain'} <b className="text-ok-ink">+{n(c.marginal_in_set)}</b>
                     </div>
                   )}
                 </div>
                 {on ? (
-                  <button className="btn-secondary shrink-0 px-2 py-1 text-[12px]" onClick={() => void st.remove(id)} data-testid={`remove-${id}`}>
+                  <button className="btn-secondary shrink-0 px-2.5 py-1 text-[12px]" onClick={() => void st.remove(id)} data-testid={`remove-${id}`}>
                     <Undo2 size={12} aria-hidden /> Remove
                   </button>
                 ) : (
-                  <button className="btn-primary shrink-0 px-2.5 py-1 text-[12px]" onClick={() => void st.apply(id)} data-testid={`apply-${id}`}>
-                    <Wrench size={12} aria-hidden /> Apply
+                  <button className="btn-accent shrink-0" onClick={() => void st.apply(id)} data-testid={`apply-${id}`}>
+                    Apply
                   </button>
                 )}
               </motion.li>
@@ -130,67 +214,67 @@ export function ResultsView() {
           })}
         </ol>
       )}
-      {rec.selected.length > 1 && rec.selected.some((id) => !applied.includes(id)) && (
-        <button className="btn-secondary mt-1.5 w-full text-[12.5px]" onClick={() => void applyAll()} disabled={applyingAll} data-testid="apply-all">
+      {rec.selected.length > 1 && !allApplied && (
+        <button className="btn-secondary mt-2 w-full py-2 text-[13px]" onClick={() => void applyAll()} disabled={applyingAll} data-testid="apply-all">
           {applyingAll ? <LoaderCircle size={13} className="animate-spin" /> : <Wrench size={13} />} Apply {rec.selected.length === 2 ? 'both' : 'all'} in order
         </button>
       )}
 
+      {!allApplied && effectBlock}
+
       {rec.selected.length > 0 && (
-        <div className="mt-3" data-testid="combined-effect">
-          <div className="text-[12.5px] font-medium text-ink">Why this combination?</div>
-          <div className="mt-1.5 space-y-1" role="img"
-            aria-label={[...a.contributions.map((c) => `${c.id} alone: +${n(c.alone_gain)}`), `together: +${n(o.gain)}`].join('; ')}>
-            {[...a.contributions.map((c) => ({ k: c.id, label: `${c.id.length <= 2 ? c.id : c.id} alone`, v: c.alone_gain, tone: 'bg-ink-3' })),
-              { k: 'all', label: rec.selected.length > 1 ? 'Together' : 'Selected', v: o.gain, tone: 'bg-ok' }].map((r, i) => (
-              <div key={r.k} className="grid grid-cols-[84px_1fr_44px] items-center gap-2">
-                <span className="truncate text-[11.5px] text-ink-2">{r.label}</span>
-                <div className="h-2 overflow-hidden rounded-full bg-wash">
-                  <motion.div className={`h-full rounded-full ${r.tone}`} initial={{ width: 0 }} animate={{ width: `${Math.max(r.v > 0 ? 3 : 0, (r.v / Math.max(o.gain, 1)) * 100)}%` }} transition={{ duration: 0.6, delay: 0.1 * i }} />
+        <div className="mt-6" data-testid="combined-effect">
+          <div className="eyebrow">Why this combination</div>
+          <div className="mt-2.5 space-y-1.5" role="img" aria-label={[...a.contributions.map((c) => `${c.id} alone: +${n(c.alone_gain)}`), `together: +${n(o.gain)}`].join('; ')}>
+            {[
+              ...a.contributions.map((c) => ({ k: c.id, label: `${c.id} alone`, v: c.alone_gain, tone: 'bg-ink-3' })),
+              { k: 'all', label: rec.selected.length > 1 ? 'Together' : 'Selected', v: o.gain, tone: 'bg-ok' },
+            ].map((r, i) => (
+              <div key={r.k} className="grid grid-cols-[72px_1fr_44px] items-center gap-2.5">
+                <span className={`truncate text-[12px] ${r.k === 'all' ? 'font-bold text-ink' : 'text-ink-2'}`}>{r.label}</span>
+                <div className="h-2.5 overflow-hidden rounded-full bg-wash">
+                  <motion.div
+                    className={`h-full rounded-full ${r.tone}`}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.max(r.v > 0 ? 3 : 0, (r.v / Math.max(o.gain, 1)) * 100)}%` }}
+                    transition={{ duration: 0.7, delay: 0.12 * i, ease: [0.22, 1, 0.36, 1] }}
+                  />
                 </div>
-                <span className="text-right text-[12px] font-semibold tnum text-ink">+{n(r.v)}</span>
+                <span className={`text-right text-[12.5px] font-bold tnum ${r.k === 'all' ? 'text-ok-ink' : 'text-ink'}`}>+{n(r.v)}</span>
               </div>
             ))}
           </div>
-          <ul className="mt-2 space-y-1 text-[12px] leading-snug text-ink-2" data-testid="explanation">
-            {a.explanation.slice(1).map((x, i) => (
+          <ul className="mt-3 space-y-1.5 text-[12.5px] leading-relaxed text-ink-2" data-testid="explanation">
+            {a.explanation.slice(1, 3).map((x, i) => (
               <li key={i}>{x}</li>
             ))}
           </ul>
         </div>
       )}
 
-      <div className="mt-3 grid grid-cols-3 gap-2 rounded-lg bg-wash p-2.5" data-testid="impact">
-        <Stat label="Journeys" before={o.connected_pairs_before} after={o.connected_pairs_after} testId="stat-pairs" />
-        <Stat label="Weighted access" before={n(o.before)} after={n(o.after)} testId="stat-objective" />
-        <Stat label="Selected journey" after={route?.found ? `${Math.round(route.length_m ?? 0)}` : '—'} unit={route?.found ? 'm' : undefined} testId="stat-route" />
-      </div>
-      <p className="mt-1 text-[11px] text-ink-3">
-        Out of {o.total_pairs} origin–destination journeys. Weighted access = Σ weights of reachable journeys
-        {o.relative_gain === null ? ' (no percentage: baseline is 0).' : `; +${Math.round(o.relative_gain * 100)}%.`}
-      </p>
-
-      <div className="mt-3">
-        <div className="text-[12.5px] font-medium text-ink">Compared with simple methods</div>
-        <div className="mt-1.5 space-y-1" data-testid="baselines">
+      <div className="mt-6">
+        <div className="eyebrow">Compared with simple methods</div>
+        <div className="mt-2.5 space-y-1.5" data-testid="baselines">
           {[rec, ...a.baselines].map((b, i) => (
-            <div key={b.solver} className="grid grid-cols-[150px_1fr_40px] items-center gap-2">
-              <span className={`truncate text-[11.5px] ${i === 0 ? 'font-semibold text-ink' : 'text-ink-2'}`} title={b.notes.join(' ')}>
+            <div key={b.solver} className="grid grid-cols-[132px_1fr_40px] items-center gap-2.5">
+              <span className={`truncate text-[12px] ${i === 0 ? 'font-bold text-ink' : 'text-ink-2'}`} title={b.notes.join(' ')}>
                 {SOLVER[b.solver] ?? b.solver}
               </span>
-              <div className="relative h-4 overflow-hidden rounded bg-wash">
-                <motion.div className={`absolute inset-y-0 left-0 rounded ${i === 0 ? 'bg-sel' : 'bg-line-2'}`} initial={{ width: 0 }} animate={{ width: `${(b.gain / best) * 100}%` }} transition={{ duration: 0.5, delay: i * 0.06 }} />
-                <span className={`absolute inset-y-0 left-1.5 flex items-center text-[10.5px] font-medium ${i === 0 && b.gain > 0 ? 'text-white' : 'text-ink'}`}>{b.selected.join(' + ') || 'no repair'}</span>
+              <div className="relative h-5 overflow-hidden rounded-md bg-wash">
+                <motion.div className={`absolute inset-y-0 left-0 rounded-md ${i === 0 ? 'bg-ink' : 'bg-line-2'}`} initial={{ width: 0 }} animate={{ width: `${(b.gain / best) * 100}%` }} transition={{ duration: 0.6, delay: i * 0.06 }} />
+                <span className={`absolute inset-y-0 left-2 flex items-center text-[11px] font-semibold ${i === 0 && b.gain > 0 ? 'text-white' : 'text-ink'}`}>{b.selected.join(' + ') || 'no repair'}</span>
               </div>
-              <span className="text-right text-[12px] font-semibold tnum text-ink">+{n(b.gain)}</span>
+              <span className="text-right text-[12.5px] font-bold tnum text-ink">+{n(b.gain)}</span>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="mt-3 rounded-lg border border-unk/40 bg-unk-bg/50 px-2.5 py-2 text-[11.5px] leading-snug text-ink" data-testid="uncertainty">
+      <div className="mt-5 rounded-xl border border-unk/35 bg-unk-bg/60 px-3 py-2.5 text-[12px] leading-relaxed text-ink" data-testid="uncertainty">
         {sc.mode === 'hypothetical' ? (
-          <>Barrier locations are <b>hypothetical scenario settings</b> on real streets, not survey findings. Street geometry and places are real.</>
+          <>
+            Barrier locations are <b>hypothetical scenario settings</b> on real streets, not survey findings. Street geometry and places are real.
+          </>
         ) : a.sensitivity.unknown_edge_count > 0 ? (
           <>
             {a.sensitivity.unknown_edge_count} links have unknown condition and are excluded.{' '}
@@ -205,21 +289,15 @@ export function ResultsView() {
         )}
       </div>
 
-      <div className="mt-3 flex gap-2">
-        <button className={`btn-secondary flex-1 text-[12.5px] ${compare === 'split' ? 'border-sel text-sel-ink' : ''}`} onClick={() => st.setCompare(compare === 'split' ? 'off' : 'split')} data-testid="toggle-compare" aria-pressed={compare === 'split'}>
-          <Columns2 size={13} aria-hidden /> {compare === 'split' ? 'Exit comparison' : 'Before / after'}
-        </button>
-        <button className="btn-secondary flex-1 text-[12.5px]" onClick={() => void exportReport()} disabled={exporting} data-testid="export">
-          {exporting ? <LoaderCircle size={13} className="animate-spin" /> : <Download size={13} aria-hidden />} Export report
-        </button>
-      </div>
-
-      {a.newly_connected_pairs.length > 0 && (
-        <div className="mt-2">
+      <div className="mt-4">
+        {a.newly_connected_pairs.length > 0 && (
           <Disclosure title={`Journeys reconnected (${a.newly_connected_pairs.length})`} testId="toggle-pairs">
-            <ul className="divide-y divide-line rounded-md border border-line" data-testid="new-pairs">
+            {a.newly_reachable_destinations.length > 0 && (
+              <p className="mb-2 text-[12px] text-ink-2">Newly reachable: {a.newly_reachable_destinations.map((d) => d.label).join(', ')}.</p>
+            )}
+            <ul className="divide-y divide-line rounded-lg border border-line" data-testid="new-pairs">
               {a.newly_connected_pairs.map((p) => (
-                <li key={p.origin + p.destination} className="flex items-center justify-between gap-2 px-2 py-1.5 text-[12px]">
+                <li key={p.origin + p.destination} className="flex items-center justify-between gap-2 px-2.5 py-1.5 text-[12px]">
                   <span className="min-w-0 truncate text-ink">
                     {p.origin_label.replace(/ \(\d+ bldg\)$/, '')} <span className="text-ink-3">→</span> {p.destination_label}
                   </span>
@@ -228,13 +306,16 @@ export function ResultsView() {
               ))}
             </ul>
           </Disclosure>
-        </div>
-      )}
-      <CandidateList />
-      {/* follow-up questions stay possible here; an answer that led to these results stays visible */}
-      <Disclosure title="Ask a planning question" testId="toggle-assistant" defaultOpen={!!useApp.getState().assistantLast}>
-        <Assistant />
-      </Disclosure>
+        )}
+        <CandidateList />
+        {/* follow-up questions stay possible here; an answer that led to these results stays visible */}
+        <Disclosure title="Ask a planning question" testId="toggle-assistant" defaultOpen={!!useApp.getState().assistantLast}>
+          <Assistant />
+        </Disclosure>
+        <button className="btn-ghost mt-1 -ml-2 px-2 text-[12.5px]" onClick={() => void exportReport()} disabled={exporting} data-testid="export">
+          {exporting ? <LoaderCircle size={13} className="animate-spin" /> : <Download size={13} aria-hidden />} Export the report (Markdown)
+        </button>
+      </div>
     </section>
   )
 }
@@ -248,7 +329,7 @@ export function CandidateList() {
   return (
     <Disclosure title={`All repair candidates (${sc.interventions.length})`} testId="toggle-candidates">
       <p className="mb-1.5 text-[11.5px] text-ink-2">Text alternative to the map: every candidate, its status and whether it is recommended.</p>
-      <ul className="scroll-thin max-h-[260px] divide-y divide-line overflow-y-auto rounded-md border border-line" data-testid="candidate-list">
+      <ul className="scroll-thin max-h-[260px] divide-y divide-line overflow-y-auto rounded-lg border border-line" data-testid="candidate-list">
         {sc.interventions.map((iv) => {
           const on = applied.includes(iv.id)
           const rec = a?.recommendation.selected.includes(iv.id)
@@ -259,7 +340,14 @@ export function CandidateList() {
                 {iv.label}
               </span>
               <span className={`shrink-0 rounded px-1 text-[10.5px] font-medium ${on ? 'bg-ok-bg text-ok-ink' : 'bg-bad-bg text-bad-ink'}`}>{on ? 'Repaired' : 'Blocked'}</span>
-              <button className="btn-ghost px-1 py-0.5" onClick={() => { st.select({ type: 'intervention', id: iv.id }); st.cameraTo({ preset: 'intervention', id: iv.id }) }} aria-label={`Locate ${iv.id} on the map`}>
+              <button
+                className="btn-ghost px-1 py-0.5"
+                onClick={() => {
+                  st.select({ type: 'intervention', id: iv.id })
+                  st.cameraTo({ preset: 'intervention', id: iv.id })
+                }}
+                aria-label={`Locate ${iv.id} on the map`}
+              >
                 <Crosshair size={13} />
               </button>
               {on ? (

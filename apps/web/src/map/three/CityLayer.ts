@@ -52,10 +52,12 @@ export class CityLayer implements CustomLayerInterface {
   private shades: Float32Array | null = null
   index: BuildingIndex | null = null
   private ground: THREE.Mesh | null = null
-  private sun = new THREE.DirectionalLight('#fffaf0', 2.1)
+  private sun = new THREE.DirectionalLight('#fff6e6', 2.75)
   private anims = new Map<string, Anim>()
   private shadowDirty = true
   private height = 1 // building height scale (0 = flat, 2D)
+  private overlayAlpha = 1
+  private alphaDirty = false
   private view: Side | { split: number } = 'after'
   private ready = false
   onRender: (() => void) | null = null
@@ -71,9 +73,10 @@ export class CityLayer implements CustomLayerInterface {
     this.camera.matrixAutoUpdate = false
     this.camera.matrixWorldAutoUpdate = false
     this.sceneMain.add(this.buildingGroup)
-    // Daylight: soft sky fill + low warm sun from the south-west.
-    this.sceneMain.add(new THREE.HemisphereLight('#ffffff', '#d9d6cf', 1.7))
-    this.sceneMain.add(new THREE.AmbientLight('#ffffff', 0.25))
+    // Daylight: a modest sky fill and a stronger warm sun from the south-west,
+    // so lit and shaded facades read as separate planes.
+    this.sceneMain.add(new THREE.HemisphereLight('#ffffff', '#a59f92', 1.2))
+    this.sceneMain.add(new THREE.AmbientLight('#ffffff', 0.16))
     const az = THREE.MathUtils.degToRad(215)
     const el = THREE.MathUtils.degToRad(38)
     this.sun.position.set(Math.sin(az) * Math.cos(el) * 3000, Math.sin(el) * 3000, -Math.cos(az) * Math.cos(el) * 3000)
@@ -148,7 +151,8 @@ export class CityLayer implements CustomLayerInterface {
     this.markers.before.updateScale(this.P.elements[5], h)
     this.markers.after.updateScale(this.P.elements[5], h)
     const z = this.map.getZoom()
-    if (this.buildingLines) (this.buildingLines.material as THREE.LineBasicMaterial).opacity = THREE.MathUtils.clamp((z - 14.8) / 1.5, 0, 1) * 0.32 * this.height
+    if (this.buildingLines) (this.buildingLines.material as THREE.LineBasicMaterial).opacity = THREE.MathUtils.clamp((z - 14.2) / 1.6, 0, 1) * 0.42 * this.height
+    if (this.overlayAlpha < 1 || this.alphaDirty) this.applyOverlayAlpha()
 
     for (const [k, a] of this.anims) {
       const t = (now - a.t0) / a.dur
@@ -204,18 +208,27 @@ export class CityLayer implements CustomLayerInterface {
   }
 
   // ---- buildings -------------------------------------------------------------
-  setBuildings(fc: BuildingCollection) {
+  async setBuildings(fc: BuildingCollection) {
+    const { geo, lines, index, baseColors, shades } = await buildBuildingGeometry(fc, this.frame)
+    if (!this.ready) return
     this.clearBuildings()
-    const { geo, lines, index, baseColors, shades } = buildBuildingGeometry(fc, this.frame)
     this.shades = shades
     const mat = new THREE.MeshLambertMaterial({ vertexColors: true })
     const mesh = new THREE.Mesh(geo, mat)
     mesh.castShadow = true
-    mesh.receiveShadow = true
+    mesh.receiveShadow = false // facades are shaded by the sun direction; self-shadowing only added acne
     mesh.renderOrder = 1
-    const lmat = new THREE.LineBasicMaterial({ color: '#7d887f', transparent: true, opacity: 0.3, depthWrite: false })
+    const lmat = new THREE.LineBasicMaterial({ color: '#6a665e', transparent: true, opacity: 0.4, depthWrite: false })
     const lineObj = new THREE.LineSegments(lines, lmat)
     lineObj.renderOrder = 2
+    // compile the building shaders off the critical path (KHR_parallel_shader_compile when available)
+    try {
+      const probe = new THREE.Scene()
+      probe.add(mesh, lineObj)
+      await this.renderer.compileAsync(probe, this.camera)
+    } catch {
+      /* falls back to compiling on first draw */
+    }
     this.buildingGroup.add(mesh, lineObj)
     this.buildingMesh = mesh
     this.buildingLines = lineObj
@@ -230,7 +243,7 @@ export class CityLayer implements CustomLayerInterface {
     bb.getCenter(center)
     const ground = new THREE.Mesh(
       new THREE.PlaneGeometry(size.x + 400, size.z + 400).rotateX(-Math.PI / 2),
-      new THREE.ShadowMaterial({ color: '#1f3029', opacity: 0.2, depthWrite: false }),
+      new THREE.ShadowMaterial({ color: '#1d2a26', opacity: 0.25, depthWrite: false }),
     )
     ground.position.set(center.x, 0.05, center.z)
     ground.receiveShadow = true
@@ -270,6 +283,40 @@ export class CityLayer implements CustomLayerInterface {
       if (this.ground) this.ground.visible = this.height > 0.15
       this.shadowDirty = true
     })
+  }
+
+  /** Direct height control (the opening animation drives it per frame). */
+  setHeightNow(h: number) {
+    this.anims.delete('height')
+    this.height = h
+    this.buildingGroup.scale.y = Math.max(0.001, h)
+    if (this.ground) this.ground.visible = h > 0.15
+    this.shadowDirty = true
+    this.repaint()
+  }
+
+  /** Fade the analytical overlay (network, route, markers) as a whole. */
+  setOverlayAlpha(a: number) {
+    this.overlayAlpha = Math.max(0, Math.min(1, a))
+    this.alphaDirty = true
+    this.repaint()
+  }
+
+  private applyOverlayAlpha() {
+    const a = this.overlayAlpha
+    for (const s of ['before', 'after'] as Side[]) {
+      for (const g of [this.networks[s].group, this.markers[s].group]) {
+        g.visible = a > 0.001
+        g.traverse((o) => {
+          const m = (o as THREE.Mesh).material as THREE.Material | undefined
+          if (!m || Array.isArray(m)) return
+          if (m.userData.baseOpacity === undefined) m.userData.baseOpacity = m.opacity
+          m.opacity = m.userData.baseOpacity * a
+          m.transparent = true
+        })
+      }
+    }
+    this.alphaDirty = a < 1
   }
 
   setBuildingsVisible(on: boolean) {

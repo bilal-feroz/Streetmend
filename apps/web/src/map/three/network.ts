@@ -6,7 +6,7 @@ import { LineSegments2 } from 'three/addons/lines/LineSegments2.js'
 import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js'
 import type { LocalFrame } from './frame'
 
-export type NetCategory = 'traversable' | 'repaired' | 'blocked' | 'unknown' | 'setting' | 'selected' | 'nearby'
+export type NetCategory = 'traversable' | 'repaired' | 'blocked' | 'unknown' | 'setting' | 'selected' | 'nearby' | 'gap'
 
 interface CatStyle {
   color: string
@@ -16,14 +16,17 @@ interface CatStyle {
   elev: number // metres above ground (draw order + no z-fighting)
 }
 
+// Hierarchy: the network is quiet context; only the journey, its gap, repairs
+// and the traced route carry strong colour.
 export const CAT_STYLE: Record<NetCategory, CatStyle> = {
-  traversable: { color: '#8f9a94', width: 1.3, opacity: 0.7, elev: 0.25 },
-  setting: { color: '#9aa39d', width: 2.2, opacity: 0.9, dashed: true, elev: 0.3 },
-  unknown: { color: '#c98f2c', width: 1.8, opacity: 0.75, dashed: true, elev: 0.3 },
-  blocked: { color: '#d85e51', width: 3, opacity: 0.95, dashed: true, elev: 0.4 },
-  repaired: { color: '#198568', width: 4, opacity: 1, elev: 0.45 },
-  nearby: { color: '#3568c8', width: 3, opacity: 0.85, elev: 0.5 },
-  selected: { color: '#3568c8', width: 5, opacity: 1, elev: 0.55 },
+  traversable: { color: '#7b7f77', width: 1, opacity: 0.28, elev: 0.25 },
+  setting: { color: '#c7867e', width: 1.2, opacity: 0.5, dashed: true, elev: 0.3 },
+  unknown: { color: '#b98420', width: 1.1, opacity: 0.42, dashed: true, elev: 0.3 },
+  blocked: { color: '#da5a50', width: 1.7, opacity: 0.68, dashed: true, elev: 0.4 },
+  repaired: { color: '#087f63', width: 4.5, opacity: 1, elev: 0.45 },
+  nearby: { color: '#355dd8', width: 3, opacity: 0.85, elev: 0.5 },
+  gap: { color: '#da5a50', width: 5, opacity: 1, dashed: true, elev: 0.75 },
+  selected: { color: '#355dd8', width: 5, opacity: 1, elev: 0.8 },
 }
 
 export interface EdgeGeom {
@@ -70,7 +73,7 @@ export class NetworkLayer {
   private wave: LineSegments2 | null = null
   private waveSegs: { a: number[]; b: number[]; d: number }[] = []
   private route: { halo: Line2; core: Line2; pts: THREE.Vector3[]; cum: number[] } | null = null
-  private potential: Line2 | null = null
+  private potential: Line2[] = []
 
   constructor(frame: LocalFrame, resolution: THREE.Vector2) {
     this.frame = frame
@@ -84,7 +87,7 @@ export class NetworkLayer {
       ;(obj.material as LineMaterial).dispose()
     }
     this.cats.clear()
-    const order: NetCategory[] = ['traversable', 'setting', 'unknown', 'blocked', 'repaired', 'nearby', 'selected']
+    const order: NetCategory[] = ['traversable', 'setting', 'unknown', 'blocked', 'repaired', 'nearby', 'gap', 'selected']
     order.forEach((cat, i) => {
       const edges = byCat[cat]
       if (!edges?.length) return
@@ -94,7 +97,7 @@ export class NetworkLayer {
       const mat = lineMaterial(style, this.resolution)
       const obj = new LineSegments2(g, mat)
       if (style.dashed) obj.computeLineDistances()
-      obj.renderOrder = 10 + i
+      obj.renderOrder = cat === 'gap' ? 26 : cat === 'selected' ? 27 : 10 + i // the gap sits on top of the journey line
       this.cats.set(cat, obj)
       this.group.add(obj)
     })
@@ -161,8 +164,8 @@ export class NetworkLayer {
     const pts = coords.map(([lng, lat]) => new THREE.Vector3(...this.frame.toLocal(lng, lat, 0.7)))
     const cum = [0]
     for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + pts[i].distanceTo(pts[i - 1]))
-    const halo = new Line2(new LineGeometry(), lineMaterial({ color: '#ffffff', width: 11, opacity: 0.95, elev: 0.6 }, this.resolution))
-    const core = new Line2(new LineGeometry(), lineMaterial({ color: '#198568', width: 5.5, opacity: 1, elev: 0.7 }, this.resolution))
+    const halo = new Line2(new LineGeometry(), lineMaterial({ color: '#ffffff', width: 12, opacity: 0.92, elev: 0.6 }, this.resolution))
+    const core = new Line2(new LineGeometry(), lineMaterial({ color: '#087f63', width: 6, opacity: 1, elev: 0.7 }, this.resolution))
     halo.renderOrder = 30
     core.renderOrder = 31
     this.group.add(halo, core)
@@ -195,23 +198,25 @@ export class NetworkLayer {
     }
   }
 
+  /** The selected journey while it is broken: an ink line with a soft halo
+   * (the blocked gap is drawn on top as the 'gap' category). */
   setPotential(coords: [number, number][] | null) {
-    if (this.potential) {
-      this.group.remove(this.potential)
-      this.potential.geometry.dispose()
-      ;(this.potential.material as LineMaterial).dispose()
-      this.potential = null
+    for (const l of this.potential) {
+      this.group.remove(l)
+      l.geometry.dispose()
+      ;(l.material as LineMaterial).dispose()
     }
+    this.potential = []
     if (!coords || coords.length < 2) return
-    const g = new LineGeometry()
-    g.setPositions(coords.flatMap(([lng, lat]) => this.frame.toLocal(lng, lat, 0.6)))
-    const l = new Line2(g, lineMaterial({ color: '#3568c8', width: 2.6, opacity: 0.8, dashed: true, elev: 0.6 }, this.resolution))
-    ;(l.material as LineMaterial).dashSize = 3
-    ;(l.material as LineMaterial).gapSize = 3
-    l.computeLineDistances()
-    l.renderOrder = 25
-    this.potential = l
-    this.group.add(l)
+    const pts = coords.flatMap(([lng, lat]) => this.frame.toLocal(lng, lat, 0.6))
+    for (const [style, order] of [[{ color: '#ffffff', width: 8, opacity: 0.85, elev: 0.55 }, 23], [{ color: '#192c28', width: 3.2, opacity: 0.86, elev: 0.6 }, 24]] as const) {
+      const g = new LineGeometry()
+      g.setPositions(pts)
+      const l = new Line2(g, lineMaterial(style, this.resolution))
+      l.renderOrder = order
+      this.potential.push(l)
+      this.group.add(l)
+    }
   }
 
   updateResolution() {

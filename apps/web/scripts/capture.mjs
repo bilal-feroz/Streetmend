@@ -11,7 +11,7 @@ page.on('pageerror', (e) => errors.push(String(e)))
 // BLOCK=<substring> aborts matching requests (for example, offline basemap checks)
 if (process.env.BLOCK) await page.route((u) => u.href.includes(process.env.BLOCK), (r) => r.abort())
 await page.goto(url)
-await page.waitForTimeout(2500)
+await page.waitForTimeout(+(process.env.WAIT0 ?? 2500))
 for (const a of script.split(';').filter(Boolean)) {
   const i = a.indexOf('=')
   const kind = a.slice(0, i), arg = a.slice(i + 1)

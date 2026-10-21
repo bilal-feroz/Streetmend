@@ -1,7 +1,8 @@
 import {
+  AttributionControl,
   GeoJSONSource,
+  LngLat,
   Map as MLMap,
-  NavigationControl,
   ScaleControl,
   setWorkerUrl,
   type MapMouseEvent,
@@ -17,8 +18,11 @@ import { placeIcon, repairIcon, type PlaceKind, type RepairState } from './three
 import type { MarkerSpec } from './three/markers'
 import type { EdgeGeom, NetCategory } from './three/network'
 import { baseStyle, FIRST_LABEL_LAYER } from './style'
+import { panelInset } from './inset'
 import { MapLabels } from './MapLabels'
 import { CompareSlider } from './CompareSlider'
+import { GeographicIntro } from '../intro/GeographicIntro'
+import { US_BOUNDS, introPadding } from '../intro/geo'
 
 // MapLibre v6 resolves its worker relative to its own module URL, which breaks
 // once Vite bundles it. The self-contained worker is copied verbatim into
@@ -26,7 +30,52 @@ import { CompareSlider } from './CompareSlider'
 setWorkerUrl(new URL('maplibre-gl-worker.mjs', window.location.origin + import.meta.env.BASE_URL).href)
 
 // Local frame origin: centre of the Elizabeth study area.
-const ORIGIN: [number, number] = [-80.825, 35.212]
+export const ORIGIN: [number, number] = [-80.825, 35.212]
+
+
+export interface Cam {
+  center: [number, number]
+  zoom: number
+  pitch: number
+  bearing: number
+}
+
+/** Fit points into the visible map area (left of the floating panel). */
+export function fitCam(map: MLMap, pts: [number, number][], pitch: number, bearing: number, dz = 0): Cam | null {
+  if (!pts.length) return null
+  const lons = pts.map((c) => c[0])
+  const lats = pts.map((c) => c[1])
+  const inset = panelInset()
+  const cam = map.cameraForBounds([[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]], {
+    padding: { top: 96, bottom: 84, left: 84, right: 84 + inset },
+    bearing,
+  })
+  if (!cam?.center) return null
+  const c = LngLat.convert(cam.center)
+  return { center: [c.lng, c.lat], zoom: Math.min(18.4, (cam.zoom ?? 16) + dz), pitch, bearing }
+}
+
+/**
+ * The composed hero view: the journey (its route, or the broken route with its
+ * barriers) and both endpoints. In 3D the bearing is chosen so the destination
+ * recedes into the distance and the journey reads across the frame.
+ */
+export function journeyCamera(map: MLMap, sc: ScenarioOut, ev: EvaluateResponse | null, journey: { origin: string; destination: string } | null, three: boolean): Cam | null {
+  const j = ev?.journey
+  const route = ((j?.route.found ? j.route.geometry : j?.potential_route?.geometry) ?? []) as [number, number][]
+  const ends = journeyEnds(sc, journey)
+  const blockers = new Set(j?.potential_blockers ?? [])
+  const ivs = sc.interventions.filter((i) => blockers.has(i.id)).map((i) => [i.lon, i.lat] as [number, number])
+  const pts = [...route, ...ends, ...ivs]
+  if (!pts.length) return null
+  let bearing = 0
+  if (three && ends.length === 2) {
+    const [o, d] = ends
+    const theta = (Math.atan2((d[0] - o[0]) * Math.cos((o[1] * Math.PI) / 180), d[1] - o[1]) * 180) / Math.PI
+    bearing = (((theta < 0 ? theta + 68 : theta - 68) + 540) % 360) - 180
+  }
+  return fitCam(map, pts, three ? 56 : 0, bearing, three ? -0.08 : 0)
+}
 
 export interface MapHandle {
   map: MLMap
@@ -50,10 +99,14 @@ function categoryOf(state: string, hypothetical: boolean): NetCategory {
 function networkByCategory(sc: ScenarioOut, ev: EvaluateResponse | null, selectedEdge: string | null, nearby: Set<string>) {
   const out: Partial<Record<NetCategory, EdgeGeom[]>> = {}
   const hypo = sc.mode === 'hypothetical'
+  // the broken journey's own barriers are the one place coral is loud
+  const j = ev?.journey
+  const onJourney = new Set(j && !j.route.found ? (j.potential_route?.edge_ids ?? []) : [])
   for (const e of sc.edges) {
     const st = ev?.edge_states[e.id] ?? e.state
     let cat = categoryOf(st, hypo)
     if (nearby.has(e.id) && cat === 'traversable') cat = 'nearby'
+    if (onJourney.has(e.id) && (st === 'repairable' || st === 'blocked')) cat = 'gap'
     ;(out[cat] ??= []).push({ id: e.id, coords: e.geometry })
     if (e.id === selectedEdge) (out.selected ??= []).push({ id: e.id, coords: e.geometry })
   }
@@ -64,6 +117,8 @@ export function MapView() {
   const ref = useRef<HTMLDivElement>(null)
   const [handle, setHandle] = useState<MapHandle | null>(null)
   const [buildingsReady, setBuildingsReady] = useState(false)
+  const [buildingsSettled, setBuildingsSettled] = useState(false)
+  const introPhase = useApp((s) => s.intro.phase)
   const [basemapOk, setBasemapOk] = useState(true)
   const [zoom, setZoom] = useState(16)
   const reduced = useReducedMotion()
@@ -88,23 +143,30 @@ export function MapView() {
   // ---- map + city layer --------------------------------------------------------
   useEffect(() => {
     if (!ref.current) return
+    const intro = useApp.getState().intro
+    // The full intro starts the one and only map on the United States, so the
+    // national outline and the real map share a single camera from frame one.
+    const start = intro.kind === 'full'
+      ? { bounds: US_BOUNDS, fitBoundsOptions: { padding: introPadding(ref.current) } }
+      : { center: ORIGIN, zoom: 15.6, pitch: 50, bearing: -32 }
     const map = new MLMap({
       container: ref.current,
       style: baseStyle(),
-      center: ORIGIN,
-      zoom: 15.6,
-      pitch: 50,
-      bearing: -32,
+      ...start,
       maxPitch: 72,
-      attributionControl: { compact: true },
+      attributionControl: false,
       canvasContextAttributes: { antialias: true },
       fadeDuration: 120,
     })
-    map.addControl(new NavigationControl({ visualizePitch: true }), 'bottom-right')
-    map.addControl(new ScaleControl({ unit: 'metric', maxWidth: 100 }), 'bottom-left')
+    map.addControl(new ScaleControl({ unit: 'metric', maxWidth: 90 }), 'bottom-left')
+    map.addControl(new AttributionControl({ compact: true }), 'bottom-left')
     map.getCanvas().setAttribute('aria-label', 'Map of Elizabeth, Charlotte. All map information is also listed in the planning panel.')
     const frame = new LocalFrame(ORIGIN[0], ORIGIN[1])
     const layer = new CityLayer(frame)
+    if (intro.kind !== 'none') {
+      layer.setHeightNow(0)
+      layer.setOverlayAlpha(0)
+    }
     map.on('load', () => {
       map.addSource('records', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
       map.addSource('inventory', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
@@ -134,11 +196,10 @@ export function MapView() {
       setHandle(h)
       fetch('/api/context/buildings')
         .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-        .then((fc: BuildingCollection) => {
-          layer.setBuildings(fc)
-          setBuildingsReady(true)
-        })
+        .then((fc: BuildingCollection) => layer.setBuildings(fc))
+        .then(() => setBuildingsReady(true))
         .catch(() => setBuildingsReady(false))
+        .finally(() => setBuildingsSettled(true))
     })
     map.on('error', (e) => {
       const msg = String((e as unknown as { error?: { message?: string } }).error?.message ?? '')
@@ -153,7 +214,7 @@ export function MapView() {
 
   // ---- 2D / 3D --------------------------------------------------------------------
   useEffect(() => {
-    if (!handle) return
+    if (!handle || useApp.getState().intro.phase === 'running') return
     const { map, layer } = handle
     const dur = reduced ? 0 : 1200
     if (mapMode === '3d') {
@@ -204,7 +265,6 @@ export function MapView() {
   useEffect(() => {
     if (!handle || !scenario) return
     const { layer } = handle
-    const edgesById = new Map(scenario.edges.map((e) => [e.id, e]))
     for (const [side, ev] of [['after', evaluation], ['before', initialEval]] as [Side, EvaluateResponse | null][]) {
       const net = layer.networks[side]
       const j = ev?.journey
@@ -213,25 +273,16 @@ export function MapView() {
         net.clearWave()
         continue
       }
-      net.setWave(Object.entries(j?.reach_wave ?? {}).flatMap(([id, d]) => (edgesById.has(id) ? [{ id, coords: edgesById.get(id)!.geometry, d }] : [])))
+      // Only the computed route moves; unrelated streets never animate.
+      net.clearWave()
       net.setRoute(j?.route.found ? (j.route.geometry as [number, number][]) : null)
-      const maxD = net.maxWave()
-      const found = !!j?.route.found
-      const waveOpacity = found ? 0.1 : 0.2
-      if (reduced || side === 'before') {
-        net.showWave(maxD + 1, waveOpacity)
+      if (reduced || side === 'before' || !j?.route.found) {
         net.revealRoute(1)
         continue
       }
       net.revealRoute(0)
-      layer.animate(`wave-${side}`, 900, (k) => net.showWave(maxD * k + 0.5, waveOpacity))
-      if (found) {
-        const len = j!.route.length_m ?? 300
-        // once traced, let the route carry the view: the reach wave settles back
-        layer.animate(`route-${side}`, Math.min(2600, 700 + len * 2.4), (k) => net.revealRoute(k), () =>
-          layer.animate(`wavefade-${side}`, 1200, (k) => net.setWaveOpacity(waveOpacity * (1 - 0.55 * k))),
-        )
-      }
+      const len = j.route.length_m ?? 300
+      layer.animate(`route-${side}`, Math.min(1900, 900 + len * 1.1), (k) => net.revealRoute(k))
     }
   }, [handle, scenario, evaluation, initialEval, traceNonce, reduced, layers.network])
 
@@ -242,6 +293,7 @@ export function MapView() {
     const hypo = scenario.mode === 'hypothetical'
     const recommended = new Set(analysis?.recommendation.selected ?? [])
     const hl = new Set(highlight)
+    const onJourney = new Set(evaluation?.journey && !evaluation.journey.route.found ? evaluation.journey.potential_blockers : [])
     for (const [side, ev, app] of [['after', evaluation, applied], ['before', initialEval, [] as string[]]] as [Side, EvaluateResponse | null, string[]][]) {
       const specs: MarkerSpec[] = []
       if (layers.candidates) {
@@ -251,7 +303,7 @@ export function MapView() {
           if (municipal && !isRec && !isSel && zoom < 15.2) continue // simplify when zoomed out
           const state: RepairState = app.includes(iv.id) ? 'repaired' : isRec ? 'recommended' : 'blocked'
           const label = iv.id.length <= 2 ? iv.id : null
-          const px = isSel ? 34 : isRec || state === 'repaired' ? 26 : municipal ? 15 : 21
+          const px = isSel ? 38 : isRec || state === 'repaired' || onJourney.has(iv.id) ? 34 : municipal ? 15 : 22
           specs.push({
             key: `iv:${iv.id}`, lng: iv.lon, lat: iv.lat, alt: municipal && !isRec ? 2.5 : 6, px, stem: !(municipal && !isRec),
             iconKey: `r:${state}:${label}:${isSel}:${hypo}`, icon: () => repairIcon(state, label, isSel, hypo), order: isSel ? 30 : isRec ? 20 : 10,
@@ -261,15 +313,17 @@ export function MapView() {
       if (layers.places) {
         const reached = new Set(ev?.journey?.reached_destinations ?? [])
         const found = !!ev?.journey?.route.found
+        // Journey endpoints lead; other homes appear only up close, other
+        // destinations stay small, so the map is not a field of icons.
         for (const o of scenario.origins) {
           const isJ = journey?.origin === o.id
-          if (municipal && !isJ && zoom < 15.6) continue
-          specs.push(placeSpec(`pl:${o.id}`, o.lon, o.lat, 'origin', isJ ? '#3568c8' : null, isJ ? 26 : municipal ? 14 : 18, !isJ && municipal))
+          if (!isJ && zoom < 16.6) continue
+          specs.push(placeSpec(`pl:${o.id}`, o.lon, o.lat, 'origin', isJ ? '#192c28' : null, isJ ? 32 : 13, !isJ))
         }
         for (const d of scenario.destinations) {
           const isJ = journey?.destination === d.id
-          const ring = isJ ? (found ? '#198568' : '#d85e51') : null
-          specs.push(placeSpec(`pl:${d.id}`, d.lon, d.lat, d.category as PlaceKind, ring, isJ ? 28 : municipal ? 16 : 20, !isJ && !reached.has(d.id) && municipal))
+          const ring = isJ ? (found ? '#087f63' : '#da5a50') : null
+          specs.push(placeSpec(`pl:${d.id}`, d.lon, d.lat, d.category as PlaceKind, ring, isJ ? 32 : municipal ? 14 : 17, !isJ && !reached.has(d.id)))
         }
       }
       handle.layer.setMarkers(side, specs)
@@ -286,8 +340,8 @@ export function MapView() {
   useEffect(() => {
     if (!handle || !buildingsReady) return
     const tints = new Map<number, string>()
-    if (destBuilding !== null) tints.set(destBuilding, evaluation?.journey?.route.found ? '#bfe0d2' : '#f0d3cd')
-    if (selected?.type === 'building') tints.set(Number(selected.id), '#c3d4f2')
+    if (destBuilding !== null) tints.set(destBuilding, evaluation?.journey?.route.found ? '#a9dcc6' : '#f2c9c2')
+    if (selected?.type === 'building') tints.set(Number(selected.id), '#c2d0f5')
     handle.layer.tintBuildings(tints)
     handle.layer.setBuildingsVisible(layers.buildings)
   }, [handle, buildingsReady, destBuilding, selected, evaluation, layers.buildings])
@@ -375,40 +429,36 @@ export function MapView() {
   // ---- camera presets -------------------------------------------------------------------------
   useEffect(() => {
     if (!handle || !camera || !scenario) return
-    const { map } = handle
     const st = useApp.getState()
+    if (st.intro.phase === 'running') return // the intro owns the camera until it lands
+    const { map } = handle
     const three = st.mapMode === '3d'
     const dur = reduced ? 0 : 1500
-    const pad = { top: 80, bottom: 70, left: 60, right: 60 }
-    const fit = (coords: [number, number][], pitch: number, bearing: number, extraZoom = 0, d = dur) => {
-      if (!coords.length) return
-      const lons = coords.map((c) => c[0])
-      const lats = coords.map((c) => c[1])
-      const cam = map.cameraForBounds([[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]], { padding: pad, bearing })
-      if (!cam) return
-      map.easeTo({ center: cam.center, zoom: Math.min(18.6, (cam.zoom ?? 16) - (pitch > 30 ? 0.35 : 0) + extraZoom), pitch: three ? pitch : 0, bearing: three ? bearing : 0, duration: d, essential: true })
-    }
+    // keep point targets in the middle of the visible area, not under the panel
+    const offset: [number, number] = [-panelInset() / 2, 0]
+    const go = (c: Cam | null, d = dur) => c && map.easeTo({ ...c, duration: d, essential: true })
     const ev = st.evaluation
     const route = (ev?.journey?.route.found ? ev.journey.route.geometry : ev?.journey?.potential_route?.geometry) as [number, number][] | undefined
     const ends = journeyEnds(scenario, st.journey)
     const pair = ['A', 'B'].map((id) => scenario.interventions.find((i) => i.id === id)).filter(Boolean)
     switch (camera.preset) {
       case 'overview': {
-        const pts = [...(route ?? []), ...ends]
-        if (scenario.mode === 'municipal' && scenario.bounds) {
-          const [w, s, e, n] = scenario.bounds
-          fit([[w, s], [e, n]], 48, -28, 0.2)
-        } else fit(pts.length ? pts : [[ORIGIN[0] - 0.006, ORIGIN[1] - 0.004], [ORIGIN[0] + 0.006, ORIGIN[1] + 0.004]], 54, -32, 0.15)
+        const b = scenario.bounds
+        const pts: [number, number][] = b ? [[b[0], b[1]], [b[2], b[3]]] : [[ORIGIN[0] - 0.006, ORIGIN[1] - 0.004], [ORIGIN[0] + 0.006, ORIGIN[1] + 0.004]]
+        go(fitCam(map, pts, three ? 48 : 0, three ? -28 : 0, three ? 0.1 : 0.3))
         break
       }
-      case 'network': {
-        const pts = [...(route ?? []), ...ends, ...scenario.interventions.map((i) => [i.lon, i.lat] as [number, number])]
-        fit(pts, 42, -18, -0.1)
+      case 'journey':
+        go(journeyCamera(map, scenario, ev, st.journey, three))
+        break
+      case 'network':
+        go(fitCam(map, [...(route ?? []), ...ends, ...scenario.interventions.map((i) => [i.lon, i.lat] as [number, number])], three ? 42 : 0, three ? -18 : 0, -0.1))
+        break
+      case 'route': {
+        const c = journeyCamera(map, scenario, ev, st.journey, three)
+        go(c && { ...c, pitch: three ? 50 : 0 }, reduced ? 0 : 2000)
         break
       }
-      case 'route':
-        fit([...(route ?? []), ...ends], 56, map.getBearing() || -30, 0, reduced ? 0 : 2200)
-        break
       case 'street': {
         const sel = st.selected?.type === 'intervention' ? scenario.interventions.find((i) => i.id === st.selected!.id) : null
         const pts = pair.length === 2 ? pair.map((p) => [p!.lon, p!.lat]) : sel ? [[sel.lon, sel.lat]] : []
@@ -416,7 +466,7 @@ export function MapView() {
         const c: [number, number] = [pts.reduce((a, p) => a + p[0], 0) / pts.length, pts.reduce((a, p) => a + p[1], 0) / pts.length]
         let bearing = map.getBearing()
         if (pts.length === 2) bearing = (Math.atan2(pts[1][0] - pts[0][0], pts[1][1] - pts[0][1]) * 180) / Math.PI - 90
-        map.easeTo({ center: c, zoom: three ? 18.7 : 19.2, pitch: three ? 60 : 0, bearing: three ? bearing : 0, duration: dur, essential: true })
+        map.easeTo({ center: c, zoom: three ? 18.6 : 19.1, pitch: three ? 60 : 0, bearing: three ? bearing : 0, offset, duration: dur, essential: true })
         break
       }
       case 'top':
@@ -424,20 +474,29 @@ export function MapView() {
         break
       case 'intervention': {
         const iv = scenario.interventions.find((i) => i.id === camera.id)
-        if (iv) map.easeTo({ center: [iv.lon, iv.lat], zoom: three ? 18.5 : 18.9, pitch: three ? 58 : 0, duration: dur, essential: true })
+        if (iv) map.easeTo({ center: [iv.lon, iv.lat], zoom: three ? 18.4 : 18.9, pitch: three ? 58 : 0, offset, duration: dur, essential: true })
         break
       }
       case 'point':
-        if (camera.lonlat) map.easeTo({ center: camera.lonlat, zoom: three ? 18.6 : 18.8, pitch: three ? 60 : 0, duration: reduced ? 0 : 1100, essential: true })
+        if (camera.lonlat) map.easeTo({ center: camera.lonlat, zoom: three ? 18.4 : 18.8, pitch: three ? 60 : 0, offset, duration: reduced ? 0 : 1100, essential: true })
         break
     }
   }, [handle, camera, scenario, reduced])
 
+  // ---- opening: the final frame is the journey composition, computed when its data is in --------
+  const introTarget = useMemo(
+    () => (handle && scenario && evaluation && buildingsSettled
+      ? () => journeyCamera(handle.map, scenario, useApp.getState().evaluation, useApp.getState().journey, useApp.getState().mapMode === '3d')
+      : null),
+    [handle, scenario, evaluation, buildingsSettled],
+  )
+
   return (
     <div className="absolute inset-0">
       <div ref={ref} className="h-full w-full" data-testid="map" role="region" aria-label="Map" />
-      {handle && <MapLabels handle={handle} />}
+      {handle && introPhase === 'done' && <MapLabels handle={handle} />}
       {handle && compare === 'split' && <CompareSlider />}
+      <GeographicIntro handle={handle} target={introTarget} />
       {!basemapOk && (
         <div className="absolute left-1/2 top-3 -translate-x-1/2 rounded-md border border-unk/40 bg-white/95 px-3 py-1.5 text-xs text-ink shadow">
           Basemap tiles unavailable (offline?). Network, buildings and analysis still work.

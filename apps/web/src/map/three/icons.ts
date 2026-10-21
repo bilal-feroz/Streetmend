@@ -6,15 +6,17 @@ export type RepairState = 'blocked' | 'candidate' | 'recommended' | 'repaired' |
 export type PlaceKind = 'origin' | 'healthcare' | 'transit' | 'education'
 
 export const PALETTE = {
-  ink: '#22342d',
-  muted: '#687870',
-  ok: '#198568',
-  bad: '#d85e51',
-  unk: '#dca344',
-  sel: '#3568c8',
+  ink: '#192c28',
+  muted: '#56655f',
+  ok: '#087f63',
+  bad: '#da5a50',
+  unk: '#cf962b',
+  sel: '#355dd8',
   white: '#ffffff',
-  line: '#e4e9e3',
+  line: '#e2e6df',
 }
+
+const FONT = '"Manrope Variable", Manrope, "Segoe UI", system-ui, sans-serif'
 
 const S = 96 // canvas resolution (device px)
 
@@ -54,56 +56,71 @@ function noShadow(ctx: CanvasRenderingContext2D) {
 export function repairIcon(state: RepairState, label: string | null, selected: boolean, hypothetical: boolean): HTMLCanvasElement {
   const c = canvas()
   const ctx = c.getContext('2d')!
-  if (selected) {
-    circle(ctx, 47, 'rgba(53, 104, 200, 0.2)')
-    circle(ctx, 44, 'rgba(0,0,0,0)', PALETTE.sel, 4)
-  }
+  // soft halo: recommended and selected pins lift off the map without glowing
+  if (selected) circle(ctx, 47, 'rgba(53, 93, 216, 0.22)')
+  else if (state === 'recommended') circle(ctx, 46, 'rgba(53, 93, 216, 0.14)')
+  else if (state === 'repaired') circle(ctx, 46, 'rgba(8, 127, 99, 0.14)')
   shadow(ctx)
-  const r = selected ? 33 : 38
+  const r = 33
   if (state === 'repaired') circle(ctx, r, PALETTE.ok, PALETTE.white, 5)
   else if (state === 'recommended') circle(ctx, r, PALETTE.sel, PALETTE.white, 5)
   else if (state === 'unknown') circle(ctx, r, PALETTE.unk, PALETTE.white, 5)
-  else if (state === 'candidate') circle(ctx, r, PALETTE.white, PALETTE.bad, 5, hypothetical)
   else circle(ctx, r, PALETTE.white, PALETTE.bad, 6, hypothetical)
   noShadow(ctx)
+  if (selected) circle(ctx, 42, 'rgba(0,0,0,0)', PALETTE.sel, 3.5)
   ctx.lineCap = 'round'
   ctx.lineJoin = 'round'
-  const k = r / 28 // glyphs were drawn for r = 28
-  ctx.translate(S / 2, S / 2)
-  ctx.scale(k, k)
-  ctx.translate(-S / 2, -S / 2)
   const showLabel = label && label.length <= 2
   if (state === 'repaired') {
     ctx.strokeStyle = PALETTE.white
-    ctx.lineWidth = 7
+    ctx.lineWidth = 7.5
     ctx.beginPath()
-    ctx.moveTo(35, 49)
-    ctx.lineTo(44, 58)
-    ctx.lineTo(62, 39)
+    ctx.moveTo(34, 49)
+    ctx.lineTo(44, 59)
+    ctx.lineTo(63, 38)
     ctx.stroke()
   } else if (showLabel) {
     ctx.fillStyle = state === 'blocked' || state === 'candidate' ? PALETTE.bad : PALETTE.white
-    ctx.font = '700 30px Inter, "Segoe UI", system-ui, sans-serif'
+    ctx.font = `800 34px ${FONT}`
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    ctx.fillText(label!, S / 2, S / 2 + 1.5)
+    ctx.fillText(label!, S / 2, S / 2 + 2)
   } else if (state === 'unknown') {
     ctx.fillStyle = PALETTE.white
-    ctx.font = '800 32px Inter, system-ui, sans-serif'
+    ctx.font = `800 34px ${FONT}`
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    ctx.fillText('?', S / 2, S / 2 + 1)
+    ctx.fillText('?', S / 2, S / 2 + 2)
   } else {
     // barrier bar
-    ctx.strokeStyle = state === 'recommended' ? PALETTE.white : PALETTE.bad
+    ctx.strokeStyle = PALETTE.bad
     ctx.lineWidth = 7
     ctx.beginPath()
-    ctx.moveTo(36, 48)
-    ctx.lineTo(60, 48)
+    ctx.moveTo(35, 48)
+    ctx.lineTo(61, 48)
     ctx.stroke()
   }
-  resetT(ctx)
+  // a recommended repair is still a barrier until applied: small coral notch
+  if (state === 'recommended') {
+    circle2(ctx, 75, 22, 12, PALETTE.bad, PALETTE.white, 3.5)
+    ctx.strokeStyle = PALETTE.white
+    ctx.lineWidth = 3.5
+    ctx.beginPath()
+    ctx.moveTo(70, 22)
+    ctx.lineTo(80, 22)
+    ctx.stroke()
+  }
   return c
+}
+
+function circle2(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, fill: string, stroke: string, lw: number) {
+  ctx.beginPath()
+  ctx.arc(x, y, r, 0, Math.PI * 2)
+  ctx.fillStyle = fill
+  ctx.fill()
+  ctx.lineWidth = lw
+  ctx.strokeStyle = stroke
+  ctx.stroke()
 }
 
 function resetT(ctx: CanvasRenderingContext2D) {
@@ -141,7 +158,7 @@ export function placeIcon(kind: PlaceKind, ring: string | null, dim: boolean): H
   ctx.translate(S / 2, S / 2)
   ctx.scale(1.12, 1.12)
   ctx.translate(-S / 2, -S / 2)
-  const ink = kind === 'healthcare' ? '#b5473c' : kind === 'transit' ? '#2c5fa8' : kind === 'education' ? '#7a5a12' : PALETTE.ink
+  const ink = kind === 'healthcare' ? '#b23d33' : kind === 'transit' ? '#2846aa' : kind === 'education' ? '#775210' : PALETTE.ink
   ctx.strokeStyle = ink
   ctx.fillStyle = ink
   ctx.lineWidth = 6

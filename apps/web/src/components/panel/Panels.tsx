@@ -9,7 +9,7 @@ import { ResultsView } from './ResultsView'
 
 function Footnote() {
   return (
-    <p className="px-4 pt-1 pb-5 text-[11px] leading-relaxed text-ink-3">
+    <p className="px-6 pt-1 pb-6 text-[11px] leading-relaxed text-ink-3">
       Planning and research prototype. Not a certified accessible-navigation system, an ADA compliance determination, or an authorization for construction.
     </p>
   )
@@ -46,7 +46,7 @@ function PolicySelector() {
   const policy = currentPolicy(scenarioId)
   const desc = (sc?.context.policies as Record<string, string> | undefined)?.[policy]
   return (
-    <section className="border-b border-line px-4 py-3.5">
+    <section className="border-b border-line px-6 py-4">
       <h2 className="eyebrow">Ramp passability policy</h2>
       <div className="mt-2">
         <Segmented size="sm" label="Ramp passability policy" value={policy} testId="policy" onChange={(p) => p !== policy && void loadScenario(POLICY_IDS[p])}
@@ -66,10 +66,10 @@ export function ExplorerPanel() {
   const tabs: [typeof tab, string][] = [['plan', 'Plan repairs'], ['records', 'Ramp records'], ['quality', 'Data & quality']]
   return (
     <div className="flex h-full flex-col">
-      <div role="tablist" aria-label="Explorer views" className="flex shrink-0 border-b border-line px-2">
+      <div role="tablist" aria-label="Explorer views" className="flex shrink-0 border-b border-line px-4 pt-1">
         {tabs.map(([k, label]) => (
           <button key={k} role="tab" aria-selected={tab === k} onClick={() => setTab(k)} data-testid={`tab-${k}`}
-            className={`-mb-px border-b-2 px-3 py-2.5 text-[12.5px] font-medium ${tab === k ? 'border-sel text-ink' : 'border-transparent text-ink-2 hover:text-ink'}`}>
+            className={`-mb-px border-b-2 px-2.5 py-3 text-[12.5px] font-semibold ${tab === k ? 'border-ink text-ink' : 'border-transparent text-ink-2 hover:text-ink'}`}>
             {label}
           </button>
         ))}

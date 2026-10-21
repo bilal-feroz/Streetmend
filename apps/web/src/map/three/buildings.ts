@@ -32,8 +32,19 @@ export interface BuildingIndex {
   counts: Int32Array
 }
 
-const BASE = new THREE.Color('#f7f6f2')
-const TALL = new THREE.Color('#eef0ee')
+// Architectural massing palette: bright roofs over warm stone walls; towers a
+// touch cooler. A small per-building variation keeps blocks from merging.
+const ROOF = new THREE.Color('#fcfbf7')
+const WALL = new THREE.Color('#ebe6db')
+const TALL_ROOF = new THREE.Color('#f3f5f4')
+const TALL_WALL = new THREE.Color('#dfe3e1')
+
+function vary(id: string | number, c: THREE.Color, out: THREE.Color) {
+  let h = 2166136261
+  for (const ch of String(id)) h = Math.imul(h ^ ch.charCodeAt(0), 16777619)
+  const k = 1 + (((h >>> 0) % 1000) / 1000 - 0.5) * 0.06 // +-3% brightness
+  return out.copy(c).multiplyScalar(k)
+}
 
 /**
  * Extrude real footprints into one merged, non-indexed mesh (one draw call)
@@ -41,7 +52,10 @@ const TALL = new THREE.Color('#eef0ee')
  * Vertex colours carry a cheap height-based occlusion term and allow
  * per-building highlighting without extra materials.
  */
-export function buildBuildingGeometry(fc: BuildingCollection, frame: LocalFrame) {
+/** Builds the merged footprint mesh. Time-sliced: it yields to the browser every
+ * few milliseconds so animations (the opening flight) never stall on it. */
+export async function buildBuildingGeometry(fc: BuildingCollection, frame: LocalFrame, sliceMs = 6) {
+  let tSlice = performance.now()
   const pos: number[] = []
   const col: number[] = []
   const shades: number[] = []
@@ -61,10 +75,16 @@ export function buildBuildingGeometry(fc: BuildingCollection, frame: LocalFrame)
   }
 
   for (const f of fc.features) {
+    if (performance.now() - tSlice > sliceMs) {
+      await new Promise((r) => setTimeout(r, 0))
+      tSlice = performance.now()
+    }
     const polys = f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.coordinates
     const h = Math.max(2.5, f.properties.h)
     const mh = Math.max(0, Math.min(f.properties.mh || 0, h - 1))
-    const base = h > 40 ? TALL : BASE
+    const tall = h > 40
+    const wallC = vary(f.id, tall ? TALL_WALL : WALL, new THREE.Color())
+    const roofC = vary(f.id, tall ? TALL_ROOF : ROOF, new THREE.Color())
     const start = pos.length / 3
     let cx = 0
     let cy = 0
@@ -92,12 +112,12 @@ export function buildBuildingGeometry(fc: BuildingCollection, frame: LocalFrame)
           const a = ring[i]
           const b = ring[(i + 1) % ring.length]
           const ax = a.x, az = -a.y, bx = b.x, bz = -b.y
-          const lo = 0.8
-          const hi = 1.0
-          const shadeTop = Math.min(hi, lo + (h / 30) * 0.2 + 0.12)
+          // ambient occlusion: walls darken toward the ground
+          const lo = 0.7
+          const shadeTop = Math.min(1, lo + (h / 30) * 0.22 + 0.16)
           // two triangles (a,b,c),(a,c,d): outward normals for CCW outer rings
-          pushV(ax, mh, az, lo, base); pushV(bx, mh, bz, lo, base); pushV(bx, h, bz, shadeTop, base)
-          pushV(ax, mh, az, lo, base); pushV(bx, h, bz, shadeTop, base); pushV(ax, h, az, shadeTop, base)
+          pushV(ax, mh, az, lo, wallC); pushV(bx, mh, bz, lo, wallC); pushV(bx, h, bz, shadeTop, wallC)
+          pushV(ax, mh, az, lo, wallC); pushV(bx, h, bz, shadeTop, wallC); pushV(ax, h, az, shadeTop, wallC)
           edge.push(ax, h, az, bx, h, bz)
           // vertical corner lines where the outline turns
           const p = ring[(i - 1 + ring.length) % ring.length]
@@ -113,7 +133,7 @@ export function buildBuildingGeometry(fc: BuildingCollection, frame: LocalFrame)
         const A = all[i0], B = all[i1], C = all[i2]
         const cross = (B.x - A.x) * (C.y - A.y) - (B.y - A.y) * (C.x - A.x)
         const tri = cross >= 0 ? [A, B, C] : [A, C, B]
-        for (const v of tri) pushV(v.x, h, -v.y, 1.0, base)
+        for (const v of tri) pushV(v.x, h, -v.y, 1.0, roofC)
       }
     }
     const count = pos.length / 3 - start
