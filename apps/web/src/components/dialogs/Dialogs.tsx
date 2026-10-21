@@ -1,6 +1,7 @@
 import { ExternalLink, X } from 'lucide-react'
 import { useEffect, useRef, type ReactNode } from 'react'
 import { useApp } from '../../state/store'
+import { EvidenceBody } from './EvidenceDialog'
 
 function Modal({ open, title, onClose, children, testId, width = 720 }: { open: boolean; title: string; onClose: () => void; children: ReactNode; testId: string; width?: number }) {
   const ref = useRef<HTMLDialogElement>(null)
@@ -39,6 +40,9 @@ export function Dialogs() {
       <MethodsDialog open={dialog === 'methods'} onClose={close} />
       <HelpDialog open={dialog === 'help'} onClose={close} />
       <SettingsDialog open={dialog === 'settings'} onClose={close} />
+      <Modal open={dialog === 'evidence'} onClose={close} title="Evidence: the reproducible evaluation" testId="evidence-dialog" width={760}>
+        {dialog === 'evidence' && <EvidenceBody />}
+      </Modal>
     </>
   )
 }

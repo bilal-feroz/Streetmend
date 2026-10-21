@@ -286,6 +286,19 @@ def access_compare(req: S.CompareRequest):
         raise HTTPException(404, detail=str(exc)) from exc
 
 
+@app.get("/api/evaluation")
+def evaluation():
+    """The reproducible evaluation written by scripts/benchmarks/run_evaluation.py, served as is."""
+    from fastapi.responses import Response
+
+    from streetmend.municipal.scenario import DATA_DIR
+
+    path = DATA_DIR.parent / "docs" / "evaluation_results.json"
+    if not path.exists():
+        raise HTTPException(404, detail="Evaluation not generated. Run scripts/benchmarks/run_evaluation.py.")
+    return Response(path.read_bytes(), media_type="application/json")
+
+
 @app.get("/api/municipal/records")
 def municipal_records():
     from streetmend.municipal.scenario import load_records

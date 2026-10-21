@@ -475,7 +475,12 @@ function VerifySection() {
         </tbody>
       </table>
       <div className="mt-3">
-        <div className="text-[11.5px] font-semibold text-ink-2">Test it: switch an intervention off and the checks rerun.</div>
+        <div className="flex items-baseline justify-between gap-2">
+          <div className="text-[11.5px] font-semibold text-ink-2">Test it: switch an intervention off and the checks rerun.</div>
+          <button className="shrink-0 text-[11.5px] font-semibold text-sel-ink hover:underline" onClick={() => useApp.getState().setDialog('evidence')} data-testid="see-evidence">
+            Evidence →
+          </button>
+        </div>
         <div className="mt-1.5 flex flex-wrap gap-2">
           {(fix?.interventions ?? []).map((id) => {
             const on = applied.includes(id)

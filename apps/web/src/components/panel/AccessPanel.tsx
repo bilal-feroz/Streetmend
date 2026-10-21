@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { useEffect, useRef } from 'react'
 import { CATEGORY_LABEL, CATEGORY_ORDER, FACTOR_LABEL, type AccessCategory, type AccessCell, type CompareResponse, type Factor, type ReqStatus } from '../../api/access'
 import { stageOf, useAccess, type AccessStage } from '../../state/access'
+import { useApp } from '../../state/store'
 import { Disclosure, Segmented } from '../ui'
 import { Assistant } from './Assistant'
 
@@ -431,7 +432,12 @@ function Verify() {
   ]
   return (
     <section className="border-t border-line px-6 py-4" aria-labelledby="ver-h" data-testid="access-verify">
-      <Kicker n={4} tone="ok"><span id="ver-h">Verify</span></Kicker>
+      <div className="flex items-center justify-between gap-2">
+        <Kicker n={4} tone="ok"><span id="ver-h">Verify</span></Kicker>
+        <button className="text-[11.5px] font-semibold text-sel-ink hover:underline" onClick={() => useApp.getState().setDialog('evidence')}>
+          Evidence →
+        </button>
+      </div>
       <p className="mt-2 text-[12px] leading-snug text-ink-2">{c.requirement.label}. Each option re-run on the full network.</p>
       <table className="mt-2.5 w-full table-fixed overflow-hidden rounded-xl border border-line text-[12px]">
         <colgroup>

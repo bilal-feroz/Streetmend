@@ -239,3 +239,10 @@ def test_street_intelligence_numbers_come_from_engine(client):
     bad = client.post("/api/assistant", json={"text": "why did it fail", "scenario_id": "preflight", "use_llm": False,
                                               "changes": [{"id": "x", "op": "close", "edge_id": "nope"}]})
     assert bad.status_code == 422
+
+
+def test_evaluation_endpoint_serves_the_generated_report(client):
+    r = client.get("/api/evaluation")
+    assert r.status_code == 200
+    body = r.json()
+    assert all(f["correct"] for f in body["verification"]["fixtures"])

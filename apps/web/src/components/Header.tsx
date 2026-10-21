@@ -1,4 +1,4 @@
-import { BookOpen, ChevronDown, CircleHelp, Ellipsis, MapPin, PanelRight, Play, Presentation, RotateCcw, Settings } from 'lucide-react'
+import { BookOpen, ChevronDown, CircleHelp, Ellipsis, FlaskConical, MapPin, PanelRight, Play, Presentation, RotateCcw, Settings } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useAccess } from '../state/access'
 import { EXPLORER_ID, GUIDED_ID, PREFLIGHT_ID, useApp } from '../state/store'
@@ -118,6 +118,9 @@ function MoreMenu() {
         <div role="menu" className="surface absolute right-0 top-10 z-50 w-56 p-1.5">
           <button role="menuitem" className={item} onClick={go(() => setDialog('help'))} data-testid="open-help">
             <CircleHelp size={15} className="text-ink-2" aria-hidden /> How it works
+          </button>
+          <button role="menuitem" className={item} onClick={go(() => setDialog('evidence'))} data-testid="open-evidence">
+            <FlaskConical size={15} className="text-ink-2" aria-hidden /> Evidence & benchmarks
           </button>
           <button role="menuitem" className={item} onClick={go(replayIntro)} data-testid="replay-intro">
             <RotateCcw size={15} className="text-ink-2" aria-hidden /> Replay intro

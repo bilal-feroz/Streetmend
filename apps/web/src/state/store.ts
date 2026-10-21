@@ -145,7 +145,7 @@ interface AppState {
   assistantError: string | null
   useLLM: boolean
 
-  dialog: 'methods' | 'help' | 'settings' | null
+  dialog: 'methods' | 'help' | 'settings' | 'evidence' | null
   panelOpen: boolean
   explorerTab: 'plan' | 'records' | 'quality'
   records: MunicipalRecords | null
