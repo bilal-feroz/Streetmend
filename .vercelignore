@@ -1,0 +1,16 @@
+# Upload only what the live demo needs: the web app source, the engine and its prepared data.
+kanban-motion-output
+**/node_modules
+apps/web/dist
+apps/web/test-results
+apps/web/playwright-report
+apps/web/blob-report
+docs/media
+screenshots
+data/cache
+services/api/.venv
+services/api/tests
+**/__pycache__
+**/.pytest_cache
+*.mp4
+*.webm

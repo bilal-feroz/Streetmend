@@ -80,6 +80,7 @@ def _check_ids(sc: Scenario, ids: list[str] | None, what: str) -> None:
 
 
 def _summaries() -> list[dict]:
+    registry.ensure()
     out = [summary(s) for s in registry.scenarios.values()]
     for u in registry.unavailable.values():
         out.append({"id": u.id, "name": u.name, "mode": u.mode, "description": "", "node_count": 0, "edge_count": 0,

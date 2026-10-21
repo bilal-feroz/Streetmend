@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "cd apps/web && npm ci",
+  "buildCommand": "cd apps/web && npm run build",
+  "outputDirectory": "apps/web/dist",
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 60,
+      "includeFiles": "{services/api/streetmend/**,data/samples/**,data/scenarios/**,docs/evaluation_results.json}",
+      "excludeFiles": "{services/api/tests/**,**/__pycache__/**}"
+    }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index" }
+  ]
+}

@@ -39,3 +39,9 @@ apps/web/public/maplibre-gl-worker.mjs
 
 # Video production workspace (renders, footage, scratch)
 kanban-motion-output/
+
+# Vercel project link
+.vercel
+
+.vercel
+.env*

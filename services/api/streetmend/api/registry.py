@@ -25,9 +25,18 @@ class Registry:
         self._lock = threading.Lock()
         self.scenarios: dict[str, Scenario] = {}
         self.unavailable: dict[str, Unavailable] = {}
+        self._loaded = False
+
+    def ensure(self) -> None:
+        """Load on first use: serverless hosts may not run the app's startup hook."""
+        if not self._loaded:
+            self.load()
 
     def load(self) -> None:
         with self._lock:
+            if self._loaded:
+                return
+            self._loaded = True
             self.scenarios["demo"] = build_demo_scenario()
             try:
                 from streetmend.municipal.scenario import load_municipal_scenario
@@ -60,6 +69,7 @@ class Registry:
                     f"Municipal scenario failed to build: {type(exc).__name__}: {exc}")
 
     def get(self, sid: str) -> Scenario | None:
+        self.ensure()
         return self.scenarios.get(sid)
 
 

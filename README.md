@@ -13,6 +13,8 @@ StreetMend is an **urban access intelligence and infrastructure decision verific
 
 Built for IEEE Hack for Humanity 2026, track *Geospatial Intelligence for Action*.
 
+**Live demo: [streetmend.vercel.app](https://streetmend.vercel.app)** · **Pitch video: [docs/media/streetmend-pitch.mp4](docs/media/streetmend-pitch.mp4)**
+
 ![A proposed closure, the regression it causes, and the verified fix](screenshots/16-check-regression.png)
 
 > Planning and research prototype. The checks are configurable planning checks on a modeled network: not a certified accessible-navigation system, not an ADA compliance determination, and not an authorization to conduct construction. The City of Charlotte has not reviewed or endorsed it. The change check uses hypothetical proposals and barriers on real streets; the access analysis uses real CDOT records, and its new-facility sites are hypothetical.
@@ -196,6 +198,8 @@ npm run dev
 ```
 
 On Windows you can start both at once with `powershell -ExecutionPolicy Bypass -File scripts/dev.ps1`.
+
+**Hosted:** the same app runs on Vercel at https://streetmend.vercel.app. The React app is served as static files; the FastAPI engine runs as one Python function (`api/index.py`, `vercel.json`, `requirements.txt`). The first request after a quiet spell takes a few seconds while the engine loads the Charlotte network. The hosted copy has no local language model, so plain-English questions use the rule parser.
 
 Open http://localhost:5173. The app opens on the **Change check**. Switch to **Access gaps** in the header for discover → diagnose → fix or build → verify.
 
