@@ -361,7 +361,7 @@ def handle(sc: Scenario, text: str, applied: list[str], budget: int, weights: Ca
     if intent.budget == rules.MAX_BUDGET and any(x > rules.MAX_BUDGET for x in asked):
         out["facts"] = [f"Budget capped at {rules.MAX_BUDGET} repairs (interactive limit)."] + out["facts"]
     narrative, nmeta = None, None
-    if use_llm and intent.operation in ("explain_recommendation", "diagnose_access", "compare_interventions", "explain_verification") and llm.llm_status().get("available"):
+    if use_llm and intent.operation in ("explain_recommendation", "explain_verification") and llm.llm_status().get("available"):
         narrative, nmeta = llm.narrate(out["facts"])
     return {"ok": intent.operation != "unsupported", "interpretation": {**meta, "intent": intent.model_dump()},
             "operation": intent.operation, "facts": out["facts"], "result": out.get("result"),

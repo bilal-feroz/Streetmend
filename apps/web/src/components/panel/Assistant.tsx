@@ -1,14 +1,29 @@
 import { CornerDownLeft, LoaderCircle } from 'lucide-react'
 import { useState } from 'react'
-import { useApp } from '../../state/store'
+import { useAccess } from '../../state/access'
+import { PREFLIGHT_ID, useApp } from '../../state/store'
 
-const SUGGESTIONS = [
-  'Find the best two repairs for healthcare access',
-  'Why did you choose these repairs?',
-  'What happens if I can only repair one?',
-  'Which recommendation changes if I prioritize schools instead?',
-  'Show the journeys that remain disconnected',
-]
+const SUGGESTIONS = {
+  planner: [
+    'Find the best two repairs for healthcare access',
+    'Why did you choose these repairs?',
+    'What happens if I can only repair one?',
+    'Which recommendation changes if I prioritize schools instead?',
+    'Show the journeys that remain disconnected',
+  ],
+  check: [
+    'Why did verification fail?',
+    'Which two connections should be repaired to restore clinic access?',
+    'Which healthcare destinations become unreachable after this closure?',
+    'Show the streets that disconnect the most modeled journeys if closed',
+  ],
+  access: [
+    'Which neighborhood has the poorest access to groceries?',
+    'Why is education access poor here?',
+    'Is repairing the network better than adding a new school?',
+    'Compare straight-line distance with network walking distance',
+  ],
+}
 
 const OP_LABEL: Record<string, string> = {
   optimize_repairs: 'Find repairs',
@@ -21,6 +36,14 @@ const OP_LABEL: Record<string, string> = {
   reset: 'Reset',
   show_route: 'Show route',
   candidates_near: 'Repairs near destinations',
+  identify_access_gaps: 'Find access gaps',
+  diagnose_access: 'Diagnose access',
+  compare_interventions: 'Compare fix or build',
+  network_vs_straight: 'Network vs straight line',
+  critical_links: 'Critical links',
+  closure_impact: 'Closure impact',
+  explain_verification: 'Explain the check',
+  show_evidence: 'Show evidence',
   unsupported: 'Not supported',
 }
 
@@ -33,6 +56,9 @@ export function Assistant() {
   const last = useApp((s) => s.assistantLast)
   const error = useApp((s) => s.assistantError)
   const ask = useApp((s) => s.ask)
+  const mode = useApp((s) => (s.scenarioId === PREFLIGHT_ID ? 'check' : 'planner'))
+  const access = useAccess((s) => s.on)
+  const suggestions = SUGGESTIONS[access ? 'access' : mode]
   const submit = (t: string) => {
     const v = t.trim()
     if (!v || pending) return
@@ -47,7 +73,7 @@ export function Assistant() {
           Ask a planning question
         </label>
         <input id="ask" data-testid="ask-input" value={text} onChange={(e) => setText(e.target.value)} maxLength={500}
-          placeholder="e.g. what if we can only repair one?" className="min-w-0 flex-1 bg-transparent py-2 text-[13px] text-ink placeholder:text-ink-3 focus:outline-none" />
+          placeholder={access ? 'e.g. why is grocery access poor here?' : mode === 'check' ? 'e.g. why did verification fail?' : 'e.g. what if we can only repair one?'} className="min-w-0 flex-1 bg-transparent py-2 text-[13px] text-ink placeholder:text-ink-3 focus:outline-none" />
         <button type="submit" className="btn-ghost px-1.5" disabled={!text.trim() || pending} aria-label="Ask">
           {pending ? <LoaderCircle size={15} className="animate-spin" /> : <CornerDownLeft size={15} />}
         </button>
@@ -57,7 +83,7 @@ export function Assistant() {
       </button>
       {showSuggestions && (
         <ul className="mt-1 space-y-0.5">
-          {SUGGESTIONS.map((s) => (
+          {suggestions.map((s) => (
             <li key={s}>
               <button className="w-full rounded px-1.5 py-1 text-left text-[12.5px] text-ink-2 hover:bg-wash hover:text-ink" onClick={() => submit(s)}>
                 {s}

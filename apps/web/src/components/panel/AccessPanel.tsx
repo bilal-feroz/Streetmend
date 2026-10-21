@@ -3,7 +3,8 @@ import type { ReactNode } from 'react'
 import { useEffect, useRef } from 'react'
 import { CATEGORY_LABEL, CATEGORY_ORDER, FACTOR_LABEL, type AccessCategory, type AccessCell, type CompareResponse, type Factor, type ReqStatus } from '../../api/access'
 import { stageOf, useAccess, type AccessStage } from '../../state/access'
-import { Segmented } from '../ui'
+import { Disclosure, Segmented } from '../ui'
+import { Assistant } from './Assistant'
 
 const ICON: Record<AccessCategory, typeof Bus> = { healthcare: HeartPulse, education: GraduationCap, grocery: ShoppingBasket, transit: Bus, parks: Trees, services: Landmark }
 const FACTOR_CLS: Record<Factor, string> = {
@@ -487,6 +488,12 @@ export function AccessPanel() {
       <Diagnose />
       <Intervene />
       <Verify />
+      <div className="px-6 pb-1">
+        <Disclosure title="Ask in plain English" testId="ask-toggle">
+          <Assistant />
+          <p className="mt-2 text-[10.5px] leading-snug text-ink-3">Questions map to typed, allowlisted operations; the graph engine computes every answer. No generated code runs.</p>
+        </Disclosure>
+      </div>
       {error && (
         <p className="mx-6 mb-3 rounded-lg bg-bad-bg px-3 py-2 text-[12px] text-bad-ink" role="alert">
           {error}

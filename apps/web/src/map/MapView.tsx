@@ -146,6 +146,9 @@ export function MapView() {
   const records = useApp((s) => s.records)
   const scenarioId = useApp((s) => s.scenarioId)
   const accessOn = useAccess((s) => s.on)
+  const edgeHighlight = useApp((s) => s.edgeHighlight)
+  const ceView = useApp((s) => s.ceView)
+  const checkStage = useApp((s) => s.checkStage)
 
   // ---- map + city layer --------------------------------------------------------
   useEffect(() => {
@@ -311,6 +314,31 @@ export function MapView() {
     }
     handle.map.triggerRepaint()
   }, [handle, scenario, draft, evaluation, verifyRes])
+
+  // ---- links the assistant pointed at (for example, the closures that would disconnect the most journeys) ----
+  useEffect(() => {
+    if (!handle || !scenario) return
+    const net = handle.layer.networks.after
+    const lines = edgeHighlight.map((id) => scenario.edges.find((e) => e.id === id)?.geometry as [number, number][] | undefined).filter(Boolean) as [number, number][][]
+    net.setOverlay('assistant', lines.length ? lines.flatMap((c, i) => [
+      { coords: c, color: '#ffffff', width: 15 - i, order: 60 },
+      { coords: c, color: '#3568c8', width: 10 - i, order: 61 },
+    ]) : null)
+    handle.map.triggerRepaint()
+  }, [handle, scenario, edgeHighlight])
+
+  // ---- change check: one travel profile's route for the counterexample (engine geometry) ----
+  useEffect(() => {
+    if (!handle) return
+    const net = handle.layer.networks.after
+    const ce = verifyRes?.proposed.checks.find((c) => c.regression && c.profile === 'step_free' && c.counterexample)?.counterexample
+    const g = !ce || ceView === 'none' || useApp.getState().checkStage === 'fixed' ? null : ceView === 'walking' ? ce.walking_route?.geometry : ce.best_alternative.geometry
+    net.setOverlay('profile', g && g.length > 1 ? [
+      { coords: g as [number, number][], color: '#ffffff', width: 10, order: 55, depthTest: false },
+      { coords: g as [number, number][], color: ceView === 'walking' ? '#3568c8' : '#d85e51', width: 6, order: 56, depthTest: false, ...(ceView === 'walking' ? {} : { dashed: [4, 2.5] as [number, number] }) },
+    ] : null)
+    handle.map.triggerRepaint()
+  }, [handle, verifyRes, ceView, checkStage])
 
   // ---- heal: the moment a repair lands (visual only, at the engine-applied location) --------
   useEffect(() => {

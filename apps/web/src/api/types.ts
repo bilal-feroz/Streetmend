@@ -245,12 +245,16 @@ export type ClientAction =
   | { type: 'undo' }
   | { type: 'reset' }
   | { type: 'show_route' }
+  | { type: 'show_access'; category: string; profile: string; cell: string | null }
+  | { type: 'show_compare'; category: string; profile: string; cell: string | null; budget: number }
+  | { type: 'highlight_edges'; ids: string[] }
+  | { type: 'find_fix' }
 
 export interface AssistantResponse {
   ok: boolean
   interpretation: {
     source: 'rules' | 'llm'
-    intent: { operation: string; budget: number | null; priority: Priority | null; intervention_id: string | null; category: Category | null } | null
+    intent: { operation: string; budget: number | null; priority: Priority | null; intervention_id: string | null; category: Category | string | null; profile?: string | null } | null
     latency_ms?: number
     model?: string
     error?: string

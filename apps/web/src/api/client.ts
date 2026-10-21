@@ -53,7 +53,8 @@ export const api = {
     post<OptimizeResponse>(`/api/scenarios/${id}/optimize`, body, { timeoutMs: 60_000 }),
   report: (id: string, applied: string[], body: { budget: number; weights: Weights; cutoff_m?: number | null }) =>
     post<string>(`/api/scenarios/${id}/report?applied=${encodeURIComponent(applied.join(','))}`, body, { text: true }),
-  assistant: (body: { text: string; scenario_id: string; applied: string[]; budget: number; weights: Weights; use_llm: boolean; cutoff_m?: number | null; origin?: string; destination?: string }) =>
+  assistant: (body: { text: string; scenario_id: string; applied: string[]; budget: number; weights: Weights; use_llm: boolean; cutoff_m?: number | null; origin?: string; destination?: string;
+    changes?: ChangeIn[]; mitigations?: string[]; cell?: string | null }) =>
     post<AssistantResponse>('/api/assistant', body, { timeoutMs: 60_000 }),
   records: () => request<MunicipalRecords>('/api/municipal/records', { timeoutMs: 30_000 }),
 }

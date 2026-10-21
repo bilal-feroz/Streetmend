@@ -210,6 +210,11 @@ test('change check: propose, test, find the breakage, fix, verify (every state f
   const ce = ref.proposed.checks.find((c: { id: string }) => c.id === 'R1').counterexample
   await expect(page.getByTestId('counterexample')).toContainText(`${ce.walking_route.steps.length} curb steps`)
   await expect(page.getByTestId('counterexample')).toContainText(`${Math.round(ce.best_alternative.length_m)} m detour`)
+  // the same change, two travel profiles: walking keeps a route, step-free does not
+  await expect(page.getByTestId('profile-walking')).toContainText('Available')
+  await expect(page.getByTestId('profile-step_free')).toContainText('Unavailable')
+  await page.getByTestId('profile-walking').click()
+  await expect(page.getByTestId('profile-walking')).toHaveAttribute('aria-pressed', 'true')
   // Act 4: the minimal fix is found by search, with why fewer fails
   const fix = await (await request.post(`${API}/scenarios/preflight/verify/fix`, { data: { proposal: prop } })).json()
   await page.getByTestId('find-fix').click()

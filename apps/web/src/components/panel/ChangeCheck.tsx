@@ -3,6 +3,8 @@ import { motion } from 'motion/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CheckOut, CheckStatus, Counterexample, FixResponse, ProposalSpec, VerifyResponse, VerifyState } from '../../api/types'
 import { useApp } from '../../state/store'
+import { Disclosure } from '../ui'
+import { Assistant } from './Assistant'
 
 const EASE = [0.22, 1, 0.36, 1] as const
 
@@ -215,6 +217,7 @@ function CounterexampleCard({ ce, limit }: { ce: Counterexample; limit: number |
         ))}
       </dl>
       <p className="mt-2 text-[11.5px] leading-relaxed text-ink-2">{ce.summary}</p>
+      {walk && <ProfileCompare ce={ce} limit={limit} />}
       <details className="mt-1.5 text-[11px] text-ink-3">
         <summary className="cursor-pointer font-semibold">Assumptions behind this result</summary>
         <ul className="mt-1 list-disc space-y-0.5 pl-4">
@@ -223,6 +226,48 @@ function CounterexampleCard({ ce, limit }: { ce: Counterexample; limit: number |
           ))}
         </ul>
       </details>
+    </div>
+  )
+}
+
+/** The same proposal, two travel profiles: the route each one keeps, on the map. */
+function ProfileCompare({ ce, limit }: { ce: Counterexample; limit: number | null }) {
+  const view = useApp((s) => s.ceView)
+  const setCeView = useApp((s) => s.setCeView)
+  const walk = ce.walking_route
+  const alt = ce.best_alternative
+  const walkOk = !!walk?.found && (!limit || (walk.length_m ?? 0) <= limit)
+  const sfOk = alt.found && (!limit || (alt.length_m ?? 0) <= limit)
+  const rows: { k: 'walking' | 'step_free'; who: string; ok: boolean; v: string }[] = [
+    { k: 'walking', who: 'Standard walking', ok: walkOk, v: walk?.found ? `${Math.round(walk.length_m ?? 0)} m` : 'none' },
+    { k: 'step_free', who: 'Step-free route', ok: sfOk, v: alt.found ? `${Math.round(alt.length_m ?? 0)} m` : 'none' },
+  ]
+  return (
+    <div className="mt-2.5 rounded-lg border border-line bg-paper p-2.5" data-testid="profile-compare">
+      <div className="text-[10.5px] font-extrabold tracking-[0.07em] text-ink-3 uppercase">Same change, two travel profiles</div>
+      <div className="mt-1.5 space-y-1">
+        {rows.map((r) => (
+          <button
+            key={r.k}
+            className={`flex w-full items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-[12px] transition-colors ${view === r.k ? 'bg-ink text-white' : 'hover:bg-wash'}`}
+            onClick={() => {
+              const next = view === r.k ? 'none' : r.k
+              setCeView(next)
+              const g = (next === 'walking' ? walk?.geometry : next === 'step_free' ? alt.geometry : ce.baseline_route.geometry) as [number, number][] | undefined
+              if (g?.length) useApp.getState().cameraTo({ preset: 'fit', points: g })
+            }}
+            aria-pressed={view === r.k}
+            data-testid={`profile-${r.k}`}
+          >
+            <span className="font-semibold">{r.who}</span>
+            <span className="flex shrink-0 items-center gap-1.5 whitespace-nowrap tnum">
+              <span className={view === r.k ? 'text-white/80' : 'text-ink-2'}>{r.v}</span>
+              <span className={`rounded px-1.5 py-px text-[9.5px] font-extrabold tracking-wider uppercase ${r.ok ? 'bg-ok-bg text-ok-ink' : 'bg-bad-bg text-bad-ink'}`}>{r.ok ? 'Available' : 'Unavailable'}</span>
+            </span>
+          </button>
+        ))}
+      </div>
+      <p className="mt-1.5 text-[10.5px] leading-snug text-ink-3">Click a profile to see its route. Capability constraints from the modeled network, not a claim about any person's journey.</p>
     </div>
   )
 }
@@ -477,6 +522,12 @@ export function ChangeCheckPanel() {
       <ChecksSection />
       <FixSection />
       <VerifySection />
+      <div className="px-6 pb-1">
+        <Disclosure title="Ask in plain English" testId="ask-toggle">
+          <Assistant />
+          <p className="mt-2 text-[10.5px] leading-snug text-ink-3">Questions map to typed, allowlisted operations; the graph engine computes every answer. No generated code runs.</p>
+        </Disclosure>
+      </div>
       {error && (
         <p className="mx-6 mb-3 rounded-lg bg-bad-bg px-3 py-2 text-[12px] text-bad-ink" role="alert">
           {error}

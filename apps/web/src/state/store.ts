@@ -117,6 +117,11 @@ interface AppState {
   selected: Selection
   hovered: string | null
   highlight: string[]
+  /** network links the assistant pointed at (critical closures), drawn as an overlay */
+  edgeHighlight: string[]
+  /** change check: which travel profile's route the map shows for the counterexample */
+  ceView: 'none' | 'walking' | 'step_free'
+  setCeView: (v: 'none' | 'walking' | 'step_free') => void
   layers: Layers
   banner: Banner | null
 
@@ -357,6 +362,9 @@ export const useApp = create<AppState>((set, get) => {
     selected: null,
     hovered: null,
     highlight: [],
+    edgeHighlight: [],
+    ceView: 'none',
+    setCeView: (v) => set({ ceView: v }),
     layers: { buildings: true, network: true, candidates: true, places: true, trees: true, records: false, inventory: false },
     banner: null,
     presenting: false,
@@ -391,7 +399,7 @@ export const useApp = create<AppState>((set, get) => {
       clearTimeout(reanalyzeTimer)
       set({
         loading: true, analyzing: false, error: null, scenarioId: id, analysis: null, analysisKey: null, applied: [], history: [],
-        banner: null, selected: null, highlight: [], evaluation: null, initialEval: null, assistantLast: null, assistantError: null,
+        banner: null, selected: null, highlight: [], edgeHighlight: [], ceView: 'none', evaluation: null, initialEval: null, assistantLast: null, assistantError: null,
         panelView: 'plan', compare: 'off', presenting: false, scene: 0,
         draft: [], changes: [], verify: null, fix: null, checkStage: 'baseline', checkBusy: null, checkError: null,
       })
@@ -487,11 +495,17 @@ export const useApp = create<AppState>((set, get) => {
 
     ask: async (text) => {
       const s = get()
-      set({ assistantPending: true, assistantError: null })
+      set({ assistantPending: true, assistantError: null, edgeHighlight: [] })
+      const { useAccess } = await import('./access')
+      const acc = useAccess.getState()
+      const check = s.scenarioId === PREFLIGHT_ID
       try {
         const res = await api.assistant({
-          text, scenario_id: s.scenarioId, applied: s.applied, budget: s.budget, weights: s.weights, use_llm: s.useLLM,
+          text, scenario_id: s.scenarioId, applied: check ? [] : s.applied, budget: s.budget, weights: s.weights, use_llm: s.useLLM,
           cutoff_m: s.cutoff, origin: s.journey?.origin, destination: s.journey?.destination,
+          // the change under test and its mitigations, so questions about the check are answered on that state
+          changes: check ? (s.changes.length ? s.changes : s.draft) : [], mitigations: check ? s.applied : [],
+          cell: acc.on ? acc.cell : null,
         })
         set({ assistantLast: res, assistantPending: false })
         const a = res.client_action
@@ -519,6 +533,28 @@ export const useApp = create<AppState>((set, get) => {
             break
           case 'highlight_candidates':
             set({ highlight: a.ids })
+            break
+          case 'show_access':
+          case 'show_compare': {
+            const st = useAccess.getState()
+            if (!st.on) await st.open()
+            await useAccess.getState().setProfile(a.profile === 'pedestrian' ? 'pedestrian' : 'step_free')
+            await useAccess.getState().setCategory(a.category as never)
+            if (a.cell) await useAccess.getState().selectCell(a.cell)
+            if (a.type === 'show_compare' && a.cell) {
+              await useAccess.getState().setBudget(a.budget)
+              await useAccess.getState().runCompare()
+            }
+            break
+          }
+          case 'highlight_edges': {
+            set({ edgeHighlight: a.ids })
+            const pts = a.ids.flatMap((id) => (get().scenario?.edges.find((e) => e.id === id)?.geometry ?? []) as [number, number][])
+            if (pts.length) get().cameraTo({ preset: 'fit', points: pts })
+            break
+          }
+          case 'find_fix':
+            if (check && get().verify) await get().findFix()
             break
           default:
             break

@@ -43,6 +43,8 @@ export function MapLabels({ handle }: { handle: MapHandle }) {
   const accessData = useAccess((s) => s.data)
   const compare = useAccess((s) => s.compare)
   const show = useAccess((s) => s.show)
+  const ceView = useApp((s) => s.ceView)
+  const verifyRes = useApp((s) => s.verify)
   const lines = useRef(new Map<string, SVGLineElement>())
   const found = ev?.journey?.route.found ?? false
   const refs = useRef(new Map<string, HTMLDivElement>())
@@ -113,6 +115,22 @@ export function MapLabels({ handle }: { handle: MapHandle }) {
       const [lng, lat] = e.geometry[Math.floor(e.geometry.length / 2)]
       out.push({ key: 'closure', lng, lat, alt: 3, text: 'Proposed closure', sub: 'Hypothetical · construction', tone: 'closure', dy: -54, dx: blockers.length ? -96 : 0 })
     }
+    // change check: the route a travel profile keeps, labelled where it diverges
+    const ce = verifyRes?.proposed.checks.find((c) => c.regression && c.profile === 'step_free' && c.counterexample)?.counterexample
+    if (ce && ceView !== 'none') {
+      const r = ceView === 'walking' ? ce.walking_route : ce.best_alternative
+      const g = r?.geometry
+      if (r?.found && g && g.length > 2) {
+        const [lng, lat] = g[Math.floor(g.length * 0.55)]
+        const lim = verifyRes?.proposed.metrics.cutoff_m
+        out.push({
+          key: 'tip', lng, lat, alt: 6,
+          text: ceView === 'walking' ? `Walking route · ${Math.round(r.length_m ?? 0)} m` : `Step-free detour · ${Math.round(r.length_m ?? 0)} m`,
+          sub: ceView === 'walking' ? `${ce.walking_route?.steps?.length ?? 0} curb steps without ramps` : lim && (r.length_m ?? 0) > lim ? `Over the ${Math.round(lim)} m threshold` : 'Within the threshold',
+          tone: 'tip', dy: -30,
+        })
+      }
+    }
     if (hovered && !['origin', 'dest'].includes(hovered)) {
       const [kind, id] = [hovered.slice(0, hovered.indexOf(':')), hovered.slice(hovered.indexOf(':') + 1)]
       if (kind === 'iv') {
@@ -132,7 +150,7 @@ export function MapLabels({ handle }: { handle: MapHandle }) {
       }
     }
     return out
-  }, [scenario, journey, hovered, found, applied, ev, draft, accessOn, diagnosis, accessData, compare, show])
+  }, [scenario, journey, hovered, found, applied, ev, draft, accessOn, diagnosis, accessData, compare, show, ceView, verifyRes])
 
   useEffect(() => {
     const { layer } = handle
