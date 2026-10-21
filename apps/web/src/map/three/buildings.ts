@@ -35,7 +35,7 @@ export interface BuildingIndex {
 // Architectural massing palette: bright roofs over warm stone walls; towers a
 // touch cooler. A small per-building variation keeps blocks from merging.
 const ROOF = new THREE.Color('#fcfbf7')
-const WALL = new THREE.Color('#ebe6db')
+const WALL = new THREE.Color('#e6e3db')
 const TALL_ROOF = new THREE.Color('#f3f5f4')
 const TALL_WALL = new THREE.Color('#dfe3e1')
 

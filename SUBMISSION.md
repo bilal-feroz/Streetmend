@@ -17,7 +17,7 @@ StreetMend turns pedestrian infrastructure into an accessibility graph of corner
 2. evaluates every combination of repairs within the budget;
 3. recommends the set that maximizes weighted reachable origin–destination pairs;
 4. explains the result: gain of each repair alone, its marginal value within the set, synergy, newly connected journeys, and comparison against three baselines (greedy, individual ranking, nearest-to-destination);
-5. shows it on a real map of Charlotte, in 2D or as a 3D city of 5,113 OpenStreetMap building footprints. Apply one repair and the journey stays disconnected. Apply the second and the actual graph route traces through to the hospital. A before/after split, an illustrative 3D curb-ramp inspector and a seven-scene presentation mode make the evidence easy to follow.
+5. shows it on a real map of Charlotte, in 2D or as a 3D city of 5,113 OpenStreetMap building footprints. Apply one repair and the journey stays disconnected. Apply the second and the actual graph route traces through to the hospital. A before/after split on the same view, an illustrative 3D curb-ramp inspector and a six-step presentation mode make the evidence easy to follow. On a first visit the app opens with a continuous flight from the United States to North Carolina, Charlotte and the Elizabeth study area: one camera, from a national outline drawn in the map's own projection into the live 3D city.
 
 Two modes:
 * **Guided scenario**: real Elizabeth streets with *hypothetical* barrier states, labeled as such, set up to demonstrate the dependent-repair problem.
@@ -60,10 +60,11 @@ Basemap: OpenFreeMap. Provenance, retrieval times, missing-field statistics and 
   * the dependent-pair synergy case (synthetic district and guided scenario);
   * unknown-edge exclusion, budget limits, undo/reset, determinism;
   * builder invariants and ingestion pagination/reprojection.
-* 11 Playwright end-to-end tests against the real API:
+* 15 Playwright end-to-end tests against the real API:
   * a 20-step flow (map, 2D/3D, rotate/zoom, inspect, analyze, Repair A, Repair B, route, split, undo, reset, explorer record, back), checking that UI numbers match API responses;
   * 3D/basemap projection agreement under 0.5 px at several cameras;
-  * budget one, presentation scenes, assistant allowlist, keyboard operation, phone layout;
+  * budget one, presentation steps, assistant allowlist, keyboard operation, phone layout;
+  * the opening: North Carolina geometry checked against known cities, landing position and alignment, skip and replay, return visit, reduced motion;
   * axe scans with no serious or critical findings.
 * Reproducible benchmark (`scripts/benchmarks/run_benchmark.py` → `docs/BENCHMARK.md`): guided scenario, synthetic district, 40 randomized districts, 40 random grids, Charlotte × 3 policies × budgets 1–3.
 

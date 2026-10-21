@@ -6,7 +6,7 @@ StreetMend is a geospatial decision-support tool for pedestrian accessibility re
 
 Built for IEEE Hack for Humanity 2026, track *Geospatial Intelligence for Action*.
 
-![Two repairs, one reconnected journey](screenshots/07-reconnected.png)
+![Two repairs, one reconnected journey](screenshots/07-repair-b.png)
 
 > Planning and research prototype. Not a certified accessible-navigation system, not an ADA compliance determination, and not an authorization to conduct construction. The City of Charlotte has not reviewed or endorsed it.
 
@@ -27,8 +27,8 @@ So the planning question is not "which ramp is worst?" but:
 | **Pedestrian graph** | Corners, curb landings, crossings and sidewalk sides. Every edge has an explicit state (traversable / blocked / unknown) and an evidence label (synthetic, municipal record, historical survey, OSM, inferred, assumed). Corners on different sides of a street connect only through a crossing with ramps at both ends. |
 | **Combination-aware optimization** | Exact enumeration of every repair set within the budget (optimal for the stated candidate set and objective), plus greedy, individual-ranking and nearest-to-destination baselines. Beam search for very large candidate sets, always labeled approximate. |
 | **Evidence, not decoration** | Every route on the map is a real graph path and every number comes from the engine. Synergy is measured explicitly: each repair's gain alone, its marginal value within the set, and newly connected origin–destination pairs. |
-| **Real Charlotte map, 2D and 3D** | A light vector basemap (OpenFreeMap, no API key) with a Three.js layer that shares MapLibre's camera exactly: 5,113 OSM building footprints extruded with sun shadows, the pedestrian network, routes and repair markers. Camera presets, a 2D precision view, a before/after split, and an illustrative 3D curb-ramp inspector. |
-| **Two operating modes** | **Guided scenario**: real Elizabeth streets with *hypothetical* barrier states, set up to show the dependent-repair problem, plus a seven-scene presentation mode. **Charlotte Data Explorer**: real CDOT curb-ramp and sidewalk records, CATS bus stops and OpenStreetMap streets/destinations, with record-level detail and data-quality reporting. |
+| **Real Charlotte map, 2D and 3D** | A warm atlas basemap (OpenFreeMap, no API key) with a Three.js layer that shares MapLibre's camera exactly: 5,113 OSM building footprints as an architectural massing model with sun shadows. The network stays quiet context; only the selected journey (ink), where it breaks (coral) and the computed route (emerald) carry colour. Camera presets, a 2D precision view, a before/after split on the same view, an illustrative 3D curb-ramp inspector, and a USA → Charlotte opening on first visit. |
+| **Two operating modes** | **Guided scenario**: real Elizabeth streets with *hypothetical* barrier states, set up to show the dependent-repair problem, plus a six-step presentation mode. **Charlotte Data Explorer**: real CDOT curb-ramp and sidewalk records, CATS bus stops and OpenStreetMap streets/destinations, with record-level detail and data-quality reporting. |
 | **Natural-language questions** | "Which two repairs improve access to healthcare the most?" A deterministic rule parser handles common phrasing; unrecognized phrasing can go to a local model (Ollama, `qwen3:4b`) that may only choose one allowlisted operation with validated arguments. The model never computes routes or scores; optional model wording is rejected if it contains any number or magnitude word not in the computed facts. |
 
 ### Why combinations matter (measured, not asserted)
@@ -42,17 +42,19 @@ Full tables: [docs/BENCHMARK.md](docs/BENCHMARK.md). The honest conclusion: simp
 
 ## Screenshots
 
-| 3D city: Elizabeth and Uptown | Disconnected journey | Inspecting the blocked crossing |
+The opening flies from the United States to North Carolina, Charlotte and the Elizabeth study area: one continuous camera from a national outline (US Census boundaries) into the real map and the 3D city.
+
+| United States | North Carolina | Charlotte |
 |---|---|---|
-| ![](screenshots/01-city-3d.png) | ![](screenshots/03-disconnected.png) | ![](screenshots/05-inspect-crossing.png) |
-| **Recommendation: A + B** | **Repair A alone: still disconnected** | **Before / after split** |
-| ![](screenshots/04-recommendation.png) | ![](screenshots/06-first-repair.png) | ![](screenshots/08-before-after.png) |
-| **2D precision view** | **Charlotte: a real CDOT record** | **Charlotte: data quality** |
-| ![](screenshots/09-2d-view.png) | ![](screenshots/11-charlotte-record.png) | ![](screenshots/12-charlotte-quality.png) |
+| ![](screenshots/01-intro-usa.png) | ![](screenshots/02-intro-north-carolina.png) | ![](screenshots/03-intro-charlotte.png) |
+| **Elizabeth in 3D: the case** | **Recommendation: A + B** | **Repair A alone: one end still blocked** |
+| ![](screenshots/04-city-3d.png) | ![](screenshots/05-recommendation.png) | ![](screenshots/06-repair-a.png) |
+| **Repair B: route reconnected** | **Before / after on one view** | **Presentation mode** |
+| ![](screenshots/07-repair-b.png) | ![](screenshots/08-before-after.png) | ![](screenshots/09-presentation.png) |
 
-More: [Uptown in 3D](screenshots/02-uptown-3d.png) · [Charlotte explorer](screenshots/10-charlotte-explorer.png) · [phone](screenshots/13-mobile.png) · [phone planning sheet](screenshots/14-mobile-panel.png)
+More: [Elizabeth and Uptown in 3D](screenshots/10-city-wide.png) · [a real CDOT record](screenshots/11-explorer-record.png) · [data quality](screenshots/12-explorer-quality.png) · [phone](screenshots/13-mobile.png) · [phone case sheet](screenshots/14-mobile-case.png) · [before/after the redesign](docs/media/redesign-before-after.png)
 
-A 90-second screen capture of the working app is in [docs/media/streetmend-demo.mp4](docs/media/streetmend-demo.mp4). It was recorded with Playwright driving the real UI against the real engine (no mock data), rendered on the laptop GPU.
+A 95-second screen capture of the working app is in [docs/media/streetmend-demo.mp4](docs/media/streetmend-demo.mp4); the opening alone is [docs/media/streetmend-intro.mp4](docs/media/streetmend-intro.mp4). Both were recorded with Playwright driving the real UI against the real engine (no mock data), rendered on the laptop GPU, on a cold first visit (tile downloads included).
 
 ## Architecture
 
@@ -60,7 +62,7 @@ A 90-second screen capture of the working app is in [docs/media/streetmend-demo.
 
 * **Engine** (`services/api/streetmend`): Python, NetworkX for routing/inspection, SciPy compiled Dijkstra for batch evaluation, an exact key-node evaluator for fast combination scoring, Shapely/pyproj for geometry.
 * **API**: FastAPI with Pydantic request/response models.
-* **Web** (`apps/web`): React 19, TypeScript, Tailwind CSS v4, MapLibre GL JS with a Three.js custom layer, Motion, Zustand.
+* **Web** (`apps/web`): React 19, TypeScript, Tailwind CSS v4, MapLibre GL JS with a Three.js custom layer, d3-geo + us-atlas for the opening, Motion, Zustand. Type: Manrope and Instrument Serif.
 * **AI**: rule parser plus an optional Ollama model behind a Pydantic allowlist; grounding check on any model-written sentence (standalone numbers, number words and magnitude words must appear in the computed facts).
 
 Details: [ARCHITECTURE.md](ARCHITECTURE.md) · Method: [METHODOLOGY.md](METHODOLOGY.md) · Data: [DATA_SOURCES.md](DATA_SOURCES.md) · Limits: [LIMITATIONS.md](LIMITATIONS.md)
@@ -98,21 +100,20 @@ uv run --project services/api --extra ingest python scripts/ingest/fetch_buildin
 
 ## Demo
 
-Follow [DEMO_SCRIPT.md](DEMO_SCRIPT.md) for the 90–120 second live demo. **Present** in the header runs the same story as seven scenes:
+Follow [DEMO_SCRIPT.md](DEMO_SCRIPT.md) for the 90–120 second live demo. On a first visit the app opens with a 4-second flight from the United States to Elizabeth (skip with Esc; replay from the ⋯ menu). **Present** in the header then runs the story in six steps, on the live engine:
 
-1. **Real city context**: Charlotte streets and buildings; the barriers in this scenario are hypothetical.
-2. **Inspect the problem**: the journey from Hawthorne Lane to Novant Health Presbyterian stops at one crossing of East 7th Street; both curb ramps are blocked.
-3. **Find repairs**: budget two; the engine evaluates every combination and selects A + B.
-4. **Apply the first repair**: still disconnected.
-5. **Apply the second repair**: the route traces through: **TWO REPAIRS. ONE RECONNECTED JOURNEY.**
-6. **Prove the value**: before/after split, A alone +0, B alone +0, together +123, baselines.
-7. **Test it yourself**: remove a repair or change the budget; everything recomputes.
+1. **The city**: Elizabeth, Charlotte: real streets and building footprints; the barriers in this scenario are hypothetical.
+2. **The disconnected journey**: Hawthorne Lane to Novant Health Presbyterian stops at one crossing of East 7th Street; both curb ramps are blocked.
+3. **The repair recommendation**: budget two; the engine evaluates every combination and selects A + B.
+4. **The first intervention**: Repair A alone; one end is fixed, the journey is still broken.
+5. **The second intervention**: Repair B; the route is traced through the street graph: **TWO REPAIRS. ONE RECONNECTED JOURNEY.**
+6. **The measured result**: before/after on one view; A alone +0, B alone +0, together +123; baselines.
 
 ## Tests
 
 ```bash
 cd services/api && uv run pytest          # 121 tests: engine, optimizer, guided scenario, API, assistant, municipal builder, ingestion
-cd apps/web && npx playwright test        # 11 E2E tests against the real API (see below)
+cd apps/web && npx playwright test        # 15 E2E tests against the real API (see below)
 uv run --project services/api python scripts/benchmarks/run_benchmark.py   # regenerates docs/BENCHMARK.md
 ```
 
@@ -136,16 +137,22 @@ The Playwright suite runs the full 20-step flow:
 It also checks:
 * The Three.js and MapLibre projections agree within 0.5 px at several pitches, bearings and zooms.
 * A budget of one recommends nothing.
-* The seven presentation scenes, the assistant allowlist and keyboard operation.
+* The six presentation steps, the assistant allowlist and keyboard operation.
 * The explorer's real-data dependency and policy switch.
 * The phone layout.
 * axe scans with no serious or critical findings.
+* The opening:
+  * the highlighted state's geometry contains Charlotte and Raleigh, not Columbia SC or Richmond VA;
+  * the flight lands on the study area in 3D, with the city aligned;
+  * skip and replay work;
+  * a return visit gets the short version, and reduced motion gets no movement.
 
 ## Repository layout
 
 ```
 apps/web/              React + MapLibre + Three.js frontend, Playwright E2E (e2e/), capture, axe and demo-recording scripts
   src/map/three/       3D city layer: camera bridge, footprint extrusion, network lines, marker sprites
+  src/intro/           USA → Charlotte opening: national geometry and the camera timeline
 services/api/          Python package `streetmend`: graph, scenario, optimize, municipal, ai, api + pytest suite
 data/samples/          Prepared Charlotte (Elizabeth) study-area data and city building footprints, with provenance
 data/scenarios/        Guided-scenario spec (hypothetical barrier states on real streets)

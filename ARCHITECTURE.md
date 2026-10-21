@@ -72,14 +72,27 @@ Measured: the exact budget-2 search over Charlotte's 206 relevant strict-policy 
 ## Frontend (`apps/web`)
 
 * `state/store.ts`: Zustand store. It holds the applied-repair stack (exact undo), parameters, evaluation and analysis, camera intents, the compare mode, presentation scenes and narration. Requests are sequenced, so a late response for an old state is dropped. Narration states only engine-verified facts: "neither repair completes this crossing alone" is shown only after extra evaluate calls confirm it.
-* `map/MapView.tsx`: MapLibre GL with a custom light style on OpenFreeMap vector tiles (OpenMapTiles schema, no key). The 3D city layer sits below the street labels and the marker layer above them. Camera presets (overview, street focus, network, top-down) use `cameraForBounds` and `easeTo`. Picking order is markers (screen space), then network edges, then buildings (ray cast in 3D).
+* `App.tsx`: the map fills the main area and the planning panel floats over its right edge. Map chrome, camera framing (`fitCam`, `journeyCamera`), point offsets, labels and the before/after split all use the panel's width (`map/inset.ts`), so nothing important lands under it.
+* `map/MapView.tsx`: MapLibre GL with a custom warm style on OpenFreeMap vector tiles (OpenMapTiles schema, no key). The 3D city layer sits below the street labels and the marker layer above them. Camera presets (overview, journey, crossing) use `cameraForBounds` and `easeTo`. The journey composition chooses a bearing so the destination recedes into the frame. Picking order is markers (screen space), then network edges, then buildings (ray cast in 3D).
+* `intro/`: the opening.
+  * `geo.ts` projects US state boundaries (us-atlas) into Web Mercator in MapLibre's own world units (a 512 px world at zoom 0).
+  * `GeographicIntro.tsx` keeps a virtual camera. Until the regional scale it draws the outline on a canvas; then it drives the one MapLibre map with `jumpTo` every frame while the outline fades. Outline and map therefore never disagree about where Charlotte is.
+  * The regional scales and the destination are rendered once while the outline still covers the map, so tiles, buildings and shadows are ready before the camera arrives.
+  * The final frame is `journeyCamera`, the same composition as the Journey preset.
+  * Time-based, skippable, shortened on return visits, motion-free under reduced motion, and it lands on a fallback camera if data never arrives.
+* Building geometry is built time-sliced and its shaders are compiled with `compileAsync`, so no animation stalls on them.
 * `map/three/CityLayer.ts`: the camera bridge. MapLibre hands each custom layer its projection matrix `P` and mercator view-projection `M`. The Three.js view matrix is `P⁻¹ · M · L`, where `L` maps local metres (east, up, south) around a fixed origin to mercator. Three.js therefore renders with exactly MapLibre's camera, and nothing is positioned with CSS. `alignmentReport()` compares the two projections; the E2E suite requires < 0.5 px at several pitches and bearings (measured error is about 1e-8 px). The layer also holds the sun (shadow map refreshed only when buildings change), the ground shadow catcher, and the scissored before/after split.
 * `map/three/buildings.ts`: footprint extrusion (walls plus triangulated roofs, holes kept) merged into one mesh with per-vertex shading. A building index supports picking, tinting the destination building and the 2D/3D height animation.
 * `map/three/network.ts`: the pedestrian network as screen-space fat lines (`LineSegments2`), one draw call per state category, plus the route (white halo, green core), the potential route and the reach wave. Every line is engine geometry.
 * `map/three/markers.ts`, `icons.ts`: depth-tested, constant-size sprites. Repair states use glyphs as well as colour: bar = blocked, check = repaired, ? = unknown, letter = labeled candidate, dashed ring = hypothetical barrier.
 * `map/MapLabels.tsx`, `map/CompareSlider.tsx`: DOM labels placed each frame from the same projection; the split handle is a keyboard-operable slider.
 * `components/map/CrossingView3D.tsx`: a separate small Three.js renderer for the curb-ramp inspector. The geometry is conceptual and captioned as such; the ramp states come from the engine.
-* `components/panel/`: journey card, plan view (budget, priority, advanced settings, assistant), results view (headline, recommendations, "why this combination" bars, stats, baselines, uncertainty, export), and the explorer tabs (plan, records, data quality).
+* `components/panel/`: the case story.
+  * Journey card: headline, from/to, status "in model".
+  * Plan view: "What would you repair?" with budget, priority, Advanced and the assistant.
+  * Results view: the recommendation as an instruction, repairs with their real IDs, the measured effect, the before/after action, "why this combination", baselines, uncertainty and export.
+  * Once every recommended repair is applied, the measured result moves to the top.
+  * The explorer tabs: plan, records, data quality.
 * Accessibility: every map fact is also in the panel (repairs can be located, applied and removed from the lists); keyboard-operable controls; `prefers-reduced-motion`; WCAG AA contrast, checked with axe in the E2E suite.
 
 ## Contrast with AskStreets

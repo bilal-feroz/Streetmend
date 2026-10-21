@@ -3,11 +3,12 @@ import { useEffect, useRef, useState, type RefObject } from 'react'
 import { useReducedMotion } from '../lib/useReducedMotion'
 import type { Cam, MapHandle } from '../map/MapView'
 import { useApp } from '../state/store'
+import { Logo } from '../components/Header'
 import { CHARLOTTE, latOf, lngOf, loadUsGeometry, mx, my, NC_LABEL, US_BOUNDS, US_LABEL, introPadding, type UsGeometry } from './geo'
 
 // Used only if the scenario never loads: the Elizabeth study area itself.
 const FALLBACK: Cam = { center: [-80.8255, 35.2105], zoom: 15.3, pitch: 52, bearing: -30 }
-const FLIGHT_MS = 2000
+const FLIGHT_MS = 2200
 const SHORT_MS = 1500
 
 const clamp01 = (x: number) => Math.max(0, Math.min(1, x))
@@ -20,6 +21,9 @@ const inOut = (x: number) => {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
 }
 const ramp = (v: number, a: number, b: number) => smooth((v - a) / (b - a))
+// Zoom is perceived logarithmically: a sine ease keeps the peak zoom rate near
+// 1.6x the average (a cubic ease peaks at 3x and rushes the regional scales).
+const sineInOut = (x: number) => 0.5 - 0.5 * Math.cos(Math.PI * clamp01(x))
 
 type Stage = 'usa' | 'nc' | 'charlotte' | 'city'
 
@@ -55,7 +59,7 @@ export function GeographicIntro({ handle, target }: { handle: MapHandle | null; 
   const [stage, setStage] = useState<Stage>('usa')
   const [waiting, setWaiting] = useState(false)
   const canvas = useRef<HTMLCanvasElement>(null)
-  const lbl = { us: useRef<HTMLDivElement>(null), nc: useRef<HTMLDivElement>(null), clt: useRef<HTMLDivElement>(null), insets: useRef<HTMLDivElement>(null), mark: useRef<HTMLDivElement>(null) }
+  const lbl = { us: useRef<HTMLDivElement>(null), nc: useRef<HTMLDivElement>(null), clt: useRef<HTMLDivElement>(null), cltText: useRef<HTMLSpanElement>(null), insets: useRef<HTMLDivElement>(null), mark: useRef<HTMLDivElement>(null) }
   const skip = useRef(false)
 
   const wantsGeo = intro.phase === 'running' && intro.kind === 'full' && !reduced
@@ -116,6 +120,7 @@ export function GeographicIntro({ handle, target }: { handle: MapHandle | null; 
     let preload: 'idle' | 'loading' | 'done' = 'idle'
     let regional: 'idle' | 'loading' | 'done' = kind === 'full' ? 'idle' : 'done'
     let worst = { ms: 0, t: 0, phase: '' }
+    let tilesLate = false // a scale that never finished loading: keep the outline up longer
     let flightStart = -1
     let from: Virtual | null = null
     let landing = false
@@ -135,14 +140,15 @@ export function GeographicIntro({ handle, target }: { handle: MapHandle | null; 
     const settle = (cam: Cam, ms: number) =>
         new Promise<void>((res) => {
           let done = false
-          const end = () => {
+          const end = (timedOut: boolean) => {
             if (done) return
             done = true
+            if (timedOut) tilesLate = true
             res()
           }
           map.jumpTo(cam)
-          map.once('idle', end)
-          setTimeout(end, ms)
+          map.once('idle', () => end(false))
+          setTimeout(() => end(true), ms)
         })
 
     /** Regional scales along the way to the study area, while the outline still covers the map. */
@@ -155,7 +161,8 @@ export function GeographicIntro({ handle, target }: { handle: MapHandle | null; 
         for (const z of [7.4, 10.8]) {
           if (cancelled) return
           const r = Math.pow(2, -(z - z0))
-          await settle({ center: [lngOf(fx + (mx(c0.lng) - fx) * r), latOf(fy + (my(c0.lat) - fy) * r)], zoom: z, pitch: 0, bearing: 0 }, 600)
+          // wait for the tiles (the flight never starts on an empty map), within reason
+          await settle({ center: [lngOf(fx + (mx(c0.lng) - fx) * r), latOf(fy + (my(c0.lat) - fy) * r)], zoom: z, pitch: 0, bearing: 0 }, 2500)
         }
         regional = 'done'
       })()
@@ -169,7 +176,7 @@ export function GeographicIntro({ handle, target }: { handle: MapHandle | null; 
         if (kind !== 'full') await settle({ ...f, zoom: f.zoom - 1.8, pitch: 0 }, 900)
         if (cancelled) return
         layer.setHeightNow(three ? 1 : 0) // compile and shadow the full city once
-        await settle(f, 1300)
+        await settle(f, 2500)
         if (cancelled) return
         preload = 'done'
         layer.setHeightNow(0)
@@ -241,8 +248,9 @@ export function GeographicIntro({ handle, target }: { handle: MapHandle | null; 
         return
       }
       c.style.background = 'transparent'
-      const bgA = 1 - ramp(V.z, 5.3, 7.2)
-      const lineA = 1 - ramp(V.z, 6.9, 9.3)
+      // If tiles were late (slow or no network), the outline holds until the 3D city takes over.
+      const bgA = tilesLate ? 1 - ramp(V.z, 10.5, 12.8) : 1 - ramp(V.z, 5.3, 7.2)
+      const lineA = tilesLate ? 1 - ramp(V.z, 10.5, 12.8) : 1 - ramp(V.z, 6.9, 9.3)
       const ncIn = ramp(t, 650, 1050)
       const ncA = ncIn * (1 - ramp(V.z, 5.8, 7.6))
       ctx.fillStyle = `rgba(245,244,239,${bgA})`
@@ -274,6 +282,8 @@ export function GeographicIntro({ handle, target }: { handle: MapHandle | null; 
       place(lbl.us.current, US_LABEL[0], US_LABEL[1], ramp(t, 150, 450) * (1 - ramp(t, 640, 940)), 0, 0)
       place(lbl.nc.current, NC_LABEL[0], NC_LABEL[1], ramp(t, 720, 1020) * (1 - ramp(V.z, 6.1, 6.9)), 0, 0)
       place(lbl.clt.current, CHARLOTTE[0], CHARLOTTE[1], ramp(t, 950, 1200) * (1 - ramp(V.z, 9.6, 11)), 0, 0)
+      // the map's own city label takes over from zoom ~6, so ours steps aside first
+      if (lbl.cltText.current) lbl.cltText.current.style.opacity = String(1 - ramp(V.z, 5.6, 6.3))
       place(lbl.insets.current, -123.6, 27.6, ramp(t, 120, 520) * (1 - ramp(t, 520, 860)))
       if (lbl.mark.current) lbl.mark.current.style.opacity = String(ramp(t, 200, 600) * (1 - ramp(V.z, 6.5, 8)))
     }
@@ -318,7 +328,7 @@ export function GeographicIntro({ handle, target }: { handle: MapHandle | null; 
           const u = clamp01((now - flightStart) / FLIGHT_MS)
           const fx = mx(f.center[0])
           const fy = my(f.center[1])
-          const z = from!.z + (f.zoom - from!.z) * inOut(u)
+          const z = from!.z + (f.zoom - from!.z) * sineInOut(u)
           const r = Math.pow(2, -(z - from!.z)) * (1 - smooth(ramp(u, 0.1, 1)))
           V.x = fx + (from!.x - fx) * r
           V.y = fy + (from!.y - fy) * r
@@ -386,6 +396,13 @@ export function GeographicIntro({ handle, target }: { handle: MapHandle | null; 
       <p className="sr-only" aria-live="polite">
         {stage === 'usa' ? 'United States' : stage === 'nc' ? 'North Carolina' : stage === 'charlotte' ? 'Charlotte' : 'Elizabeth, Charlotte'}
       </p>
+      {full && (!geo || !handle) && (
+        <div className="absolute inset-0 grid place-items-center" aria-hidden>
+          <div className="flex items-center gap-3 text-[13px] font-extrabold tracking-[0.22em] text-ink">
+            <Logo /> STREETMEND
+          </div>
+        </div>
+      )}
       {full && (
         <>
           <div ref={lbl.us} className="pointer-events-none absolute left-0 top-0 -translate-x-1/2 opacity-0" aria-hidden>
@@ -396,7 +413,9 @@ export function GeographicIntro({ handle, target }: { handle: MapHandle | null; 
           </div>
           <div ref={lbl.clt} className="pointer-events-none absolute left-0 top-0 opacity-0" aria-hidden>
             <span className="absolute -left-[5px] -top-[5px] block h-[10px] w-[10px] rounded-full border-2 border-white bg-ink shadow-[0_0_0_3px_rgba(25,44,40,0.14)]" />
-            <span className="absolute left-3 -top-[9px] block text-[13px] font-semibold whitespace-nowrap text-ink">Charlotte</span>
+            <span ref={lbl.cltText} className="absolute left-3 -top-[9px] block text-[13px] font-semibold whitespace-nowrap text-ink">
+              Charlotte
+            </span>
           </div>
           {geo && geo !== 'failed' && <Insets g={geo} boxRef={lbl.insets} />}
           <div ref={lbl.mark} className="pointer-events-none absolute bottom-8 left-8 opacity-0" aria-hidden>

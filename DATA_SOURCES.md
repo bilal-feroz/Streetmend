@@ -56,6 +56,10 @@ Building heights are used only for display; no analysis reads them.
 
 License: **ODbL 1.0, © OpenStreetMap contributors.**
 
+### US state boundaries (opening only)
+
+The USA → Charlotte opening uses `states-10m.json` from the [us-atlas](https://github.com/topojson/us-atlas) package (ISC license), derived from the US Census Bureau's 2017 cartographic boundary files at 1:10,000,000 (public domain). It is bundled with the web app as a static asset (115 KB) and used only for the opening animation.
+
 ### Basemap
 
 Vector tiles and label fonts come from **OpenFreeMap** (`tiles.openfreemap.org`; OpenMapTiles schema, OSM data). It needs no API key and no account, and attribution is shown on the map at all times. The light style itself is defined in the app (`apps/web/src/map/style.ts`). No Google Maps, Google Earth or other proprietary imagery is used.

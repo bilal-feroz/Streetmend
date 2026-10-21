@@ -10,6 +10,14 @@ page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()) })
 page.on('pageerror', (e) => errors.push(String(e)))
 // BLOCK=<substring> aborts matching requests (for example, offline basemap checks)
 if (process.env.BLOCK) await page.route((u) => u.href.includes(process.env.BLOCK), (r) => r.abort())
+// DELAY=<substring>:<ms> holds matching requests (slow-network checks)
+if (process.env.DELAY) {
+  const [sub, ms] = process.env.DELAY.split(':')
+  await page.route((u) => u.href.includes(sub), async (r) => {
+    await new Promise((res) => setTimeout(res, +ms))
+    await r.continue()
+  })
+}
 await page.goto(url)
 await page.waitForTimeout(+(process.env.WAIT0 ?? 2500))
 for (const a of script.split(';').filter(Boolean)) {

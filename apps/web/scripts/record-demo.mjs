@@ -11,30 +11,31 @@ const page = await ctx.newPage()
 const pause = (ms) => page.waitForTimeout(ms)
 const next = async () => {
   await page.getByTestId('scene-next').click()
-  await page.waitForFunction(() => !document.querySelector('[data-testid=scene-next]')?.hasAttribute('disabled') || document.querySelector('[data-testid=scene-title]')?.textContent === 'Test it yourself')
+  await page.waitForFunction(() => !document.querySelector('[data-testid=scene-next]')?.hasAttribute('disabled') || document.querySelector('[data-testid=scene-title]')?.textContent === 'The measured result')
 }
 const orbit = (deg, ms) => page.evaluate(([d, t]) => { const m = window.__sm.map; m.easeTo({ bearing: m.getBearing() + d, duration: t }) }, [deg, ms])
 
-await page.goto('http://localhost:5173/')
-await page.waitForFunction(() => (window.__sm?.layer.index?.ids.length ?? 0) > 5000)
-await pause(2500)
+// The opening: United States -> North Carolina -> Charlotte -> Elizabeth (a first visit)
+await page.goto('http://localhost:5173/?intro=1')
+await page.getByTestId('intro').waitFor({ state: 'detached', timeout: 20000 })
+await pause(3000)
 
-// Guided story, narrated by presentation mode
+// The guided story, step by step, on the live engine
 await page.getByTestId('present').click()
 await pause(2500)
-await orbit(28, 4500) // scene 1: real Charlotte streets and footprints
-await pause(5000)
-await next() // scene 2: the blocked crossing, inspected
+await orbit(24, 4500) // 01 the city
+await pause(4500)
+await next() // 02 the disconnected journey
 await pause(3500)
 await page.getByTestId('inspector').getByRole('button', { name: 'Pedestrian' }).click()
 await pause(3500)
-await next() // scene 3: exact search over every combination
+await next() // 03 the repair recommendation
 await pause(5500)
-await next() // scene 4: Repair A alone, still disconnected
+await next() // 04 the first intervention
 await pause(6000)
-await next() // scene 5: Repair B reconnects the journey
-await pause(8500)
-await next() // scene 6: before/after split
+await next() // 05 the second intervention
+await pause(8000)
+await next() // 06 the measured result: before / after
 await pause(2000)
 const h = await page.getByRole('slider', { name: 'Before and after comparison position' }).boundingBox()
 if (h) {
@@ -46,8 +47,6 @@ if (h) {
   await page.mouse.up()
 }
 await pause(3500)
-await next() // scene 7: free exploration
-await pause(2500)
 await page.getByTestId('present').click()
 await pause(1000)
 

@@ -135,6 +135,16 @@ Measured on this machine (NVIDIA RTX 3050 Laptop GPU, 4 GB): about 3.7 s per war
 ## 8. Map, 3D city and visual encodings
 
 * **Basemap**: OpenFreeMap vector tiles (OpenMapTiles schema, OpenStreetMap data), no API key, attribution always visible. No Google Maps or Google Earth imagery is used.
+* **Opening**: US state boundaries from the US Census Bureau's cartographic boundary files (via us-atlas, 1:10m) in Web Mercator. The national outline is drawn in the same projection and from the same camera as the live map, so the hand-off is geometric, not a scaled image.
+  * The flight targets the app's journey composition in the Elizabeth study area, not a hard-coded screen position.
+  * The North Carolina highlight is checked in the E2E suite: Charlotte and Raleigh fall inside the state's geometry; Columbia SC and Richmond VA do not.
+  * Alaska and Hawaii appear as insets in their own projections in the opening frame only.
+* **Visual hierarchy**: the modeled network is drawn as quiet context. Strong colour is reserved for:
+  * the selected journey (ink);
+  * the point where it breaks (coral, with a "Blocked crossing" callout);
+  * recommended and repaired interventions;
+  * the computed route (emerald), traced once along its real geometry.
+  * Nothing unrelated to the journey animates.
 * **3D buildings**: 5,113 OpenStreetMap building footprints in and around the study area (`data/samples/charlotte_city/buildings.geojson`). Heights come from:
 
   | Source | Buildings | Height used |
