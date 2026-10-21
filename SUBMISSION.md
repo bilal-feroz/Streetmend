@@ -1,115 +1,169 @@
 # StreetMend: Devpost submission
 
-**Tagline:** Test the city before you change it.
-**Category:** Urban infrastructure verification and intervention intelligence
+**Tagline:** Understand the gap. Test the change. Restore access.
+**Category:** Urban access intelligence and infrastructure decision verification
 **Track:** Geospatial Intelligence for Action · **Theme:** Beyond 2030: Build the World You Want to Live In
 **Repo:** https://github.com/bilal-feroz/Streetmend · **Video:** `docs/media/streetmend-demo.mp4` (screen capture of the working app)
 
 ## Inspiration
-Cities close sidewalks for construction, rebuild intersections and reroute pedestrians every week. Each change is reviewed at the work site, but its effect is felt elsewhere in the network, and it is not the same for everyone. Someone who can step off a curb may still get to the clinic. Someone in a wheelchair may have just lost their only route. Software teams don't ship a change without running the tests first. Cities have no equivalent for their streets.
+Cities usually know where their infrastructure is. Knowing which physical change will actually improve someone's access to a clinic, a school or a bus stop is harder. It depends on how facilities, routes and barriers interact across the whole network.
 
-## The problem and who it affects
-People who use wheelchairs, walkers or strollers, and anyone who cannot step a curb, depend on continuous step-free routes to clinics, bus stops and schools. When a proposed change removes the last such route, nobody notices until someone is stranded. Connectivity is a property of the whole network, so these regressions are invisible when you look at one asset or one site.
+A sidewalk closure is reviewed at the work site, but its effect is felt blocks away, and not equally: someone who can step off a curb may still get to the clinic, while someone in a wheelchair may have lost their only route. Software teams don't ship a change without running the tests. Cities have no equivalent for their streets.
 
-## What StreetMend does
-StreetMend is a **preflight check for street changes**: **PROPOSE → TEST → FIND BREAKAGE → GENERATE FIX → VERIFY**.
+## The problem
+An area with poor access to essential services can have three different problems:
+* **connectivity**: a facility is close, but a missing sidewalk or curb ramp cuts the route;
+* **availability**: nothing is within reach at all;
+* **a change**: a proposed closure removes access that existed yesterday.
 
-1. **Propose**: the planner adds a typed, validated change, such as "close this crossing", to a separate *proposed* network. Pick a prepared proposal or any sidewalk or crossing on the 3D map.
-2. **Test**: configurable access requirements run on today's network and on the proposed one:
-   * a step-free route within 800 m;
-   * a detour limit;
-   * access to a bus stop;
-   * 90% of the area's step-free journeys kept.
+A new clinic will not fix a missing sidewalk, a repaired ramp will not create a grocery store, and a closure should be tested before it is built. Straight-line access maps cannot tell these cases apart. On Charlotte's real records they place **522** more homes within reach of a school (step-free) than the network does.
 
-   Each returns PASS, FAIL or INCONCLUSIVE. Unknown data can make a check inconclusive, never a silent pass.
-3. **Find breakage**: for each regression, a graph **counterexample**: today's route, the exact edge the proposal removes, the walking route that remains and the curb steps that make it unusable step-free, and the shortest step-free alternative and why it fails.
-4. **Generate fix**: an **exact search by increasing size** over a catalog of typed mitigations (temporary curb ramps, temporary accessible crossings, ramp reconstruction), with the proposal kept in place. It returns the smallest set and explains why every smaller set fails.
-5. **Verify**: the fix is applied to a third network state and every check runs again. Nothing counts as fixed until the graph engine says so. Switch an intervention off and the checks fail again.
+People who use wheelchairs, walkers or strollers, and anyone who cannot step a curb, carry the cost of getting this wrong.
 
-On the real Elizabeth (Charlotte) street graph, a hypothetical closure of the East 7th Street crossing at Hawthorne Lane plays out as follows:
-* **Regression:** 3 of 5 checks fail, and step-free journeys fall from 55 to 44. Walkers keep a 648 m route through the other crossing, but only by stepping 2 curbs. The shortest step-free detour is 868 m.
-* **Fix:** the search checks 20 sets in about 0.4 s and returns **A + B**, temporary ramps at both ends of the other crossing. Neither alone helps. A temporary crossing at Park Drive restores a route but fails the 15% detour limit.
-* **Verified:** with A + B, all 5 checks pass and all 55 journeys are back.
+## What it does
+StreetMend is one geospatial decision engine on the real pedestrian network of Elizabeth, Charlotte. It answers four questions.
 
-StreetMend also keeps its original tools:
-* **Repair planner**: the combination of repairs that reconnects the most journeys, compared with greedy and ranking baselines.
-* **Charlotte Data Explorer**: 320 real CDOT curb-ramp records, 557 sidewalk segments and 19 CATS bus stops.
+1. **Discover: where is access failing?**
+   * Measures 951 homes' distance to six essential-service categories along the network, separately for step-free and walking travel.
+   * Each result is PASS (on links of known condition), INCONCLUSIVE (only if links of unknown condition are passable) or FAIL. Missing data never becomes a pass.
+2. **Diagnose: why?** For a selected area it compares four distances: straight line, walking, step-free, and every link open. From these it separates:
+   * a connectivity barrier, named by its CDOT records;
+   * a network detour;
+   * a missing facility;
+   * a data gap.
 
-## How the pedestrian graph works
-* Each intersection gets one corner node per angular sector between street legs. Corners connect only through sidewalks along a block face, or through a crossing whose two ends are curb-ramp edges. Corners on opposite sides of a street are never joined directly.
-* In Charlotte, CDOT ramp records are matched to intersections (by intersection ID group and distance), to corners (by bearing) and to crossings (by the surveyed crosswalk direction). Sidewalk inventory lines are matched to street sides by offset, direction and coverage.
-* Anything without matching evidence stays **unknown** and is excluded from modeled traversability. A sensitivity pass shows what would change if it were passable.
-* Because nearly every surveyed ramp is recorded as non-compliant, ramp passability is an explicit, selectable policy (strict / severe defects only / missing ramps only), never a hidden assumption.
+   It adds an E2SFCA-style supply index, after REACH.
+3. **Intervene: fix or build?** It compares the best set of repairs (CDOT ramp barriers and recorded sidewalk gaps) with one hypothetical new facility, on the same homes and the same objective. The search finds the winner; a tie is reported as a tie.
+4. **Verify: does the change work?**
+   * Every option is re-run on the full network.
+   * The **change check** tests a *proposed* street change before it is made: **PROPOSE → TEST → FIND BREAKAGE → GENERATE FIX → VERIFY**.
+     * It builds a separate proposed network and runs explicit access requirements.
+     * For each regression it produces a graph **counterexample**: the route lost, the exact edge, the walking route that survives and the curb steps that make it unusable step-free.
+     * It searches for the **smallest set of typed mitigations** that restores every check, and verifies them on a recomputed network.
 
-## Why exact search (not ranking) matters
-* **Guided scenario** (hypothetical barriers on real streets): the two curb ramps of the East 7th Street crossing at Hawthorne Lane are each worth 0 alone and +123 together. A + B reconnect 10 journeys, including a 648 m route to Novant Health Presbyterian. Exact search picks A + B; greedy and individual ranking recommend nothing.
-* **Real Charlotte records**: homes along East 5th Street cannot reach Novant Health Presbyterian within 800 m. The route is blocked by two recorded barrier ramps; one of them (R112391) has zero value on its own. With both repaired, the route is 775 m.
-* **Charlotte, strict policy, budget 2**: exact +186 vs greedy +53.
-* **Honest counterpoint**: under the moderate and lenient policies, and in most of 40 randomized districts, greedy already matches the optimum. StreetMend is valuable exactly where repairs interact, and it tells you whether that is the case.
+Questions in plain English ("Is repairing better than adding a new school?", "Why did verification fail?") map to typed, allowlisted graph tools. No generated code is executed.
 
-## Technical architecture
-* **Engine (Python)**: NetworkX for routing and inspection; SciPy compiled Dijkstra for evaluation; an exact *key-node* evaluator that scores a repair combination with one tiny Floyd–Warshall over the repaired edges' endpoints plus vectorized min-plus products; sound candidate pruning. Exact search over 21,321 combinations of real Charlotte candidates takes 3–5 s on a laptop.
-* **Verification engine (Python, `streetmend.verify`)**:
-  * typed changes produce new network states; the baseline is never mutated;
-  * two travel profiles on one graph;
-  * three-valued checks: conservative versus optimistic handling of unknown links;
-  * counterexamples built from shortest paths on each profile;
-  * minimal-fix synthesis by exact enumeration by size, each candidate set verified on the recomputed network.
+## Measured on the real data
+**Change check** (real streets, hypothetical closure and barriers):
+* **Today**: a 648 m step-free route from Hawthorne Lane to Novant Health Presbyterian; all 5 checks pass.
+* **The proposed closure**:
+  * 3 checks fail, and step-free journeys fall from 55 to 44;
+  * walkers keep 648 m by stepping 2 curbs;
+  * the step-free detour is 868 m.
+* **The fix**: the search tests 20 sets in about 0.4 s and returns two temporary ramps that only work together. With them all 5 checks pass; switching one off fails them again.
 
-  Distances use SciPy's compiled Dijkstra: about 0.15 s per proposal check and 0.4 s for the fix search.
-* **API**: FastAPI with Pydantic contracts: `/verify`, `/verify/fix`, and `/evaluate` with proposed changes. Stateless: every state is rebuilt from the proposal and mitigation lists.
-* **Web**: React 19, TypeScript, Tailwind v4, MapLibre GL JS on OpenFreeMap vector tiles (no API key), and a Three.js custom layer that renders with MapLibre's own camera matrices.
-  * Buildings, network, route and markers stay aligned to the basemap within a fraction of a pixel; the tests check this.
-  * Every map fact is also in the panel.
-  * Keyboard operation, reduced-motion support and WCAG AA contrast.
-* **AI**: a deterministic rule parser first. For unrecognized phrasing, a local Ollama model (`qwen3:4b`, JSON-schema decoding) may only choose one of eleven allowlisted operations with typed arguments. The engine executes it; any model-written sentence containing a standalone number, number word or magnitude word (hundred, double, percent...) that is not in the computed facts is rejected. The product works fully without the model.
+**Fix or build** (real CDOT records), for 51 homes cut off from schools:
+
+| Budget | Fix | Build | Winner |
+|---|---|---|---|
+| 1 repair | +32 homes | +35 (a hypothetical school site) | **build** |
+| 2 repairs | **+42**: two missing sidewalks, one worth **0** alone | +35 | **fix** |
+
+**Grocery**: no supermarket lies inside the modeled network. Repairs cannot help, and StreetMend says so.
+
+**Honesty about data**: for healthcare, **754** homes are INCONCLUSIVE because their routes use sidewalks with no inventory record. StreetMend does not call them served.
+
+## How we built it
+* **Graph engine (Python)**:
+  * a pedestrian graph of corners, curb landings, ramps and crossings, with an explicit state (traversable / blocked / unknown) and evidence label on every edge;
+  * travel profiles as capability constraints on the same graph;
+  * typed changes applied copy-on-write, so the baseline is never mutated;
+  * three-valued checks;
+  * SciPy compiled Dijkstra, with multi-source searches through a virtual source;
+  * Shapely snapping and H3 cells.
+* **Verification**:
+  * counterexamples from the shortest paths per profile;
+  * minimal-fix synthesis by exact enumeration by size over a typed intervention model (preconditions, dependencies, cost budget, provenance, record-backed or simulated);
+  * every candidate re-verified on the recomputed network.
+* **Fix or build**:
+  * exact repair search over candidates that pass a network-ellipse test (with every repair applied, only repairs that could lie on a route within the threshold are searched; this can only over-include);
+  * a labeled beam search beyond 1,600 sets;
+  * hypothetical sites at real non-residential buildings;
+  * independent re-verification.
+* **API**: FastAPI and Pydantic.
+* **Web**: React 19, TypeScript, Tailwind v4, MapLibre GL JS on OpenFreeMap tiles (no API key), and a Three.js custom layer drawing the 3D city with MapLibre's own camera.
+* **AI**:
+  * a rule parser, then optionally a local `qwen3:4b` model via Ollama, which may only choose one of 18 allowlisted operations with typed arguments;
+  * any model-written sentence containing a number that is not in the computed facts is rejected;
+  * it works fully without the model.
+
+## Evidence
+* `scripts/benchmarks/run_evaluation.py` writes `docs/EVALUATION.md`: **10 of 10 deterministic fixtures fully correct**. For each fixture:
+  * the regression is detected;
+  * the counterexample is re-walked edge by edge, and NetworkX confirms no compliant route remains;
+  * the fix is re-verified;
+  * removing any member regresses again;
+  * budgets report infeasibility;
+  * unknown data gives INCONCLUSIVE.
+
+  The fixtures are: single bottleneck, dependent pair, existing alternative, multiple destinations, infeasible budget, unknown state, two requirements, redundant candidates, no mitigation, detour limit.
+* **Honest baselines**:
+  * greedy fails both dependent-pair cases, including Charlotte;
+  * nearest-first matches the exact search in several cases, including Charlotte, and the report shows where.
+* **Tests**: 170 Python tests and 19 Playwright end-to-end tests against the real API. The browser tests compare every number in the UI with the API.
+* **A real bug, found by the evaluation and fixed**: graph facts were cached by `id()`, which Python reuses after garbage collection, so a stale "no unknown links" could turn INCONCLUSIVE into FAIL.
+
+## Judging criteria
+* **Human impact (25)**:
+  * targets the people a single missing ramp or sidewalk strands, and the decision a city faces before it acts;
+  * shows who loses access, why, and which response helps most, before money is spent or a crossing is closed.
+* **Innovation (20)**:
+  * pre-deployment verification of street changes with explicit counterexamples and verified minimal fixes;
+  * capability-aware profiles on one graph;
+  * a fair repair-vs-facility comparison on one objective.
+
+  Related work and differences are in `docs/COMPARISON.md`.
+* **Technical feasibility (20)**: it runs on real Charlotte records and computes in well under a few seconds on a laptop:
+  * change check about 0.15 s;
+  * fix search about 0.4 s;
+  * fix-or-build 0.1–3 s.
+
+  It is tested end to end, and the evaluation is reproducible.
+* **Trust, ethics and risks (15)**:
+  * unknown never becomes PASS;
+  * hypothetical settings and sites are labeled everywhere;
+  * homes are a disclosed proxy, not population;
+  * no AI decides anything;
+  * no cost or compliance claims;
+  * limitations are in `LIMITATIONS.md`.
+* **Scalability and reusability (10)**:
+  * the pipeline is parameterized by bounding box, and the engine is generic over graphs, profiles, requirements and intervention types;
+  * the access engine and the change check share one usability rule;
+  * new categories or requirements are data, not code.
+* **Ease of implementation and adoption (10)**:
+  * open data (CDOT ArcGIS services, OpenStreetMap);
+  * no paid APIs or keys;
+  * one-command local start;
+  * works offline except the basemap;
+  * planners use it through a map and three buttons.
 
 ## Datasets
-City of Charlotte / CDOT ADA Curb Ramps, CDOT Sidewalk Inventory and CATS Bus Stops: ArcGIS REST, NC State Plane EPSG:2264, reprojected with pyproj and cross-checked against server reprojection (max difference 0.82 m).
+* **City of Charlotte / CDOT**: ADA Curb Ramps, Sidewalk Inventory and CATS Bus Stops (ArcGIS REST, reprojected from EPSG:2264 with pyproj).
+* **OpenStreetMap via Overpass and OSMnx (ODbL)**:
+  * the street network;
+  * 285 essential-service facilities in six categories;
+  * 5,113 building footprints (homes are the residential ones).
+* **Basemap**: OpenFreeMap.
 
-OpenStreetMap via OSMnx and Overpass (ODbL):
-* streets and destinations;
-* 5,113 building footprints. Heights come from OSM tags for 392 of them; the rest are disclosed estimates.
+Provenance and retrieval times are recorded and shown in the app.
 
-Basemap: OpenFreeMap. Provenance, retrieval times, missing-field statistics and match coverage are visible in the app.
+## Credits
+* **REACH** by **Mohammad Umar**: the six service categories, walking thresholds, linear access score and E2SFCA supply design. These were re-implemented on network distance, with no code or data reused; REACH has no license file.
+* **AskStreets** by **Adam Munawar Rahman**: the idea of asking a street graph questions in plain English. StreetMend's version uses typed, allowlisted tools and never runs generated code.
 
-## Quantitative evaluation
-* 134 Python tests:
-  * exact search vs brute force using an independent NetworkX implementation;
-  * fast evaluator vs full Dijkstra for every subset of up to three repairs;
-  * the dependent-pair synergy case (synthetic district and guided scenario);
-  * the change check act by act. The closure regresses step-free but not walking access, and A + B is the only minimal fix; every single candidate and pair is re-checked independently;
-  * three-valued logic on a hand-built network: unknown is INCONCLUSIVE, never PASS;
-  * unknown-edge exclusion, budget limits, undo/reset, determinism;
-  * builder invariants and ingestion pagination/reprojection.
-* 18 Playwright end-to-end tests against the real API:
-  * the change check end to end, with every check status, the counterexample and the fix compared with the API, plus the six presentation acts;
-  * a 20-step repair-planner flow (map, 2D/3D, rotate/zoom, inspect, analyze, Repair A, Repair B, route, split, undo, reset, explorer record, back), checking that UI numbers match API responses;
-  * 3D/basemap projection agreement under 0.5 px at several cameras;
-  * budget one, presentation steps, assistant allowlist, keyboard operation, phone layout;
-  * the opening: North Carolina geometry checked against known cities, landing position and alignment, skip and replay, return visit, reduced motion;
-  * axe scans with no serious or critical findings.
-* Reproducible benchmark (`scripts/benchmarks/run_benchmark.py` → `docs/BENCHMARK.md`): guided scenario, synthetic district, 40 randomized districts, 40 random grids, Charlotte × 3 policies × budgets 1–3.
-
-## Safety and limitations
+## Limitations
 StreetMend is a planning and research prototype: not navigation, not an ADA compliance determination, not a construction authorization, and not endorsed by the City.
-* **Coverage**: only about 35% of modeled crossing landings in the study area matched a ramp record.
-* **Data age**: surveys date from 2017–2019.
-* **Not modeled**: signals and traffic.
-* **Origins**: OSM residential buildings as a proxy, not population.
-* **Results depend on assumptions**: the stated passability policy and access threshold.
-* **3D heights**: most building heights are estimates (disclosed in the app); the curb-ramp 3D view is illustrative.
+* **Data coverage**: 317 of 760 modeled sidewalk segments, and about two thirds of curb landings, have no CDOT record, so many results are INCONCLUSIVE by design. Surveys date from 2017–2019.
+* **Not modeled**: signals, traffic, slope and surface.
+* **Change check**: the demo's closure and barriers are hypothetical settings on real streets.
+* **Fix or build**: facility sites are hypothetical, and costs are not compared.
+* **No vehicular graph**: emergency road access is a documented extension, not a feature.
 
-Details are in LIMITATIONS.md.
-
-## Scalability and future deployment
-The pipeline is parameterized by bounding box, and the evaluator's precomputation scales with the number of candidates rather than combinations. Deployment would need:
-* field verification to resolve unknown links;
-* current ramp conditions and remediation dates;
-* cost estimates per intervention;
-* census-based origin weights;
-* signal and crossing-risk data;
-* review by the city's ADA transition-plan staff.
+## What's next
+* A drivable graph with one-way and turn restrictions for emergency-access checks.
+* A field-verification workflow that turns unknown links into evidence.
+* Cost-aware budgets once credible estimates exist.
+* Census-weighted homes, and facility capacity data.
 
 ## What we did not do
-No user interviews, municipal partnership, deployment, or cost-savings claims were made or are implied.
+No user interviews, municipal partnership, deployment, population outcome or cost-savings claims were made or are implied.

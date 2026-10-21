@@ -40,6 +40,13 @@ Retrieved with OSMnx (Overpass API, with backoff across mirrors and a fallback t
 * 65 amenity/healthcare POIs, including Novant Health Presbyterian Medical Center, Atrium Health Mercy, Charlotte Orthopedic Hospital, several clinics, Walgreens, Elizabeth Traditional Elementary and Central Piedmont Community College;
 * 577 buildings and 15 residential land-use areas.
 
+### Essential-service facilities (access analysis)
+`scripts/ingest/fetch_facilities.py` queries the Overpass API for the study-area bounds plus about 1.2 km (bbox −80.850, 35.192, −80.801, 35.232). It writes `data/samples/charlotte_elizabeth/facilities.geojson`, recording the endpoint and retrieval time. The OSM tags for each category are listed in METHODOLOGY §10. Some areas are excluded: landscaping beds and private gardens are not parks, and alternative-medicine and spa listings are not healthcare.
+
+Result: 285 features: healthcare 47, education 18, grocery 7, transit 78, parks 81 and essential services 54. CATS bus stops from the municipal layer are added to transit.
+
+Homes for the access analysis come from the building footprints below: residential types, plus untyped buildings of 60 m² or more inside OSM residential land use.
+
 ### Building footprints (3D city)
 
 `scripts/ingest/fetch_buildings.py` fetched **5,113** OSM building footprints for a wider box around the study area and Uptown, `-80.848, 35.200, -80.810, 35.230` (WGS84). It uses Overpass with mirror fallback and falls back to tiled OSM API 0.6 map calls when Overpass is busy. The file is `data/samples/charlotte_city/buildings.geojson`, retrieved 2026-10-20, 1.9 MB. The API serves it gzipped at `/api/context/buildings`.

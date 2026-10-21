@@ -30,6 +30,10 @@ flowchart LR
   T[OpenFreeMap vector tiles] --> W
   W --> C[Three.js city layer<br/>MapLibre's camera]
   Q[Assistant<br/>rules → Ollama → allowlist] --> API
+  FA[(OSM facilities + CATS stops)] --> AC[access<br/>network distance · diagnosis · supply · fix or build]
+  M --> AC
+  AC --> API
+  EV[evaluation<br/>10 fixtures · greedy · nearest-first] --> V
 ```
 
 ## Design principles
@@ -57,6 +61,11 @@ flowchart LR
 | `municipal/build.py` | Charlotte graph builder and ramp passability policies |
 | `municipal/scenario.py` | Loads prepared data, builds the three policy variants, serves source records |
 | `ai/intents.py` · `rules.py` · `llm.py` · `executor.py` | Allowlist schema, offline rule parser, Ollama client with JSON-schema decoding and grounding check, operation registry |
+| `verify/interventions.py` | The intervention model: types, targets, state changes, checked preconditions, profiles, cost units, dependencies, provenance, record-backed or simulated; catalog validation |
+| `access/network.py` | Per-state edge masks (shared `usable` rule), sidewalk snapping (Shapely STRtree), multi-source Dijkstra through a virtual source, path extraction |
+| `access/analysis.py` | Homes and facilities, six categories, three-valued status and diagnosis factors, H3 cells, E2SFCA-style supply index |
+| `access/intervene.py` | Fix or build: repair candidates (ramp barriers, recorded sidewalk gaps), network-ellipse pruning, exact search by size with labeled beam fallback, hypothetical sites, independent re-verification |
+| `evaluation/fixtures.py` · `run.py` | Ten deterministic benchmark networks; claim checks; greedy and nearest-first baselines |
 | `verify/changes.py` | Typed changes (`close`, `reopen`) with validation; `apply_changes` builds a proposed scenario without touching the baseline |
 | `verify/profiles.py` | Step-free and walking profiles on one graph; curb steps |
 | `verify/checks.py` | Requirements, `NetworkState` (compiled Dijkstra per profile), three-valued evaluation, counterexamples |

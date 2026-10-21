@@ -26,6 +26,19 @@ StreetMend is a planning and research prototype. Its outputs are **planning esti
 * **The fix is minimal for the catalog.** Mitigations are drawn from the scenario's catalog of typed interventions on existing edges. New alignments, such as a new temporary path, are not generated, so options outside the catalog are not considered. Search is exhaustive up to the stated size and reports when it is not.
 * **The demo case is hypothetical.** The closure, the missing ramps on the other crossing and the two legs with no usable crossing are scenario settings on real streets, not city plans or survey findings.
 
+## Access-analysis limitations
+* **Homes are a proxy.** 951 OSM residential buildings (plus large untyped buildings in residential land use), one per building: an apartment block counts the same as a house. Not population, and OSM building coverage is incomplete.
+* **Facilities come from OpenStreetMap**, which can be incomplete or out of date. No opening hours, eligibility, capacity or quality. The supply index counts one unit per facility because no capacity data exists.
+* **Edge effects.** The modeled network stops at the study-area boundary.
+  * Facilities just outside it are used for straight-line screening only, so near the edge a home can be *INCONCLUSIVE (beyond study area)* rather than served.
+  * No supermarket lies inside the network, so grocery results are mostly edge effects or real gaps, and the app says which.
+* **Most step-free uncertainty is a data gap.** 317 of 760 modeled sidewalk segments have no CDOT inventory record. A home on such a sidewalk is INCONCLUSIVE under the verified policy, which is why few homes PASS on known links only.
+* **Fix-or-build objective.** The objective counts homes newly within the threshold under the declared policy (unknown links passable by default; verified counts are shown beside it).
+  * No costs are compared.
+  * Hypothetical facility sites are real non-residential buildings, with no land, zoning, lease or cost assessment.
+  * Repair candidates are recorded ramp barriers and recorded sidewalk gaps only.
+* **Thresholds are REACH's defaults** (straight-line there, network here). They are configurable planning values, not standards.
+
 ## Model and algorithm limitations
 * The objective counts weighted origin–destination pairs within a threshold. It ignores route quality beyond length (slope, surface, shade, safety) and partial accessibility.
 * "Optimal" means optimal for the stated candidate set, objective, weights and threshold, and only for exact-enumeration results. Beam-search results are approximate.

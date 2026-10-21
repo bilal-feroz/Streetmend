@@ -177,7 +177,7 @@ Each change is validated: the edge must exist, the kind must be allowed (sidewal
 
 **Travel profiles** read the same graph differently:
 * **Step-free**: an edge is usable only when traversable (or repaired). A missing or failed curb ramp is a barrier.
-* **Walking**: additionally passes a ramp edge whose barrier is a missing or failed ramp. This is a *curb step*, recorded on the route.
+* **Walking**: additionally passes a ramp edge whose barrier is a missing or failed ramp, or whose condition is unknown (a walker can step the curb whatever the ramp's state). This is a *curb step*, recorded on the route.
 * **Both**: a closure, a missing sidewalk or a leg with no usable crossing stops both profiles.
 
 **Requirements** are configurable planning checks:
@@ -225,6 +225,29 @@ The result reports:
 
 Kinds that change an edge's usability without new geometry fit this model directly. New alignments (a new temporary path) would need an explicit new-edge operation, which is not implemented, so no invented paths enter the graph.
 
+**Intervention types and checks** (`verify/interventions.py`). Planner changes and catalog mitigations share one typed model:
+
+| Type | Targets | Effect | Profiles changed |
+|---|---|---|---|
+| `close_sidewalk` / `close_crossing` / `close_ramp` | sidewalk / crossing / ramp | close | both |
+| `reopen_sidewalk` / `restore_crossing` | sidewalk / crossing | open | both |
+| `build_sidewalk` | sidewalk with a recorded gap | open | both |
+| `temporary_accessible_crossing` | crossing | open | both |
+| `reconstruct_curb_ramp` / `install_curb_ramp` / `temporary_curb_ramp` | ramp | open | step-free |
+| `close_road` / `reopen_road` | none | unsupported: no vehicular graph in this build | none |
+
+Every intervention also records:
+* its state change per edge;
+* its preconditions, which are checked: the target kind matches, an opening targets a link that is not already open, and its dependencies exist;
+* its cost units and its dependencies (`requires`);
+* its provenance;
+* whether it is **record-backed** (it acts on a barrier in a municipal record) or **simulated**.
+
+Catalogs are validated in the test suite, including for dependency cycles.
+
+The fix search accepts a set only if it is closed under its dependencies and fits the cost budget. If no set fits the budget but a larger one would work, the result is `over_budget` and names the excluded fix. It never claims that none exists.
+
+
 **Demo case.** The settings (`data/scenarios/charlotte_preflight.json`) are:
 * the proposal: closing crossing `X:172578423:1`;
 * missing curb ramps at both ends of the other East 7th Street crossing at the same intersection (`X:172578423:3`);
@@ -232,3 +255,86 @@ Kinds that change an edge's usability without new geometry fit this model direct
 
 They were chosen by closing the crossing and listing the real graph's detours ([`scripts/scenarios/explore_preflight.py`](scripts/scenarios/explore_preflight.py)). All are hypothetical; the streets are real. The 5 requirements and the 5-item catalog are in the same file.
 
+## 10. Access analysis: discover and diagnose (`access/`)
+
+**Homes and facilities.**
+* **Homes**: OSM residential buildings, plus untyped buildings of 60 m² or more inside OSM residential land use, in the study-area bounds. There are 951. Each counts once: a proxy, not population.
+* **Facilities**: OSM amenities in six categories, plus CATS bus stops (municipal records). They are fetched for the bounds plus about 1.2 km, so homes near the edge can be screened against facilities just outside.
+* **Snapping**: each home and facility joins the network at the nearest sidewalk edge, by a straight connector (an inferred assumption). It reaches the network through that edge's two ends, so a home on a sidewalk of unknown condition has unknown access itself.
+* **Parks** enter at every 50 m of their boundary that lies within 40 m of a sidewalk.
+
+| Category | OSM tags | Threshold (REACH default) |
+|---|---|---|
+| Healthcare | amenity = hospital, clinic, doctors, dentist, pharmacy; healthcare = hospital, clinic, doctor, … | 1,500 m |
+| Education | amenity = school, kindergarten, college, university | 1,200 m |
+| Grocery | shop = supermarket, grocery, greengrocer | 800 m |
+| Transit | highway = bus_stop, railway = tram_stop / station, CATS stops | 600 m |
+| Parks | leisure = park, playground, nature_reserve, public or community garden | 1,000 m |
+| Essential services | amenity = post_office, bank, library, community_centre, social_facility, police, fire_station, townhall | 1,000 m |
+
+**Network states.** One multi-source Dijkstra (SciPy) per state, from all facilities of the category through a virtual source, gives every home's distance. The states are masks over the same edges, built with the verification engine's own `usable` rule, so access results and change checks cannot disagree:
+* `verified`: links of unknown condition excluded;
+* `possible`: unknown links included;
+* `physical`: every modeled link open, whatever its recorded state;
+
+each computed for the step-free and walking profiles. A ramp edge of unknown condition is usable on foot, because a walker can step the curb whatever the ramp's state.
+
+**Status and diagnosis** for one home, category and profile, with threshold T, applied in order:
+
+| Factor | Condition | Status |
+|---|---|---|
+| served | verified ≤ T | PASS |
+| unknown_links | possible ≤ T < verified | INCONCLUSIVE |
+| outside_area | possible > T, and a facility outside the network is within T in a straight line | INCONCLUSIVE |
+| barrier | possible > T ≥ physical | FAIL |
+| detour | physical > T, straight line to a routable facility ≤ T | FAIL |
+| distance | no facility within T even in a straight line | FAIL |
+
+**Cells.** Cells are H3 resolution 9 (about 30 homes each).
+* **Cell status**: PASS if at least 80% of its homes pass; FAIL if fewer than 80% pass or are inconclusive; otherwise INCONCLUSIVE.
+* **REACH-style score**: also reported, 100 up to T and falling linearly to 0 at 2T.
+* **Diagnosis**: a cell's diagnosis uses its median home by possible distance. It reports the four distances, the recorded barriers on the shortest physical route (with record ids) and the unknown links on the best route.
+
+**Supply index (E2SFCA-style).** Following Luo & Qi (2009) as adapted by REACH, with network distance in place of straight-line distance:
+* **Distance zones**: zone weights are 1, 0.42 and 0.09 for d < T/3, d < 2T/3 and d ≤ T.
+* **Step 1**: each facility's ratio is R_j = 1 / Σ_i W_ij.
+* **Step 2**: each home's accessibility is A_i = Σ_j R_j W_ij. The index is reported against the area's 75th percentile.
+
+Every facility counts as one unit, because no capacity data exists: this measures availability under competition, not real capacity. Facilities outside the network are not counted. Summed over homes, A equals the number of facilities any home reaches, and a test checks this.
+
+## 11. Fix or build (`access/intervene.py`)
+
+**The comparison.** For the homes in the selected cells, one category, one profile and one threshold, both options use the same objective: homes that newly reach the category within T under the declared policy. The default policy is `possible`; verified counts are always shown beside it.
+
+**Fix** candidates are:
+* the scenario's interventions: CDOT ramp barriers to reconstruct or install;
+* every block face the CDOT sidewalk inventory records as *No Sidewalk* (`build_sidewalk`).
+
+**Pruning.** A repair is searched only if a route home → repair → facility can be within T:
+1. A straight-line screen first.
+2. Then a network test with every screened repair applied: the minimum over the repair's edges of d_H(u) + L + d_F(v) ≤ T. Here d_H is the distance from the not-yet-served homes and d_F from the facilities.
+
+Removing repairs only lengthens routes, so this test never drops a useful repair; a brute-force test confirms it on the real data.
+
+**Search.** Sets are enumerated exactly by size up to the budget while the count stays under 1,600. Beyond that, a beam search (width 25) extends the best smaller sets, and the result says it is not exhaustive.
+
+**Build** candidates are existing commercial, retail, office and parking buildings in the study area, within T of a selected home. Each is evaluated as one extra facility. They are labeled hypothetical: land, zoning and cost are not assessed.
+
+**Winner.** Whichever option brings more homes within reach wins. Equal counts are reported as a tie, and costs are not compared.
+
+**Re-verification.** Both options are re-run independently on the full network, for all homes and both policies. The tests check that the recomputation matches the search. The typical home's route is returned for each state and drawn on the map.
+
+## 12. Street intelligence (`ai/`)
+
+Questions are answered in a fixed sequence:
+
+1. **Interpret.** A question becomes one of 18 allowlisted operations: the repair-planner set, plus `identify_access_gaps`, `diagnose_access`, `compare_interventions`, `network_vs_straight`, `critical_links`, `closure_impact`, `explain_verification` and `show_evidence`.
+   * The rule parser runs first; for phrasings it does not recognise, the local model (`qwen3:4b` via Ollama) may propose an operation.
+   * Both produce a Pydantic-validated intent with typed arguments (category, profile, budget, an H3 cell id pattern).
+2. **Execute.** Deterministic functions compute the answer on the scenario, the access model or the proposal under test, which the client sends.
+3. **Respond.** The response carries the facts and a client action (show a cell, open the comparison, highlight links), and the map follows it.
+4. **Narrate (optional).** The model may rephrase the facts for explanations only. A sentence with any number or magnitude word not present in the facts is rejected.
+
+No generated code, query or file path is ever executed.
+
+`critical_links` closes each of the 30 links most used by today's routes, one at a time, and counts the journeys lost: a what-if built from the same typed `close` change.
