@@ -169,7 +169,8 @@ def verify_fix(sid: str, req: S.FixRequest):
     sc = _scenario(sid)
     o, d = _journey(sc, req.origin, req.destination)
     try:
-        return run_synthesize(sc, [_change(c) for c in req.proposal], _requirements(sc, req.requirements, o, d), (o, d), max_size=req.max_size)
+        return run_synthesize(sc, [_change(c) for c in req.proposal], _requirements(sc, req.requirements, o, d), (o, d), max_size=req.max_size,
+                             budget=req.budget)
     except ChangeError as exc:
         raise HTTPException(422, detail=str(exc)) from exc
 
@@ -178,6 +179,14 @@ def _analysis(sc: Scenario, req: S.OptimizeRequest) -> dict:
     _check_ids(sc, req.candidate_ids, "candidates")
     return analyze(sc, AnalysisParams(budget=req.budget, weights=_weights(req.weights, req.priority),
                                       cutoff_m=req.cutoff_m, candidate_ids=req.candidate_ids))
+
+
+@app.get("/api/scenarios/{sid}/interventions")
+def interventions(sid: str):
+    """The intervention model: types, and every catalog intervention with targets, preconditions and provenance."""
+    from streetmend.verify.interventions import catalog
+
+    return catalog(_scenario(sid))
 
 
 @app.post("/api/scenarios/{sid}/optimize", response_model=S.OptimizeResponse)

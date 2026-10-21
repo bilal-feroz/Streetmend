@@ -20,6 +20,7 @@ from streetmend.scenario.model import Scenario
 
 from .changes import Change, apply_changes
 from .checks import CheckResult, NetworkState, Requirement, counterexample, evaluate
+from .interventions import closed_under_requires
 from .profiles import Profile
 
 
@@ -105,7 +106,16 @@ def candidates(sc: Scenario, proposed: Scenario) -> list[str]:
     return sorted(out)
 
 
-def synthesize(sc: Scenario, proposal: list[Change], reqs: list[Requirement], focus: tuple[str, str] | None, max_size: int = 3, max_evals: int = 20000) -> dict[str, Any]:
+def synthesize(sc: Scenario, proposal: list[Change], reqs: list[Requirement], focus: tuple[str, str] | None, max_size: int = 3, max_evals: int = 20000,
+               budget: int | None = None) -> dict[str, Any]:
+    """Smallest catalog set that restores every regressed requirement without breaking another.
+
+    Exact enumeration by increasing size. A set is admissible only if it includes
+    every intervention its members require and its total cost units fit the
+    budget. Minimal sets are ranked by cost, then the step-free length of the
+    focus journey, then their ids (deterministic). When nothing fits the budget,
+    the search continues without it only to report what the budget excludes.
+    """
     t0 = time.perf_counter()
     base = NetworkState(sc, [], "baseline")
     proposed_sc = apply_changes(sc, proposal)
@@ -135,7 +145,10 @@ def synthesize(sc: Scenario, proposal: list[Change], reqs: list[Requirement], fo
             "values": {k: v.value for k, v in res.items()},
         })
     solutions: list[tuple[str, ...]] = []
+    over_budget: list[tuple[str, ...]] = []
+    skipped_deps = 0
     size = 0
+    cost = lambda ids: sum(sc.interventions[i].cost_units for i in ids)  # noqa: E731
     if not targets:
         status = "nothing_to_fix"
     else:
@@ -144,13 +157,21 @@ def synthesize(sc: Scenario, proposal: list[Change], reqs: list[Requirement], fo
             for combo in combinations(cands, k):
                 if evals >= max_evals:
                     break
+                if not closed_under_requires(sc, combo):
+                    skipped_deps += 1
+                    continue
+                within = budget is None or cost(combo) <= budget
+                if not within and over_budget:
+                    continue  # one over-budget witness is enough to report
                 ok, _ = test(combo)
                 if ok:
-                    solutions.append(combo)
+                    (solutions if within else over_budget).append(combo)
             if solutions:
                 size = k
                 status = "found"
                 break
+        if status == "none" and over_budget:
+            status = "over_budget"
     # rank minimal sets: cost, then the step-free length of the focus journey
     def rank(ids: tuple[str, ...]):
         st = NetworkState(proposed_sc, list(ids), "rank")
@@ -178,6 +199,9 @@ def synthesize(sc: Scenario, proposal: list[Change], reqs: list[Requirement], fo
         "evaluated": evals,
         "exhaustive": evals < max_evals,
         "max_size": max_size,
+        "budget": budget,
+        "skipped_dependencies": skipped_deps,
+        "over_budget": [{"ids": list(c), "cost_units": cost(c)} for c in over_budget[:1]],
         "verification": verification,
         "runtime_ms": round((time.perf_counter() - t0) * 1000, 1),
     }

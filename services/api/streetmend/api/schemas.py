@@ -55,6 +55,7 @@ class FixRequest(BaseModel):
     origin: str | None = None
     destination: str | None = None
     max_size: int = Field(3, ge=1, le=4)
+    budget: int | None = Field(None, ge=0, le=50)  # total cost units allowed
 
 
 class EvaluateRequest(BaseModel):
